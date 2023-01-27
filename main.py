@@ -4,10 +4,11 @@ Created: 27/01/2023
 Purpose: Entrypoint for ShowerMusic sound analyzer.
 Name: main.py
 """
+from analyzer.analyzer import ShowerMusicAnalyzer
 
 
 def main():
-    pass
+    analyzer = ShowerMusicAnalyzer()
 
 if __name__ == '__main__':
     main()
