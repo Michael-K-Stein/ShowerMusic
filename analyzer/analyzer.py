@@ -13,9 +13,13 @@ import pywt
 from scipy.fft import fft
 from scipy.signal import find_peaks
 from scipy import signal
+from analyzer.notes import freq_to_note, get_key
 
 
 class ShowerMusicAnalyzer:
+    MAXIMUM_AUDIBLE_FREQUENCY = 20 * 1000
+    MINIMUM_AUDIBLE_FREQUENCY = 20
+
     _data = None
     _mp3_header = None
 
@@ -85,6 +89,16 @@ class ShowerMusicAnalyzer:
 
         bpm = numpy.median(bpms)
         return round(bpm)
+
+    def get_key(self):
+        freqs = [abs(x) for x in self.get_frequencies()[ShowerMusicAnalyzer.MINIMUM_AUDIBLE_FREQUENCY:ShowerMusicAnalyzer.MAXIMUM_AUDIBLE_FREQUENCY]]
+        notes = {}
+        for ind, amp in enumerate(freqs):
+            note = freq_to_note(ind + ShowerMusicAnalyzer.MINIMUM_AUDIBLE_FREQUENCY)[0]
+            if note not in notes:
+                notes[note] = 0
+            notes[note] += amp
+        return get_key(notes)
 
     @staticmethod
     def __peak_detect(data):
