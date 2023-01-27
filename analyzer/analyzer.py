@@ -58,8 +58,8 @@ class ShowerMusicAnalyzer:
         return self._peaks
 
     def get_bpm(self):
-        samps, fs = self.decode().samples, self.fs
-        window = 20
+        samps, fs = self.decode().samples[self.fs * 30 : self.fs * 150], self.fs
+        window = 3
 
         data = []
         bpm = 0
