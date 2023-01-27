@@ -8,7 +8,9 @@ from analyzer.analyzer import ShowerMusicAnalyzer
 
 
 def main():
-    analyzer = ShowerMusicAnalyzer()
+    analyzer = ShowerMusicAnalyzer.load_mp3('Crazy.mp3')
+    print('bpm: ', analyzer.get_bpm())
+
 
 if __name__ == '__main__':
     main()
