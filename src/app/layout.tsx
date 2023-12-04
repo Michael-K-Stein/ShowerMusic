@@ -16,7 +16,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <div className='max-h-screen min-h-screen min-w-screen max-w-screen relative overflow-hidden flex' style={{backgroundColor: 'rgba(30, 30, 100, 0.95'}}>
+          {children}
+        </div>
+      </body>
     </html>
   )
 }

@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" width="500" height="500">
+  <path fill="none" stroke="#FFFFFF" stroke-width="4" d="M18 34L23 39 18 44M32 16L27 11 32 6" />
+  <path fill="none" stroke="#FFFFFF" stroke-width="4" d="M28 11h11c1.657 0 3 1.343 3 3v22c0 1.657-1.343 3-3 3H27M22 39H11c-1.657 0-3-1.343-3-3V14c0-1.657 1.343-3 3-3h12" />
+</svg>

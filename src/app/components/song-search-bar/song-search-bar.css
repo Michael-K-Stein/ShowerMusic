@@ -1,0 +1,37 @@
+
+
+.song-search-bar {
+    box-sizing: border-box;
+    position: relative;
+    padding: 0.5em;
+    font-size: 1.5em;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.song-search-bar .song-search-bar-input {
+    box-sizing: border-box;
+    background-color: rgba(150, 150, 150, 0.1);
+    padding: 0.3em;
+    padding-left: 2.2em;
+    border-radius: 10em;
+    backdrop-filter: blur(10px);
+}
+
+.song-search-bar .song-search-bar-input:focus-visible {
+    border: none;
+    outline: none;
+}
+
+.song-search-bar .search-glyph {
+    position: absolute;
+    width: 1.5em;
+    margin-left: 0.5em;
+    opacity: 0.75;
+    transition: all 0.15s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.song-search-bar .song-search-bar-input:focus-visible ~ .search-glyph {
+    opacity: 0.95;
+}

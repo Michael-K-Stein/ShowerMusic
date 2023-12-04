@@ -6,6 +6,8 @@
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
+
+  --page-toolbar-width: 7rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -24,4 +26,8 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
+}
+
+.clickable {
+  cursor: pointer;
 }
