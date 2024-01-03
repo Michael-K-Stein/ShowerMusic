@@ -7,6 +7,8 @@
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
 
+  --global-background-color: rgba(43, 40, 64, 0.35);
+
   --page-toolbar-width: 7rem;
 }
 
@@ -30,4 +32,13 @@ body {
 
 .clickable {
   cursor: pointer;
+}
+
+.song-artist-name 
+{
+    cursor: pointer;
+}
+
+.song-artist-name:hover {
+    text-decoration: underline;
 }

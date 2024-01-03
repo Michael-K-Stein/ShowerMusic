@@ -1,3 +1,5 @@
-export default function MusicFolderGlyph(){return(<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+import "./glyphs.css"
+import Glypher from "./glypher"
+export default function MusicFolderGlyph({glyphTitle} : {glyphTitle: string}){return(<Glypher glyphTitle={glyphTitle}><div className="svg-glyph"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" className="min-h-full min-w-full max-h-full max-w-full w-full h-full"><rect fill="transparent" width="100%" height="100%" />
   <path d="M45 8L18.044 8.006c-.279-.101-.855-1.02-1.165-1.514C16.112 5.268 15.317 4 14 4H5C3.346 4 2 5.346 2 7v6h1 44 1v-2C48 9.346 46.654 8 45 8zM47 15H3c-.551 0-1 .448-1 1v27c0 1.654 1.346 3 3 3h40c1.654 0 3-1.346 3-3V16C48 15.448 47.551 15 47 15zM33 25.455c0 1.036-1.104.909-1.104.909-4.069 0-2.483-1.455-5.389-1.455-.465 0-.506.164-.506.873v9.909C26 37.109 25.809 40 21.856 40 17.554 40 17 38.091 17 36.782 17 34.873 18.542 33 21.856 33 24.123 33 24 32.745 24 31.545V21.036C24 20.491 24.425 20 25.356 20c3.837 0 2.471 1.818 6.54 1.818C32.593 21.818 33 22.182 33 23V25.455z" fill="#FFFFFF" />
-</svg>);};
+</svg></div></Glypher>);};

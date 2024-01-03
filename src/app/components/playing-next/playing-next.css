@@ -1,0 +1,52 @@
+
+.playing-next-parent-container {
+    position: relative;
+    background-color: rgba(27, 21, 42, 0.5);
+    border-radius: 3em 0 0 0;
+    --my-height: 25em;
+    margin-top: calc( (14em * 0.7) - var(--my-height) );
+    height: var(--my-height);
+    width: 33em;
+    z-index: 5;
+    backdrop-filter: blur(15px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.playing-next-parent-container .track-container {
+    overflow: scroll;
+}
+
+.playing-next-track-entry {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 0.3em;
+    margin: 0.3em;
+    transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+    border-radius: 0.5em;
+}
+
+.playing-next-track-entry:hover {
+    background-color: rgba(57, 38, 105, 0.3);
+}
+
+.playing-next-track-entry-cover-art {
+    width: 3.5em;
+    height: 3.5em;
+    border-radius: 0.5em;
+    overflow: hidden;
+}
+
+.playing-next-track-entry-cover-art img {
+    object-position: 50% 50%;
+    transition: all 0.1s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.playing-next-track-entry-cover-art:hover img {
+    transform: scale(1.1);
+}

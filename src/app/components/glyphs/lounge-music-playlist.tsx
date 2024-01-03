@@ -1,4 +1,6 @@
-export default function LoungeMusicPlaylistGlyph(){return(<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30">
+import "./glyphs.css"
+import Glypher from "./glypher"
+export default function LoungeMusicPlaylistGlyph({glyphTitle} : {glyphTitle: string}){return(<Glypher glyphTitle={glyphTitle}><div className="svg-glyph"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" className="min-h-full min-w-full max-h-full max-w-full w-full h-full"><rect fill="transparent" width="100%" height="100%" />
   <path d="M6.508 6.122l-5.129-3C1.09 2.954.739 2.961.457 3.14.173 3.32 0 3.647 0 4v6c0 .353.173.68.457.86C.603 10.953.768 11 .933 11c.153 0 .307-.041.447-.122l5.129-3C6.808 7.703 6.994 7.366 6.994 7S6.808 6.297 6.508 6.122zM8.994 7c0 .349-.079.681-.19 1H16c.552 0 1-.448 1-1s-.448-1-1-1H8.804C8.916 6.319 8.994 6.651 8.994 7zM16 11H5.132l-2.087 1.221C3.148 12.663 3.526 13 4 13h12c.552 0 1-.448 1-1S16.552 11 16 11zM16 16H4c-.552 0-1 .448-1 1s.448 1 1 1h12c.552 0 1-.448 1-1S16.552 16 16 16zM3 22c0 .552.448 1 1 1h7.135c.145-.787.402-1.448.736-2H4C3.448 21 3 21.448 3 22z" fill="#FFFFFF" />
   <path d="M27.055,4.018L20.58,5.404C19.658,5.601,19,6.416,19,7.359v11.354c0,1.949-6,0.32-6,5.766c0,1,0.603,3.52,3.467,3.52C19.987,27.999,21,25.323,21,22.354V10.537l6.08-1.334C27.617,9.085,28,8.61,28,8.059V4.781C28,4.283,27.541,3.913,27.055,4.018z" fill="#FFFFFF" />
-</svg>);};
+</svg></div></Glypher>);};
