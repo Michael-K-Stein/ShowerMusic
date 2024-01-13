@@ -1,15 +1,18 @@
-import { GetDbTrackInfo } from '@/app/db/mongo-utils';
+import { GetDbTrackInfo } from '@/app/server-db-services/mongo-utils';
 import { NextRequest, NextResponse } from 'next/server';
-import { createReadStream, stat, open, close } from 'fs/promises';
+import { stat, open } from 'fs/promises';
 import { join } from 'path';
 import rangeParser from 'range-parser';
 import { MAX_STREAM_BUFFER_SIZE } from '@/app/settings';
+import { ApiError } from '@/app/api/common';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
-) {
-  try {
+  { params }: { params: { slug: string; }; }
+)
+{
+  try
+  {
     const id = params.slug;
     const trackData = await GetDbTrackInfo(id);
 
@@ -17,7 +20,7 @@ export async function GET(
       .map((artist) => artist.name)
       .join(', ') + ` - ${trackData.name} [${trackData.album.name}].mp3`;
 
-    const filePath = join('F:/Michaelks/content/', trackData.artists[0].name, trackData.album.name, trackFileName);
+    const filePath = join('F:/Michaelks/content/', trackData.artists[ 0 ].name, trackData.album.name, trackFileName);
 
     console.log(`${id} : ${filePath}`);
 
@@ -30,16 +33,17 @@ export async function GET(
     let partial = false;
     if (ranges === -1 || ranges === -2)
     {
-        start = 0;
-        end = MAX_STREAM_BUFFER_SIZE;
+      start = 0;
+      end = MAX_STREAM_BUFFER_SIZE;
     }
     else if (ranges && ranges.length === 1)
     {
-      start = ranges[0].start;
-      end = ranges[0].end;
+      start = ranges[ 0 ].start;
+      end = ranges[ 0 ].end;
       const bytesRequested = end - start + 1;
 
-      if (bytesRequested > MAX_STREAM_BUFFER_SIZE) {
+      if (bytesRequested > MAX_STREAM_BUFFER_SIZE)
+      {
         end = start + MAX_STREAM_BUFFER_SIZE - 1;
       }
 
@@ -50,10 +54,12 @@ export async function GET(
     const fd = await open(filePath, 'r');
     const buffer = Buffer.alloc(chunkSize);
 
-    try {
+    try
+    {
       await fd.read(buffer, 0, chunkSize, start);
-    } finally {
-        fd.close();
+    } finally
+    {
+      fd.close();
     }
 
     return new NextResponse(buffer, {
@@ -65,7 +71,8 @@ export async function GET(
         'Content-Type': 'audio/mpeg',
       },
     });
-  } catch (e) {
-    return new NextResponse(JSON.stringify({ error: e }), { status: 400 });
+  } catch (e)
+  {
+    return ApiError(e);
   }
 }

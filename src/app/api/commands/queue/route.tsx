@@ -1,26 +1,40 @@
-import { getUserId } from '@/app/api/user-utils';
-import { MediaId } from '@/app/db/media-objects/media-id';
-import { addTrackToUserPlayingNextQueue, queryUserPlayingNextQueue } from '@/app/db/user-objects/user-object';
+import { ApiError, ApiSuccess } from '@/app/api/common';
+import { addTrackToUserPlayingNextQueue, queryUserPlayingNextQueue } from '@/app/server-db-services/user-objects/queue';
+import { getUserId } from '@/app/server-db-services/user-utils';
+import { MediaId } from '@/app/shared-api/media-objects/media-id';
 import { NextRequest } from "next/server";
 
 export async function POST(req: NextRequest)
 {
-    const userId = (await getUserId(req)) as string;
-    const commandData : {'type': string, 'id': MediaId} = await req.json();
-    const trackId = commandData.id;
+    try
+    {
 
-    console.log(`User "${userId}" wants to add track ${trackId} to their queue.`);
+        const userId = await getUserId();
+        const commandData: { 'type': string, 'id': MediaId; } = await req.json();
+        const trackId = commandData.id;
 
-    await addTrackToUserPlayingNextQueue(userId, trackId);
+        await addTrackToUserPlayingNextQueue(userId, trackId);
 
-    return new Response('ok', {status: 200});
+        return ApiSuccess();
+    }
+    catch (e)
+    {
+        return ApiError(e);
+    }
 }
 
 export async function GET(req: NextRequest)
 {
-    const userId = (await getUserId(req)) as string;
+    try
+    {
+        const userId = await getUserId();
 
-    const playingNextTracks = await queryUserPlayingNextQueue(userId);
+        const playingNextTracks = await queryUserPlayingNextQueue(userId);
 
-    return new Response(JSON.stringify(playingNextTracks), {status: 200});
+        return ApiSuccess(playingNextTracks);
+    }
+    catch (e)
+    {
+        return ApiError(e);
+    }
 }

@@ -1,39 +1,42 @@
 import jwt from 'jsonwebtoken';
-import { serialize } from 'cookie';
-import { loginUser } from '@/app/db/user-objects/user-object';
+import { loginUser } from '@/app/server-db-services/user-objects/user-object';
 import { NextRequest, NextResponse } from 'next/server';
+import { ApiError } from '@/app/api/common';
+import { cookies } from 'next/headers';
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest)
+{
     const jwtSecret = process.env.JWT_SECRET;
     if (!jwtSecret)
     {
+        // Do not throw this error inside the try-catch ! This is a Server-Side only error!
         throw new Error("JWT_SECRET environment variable has not been set!");
     }
-    
-    const formData = await req.formData();
-    const username = formData.get('username');
-    const password = formData.get('password');
-    console.log(username, password);
 
-    if (!username || !password)
+    try
     {
-        return NextResponse.json({status: 403});
-    }
+        const formData = await req.formData();
+        const username = formData.get('username');
+        const password = formData.get('password');
 
-    if (typeof username !== 'string' || typeof password !== 'string')
-    {
-        return NextResponse.json({status: 400});
-    }
+        if (!username || !password)
+        {
+            return NextResponse.json({ status: 403 });
+        }
 
-    try {
+        if (typeof username !== 'string' || typeof password !== 'string')
+        {
+            return NextResponse.json({ status: 400 });
+        }
+
         const user = await loginUser(username, password);
-        let res = NextResponse.json(JSON.stringify(user));
-        
+        let res = NextResponse.redirect(new URL(new URL(`${req.url}`).origin + '/stream'), 303);
+
         // Generate a JWT with the user data and a secret key
-        const token = jwt.sign( { 'userId': user._id, 'username': user.username }, jwtSecret, { expiresIn: '7d' });
+        const token = jwt.sign({ 'userId': user._id, 'username': user.username }, jwtSecret, { expiresIn: '7d' });
 
         // Set the JWT as a cookie
-        res.cookies.set('auth', token, {
+        cookies().set('auth', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV !== 'development', // Use HTTPS in production
             sameSite: 'strict',
@@ -42,7 +45,8 @@ export async function POST(req: NextRequest) {
         });
 
         return res;
-    } catch (error: any) {
-        return NextResponse.json({message: error}, {status: 500});
+    } catch (e)
+    {
+        return ApiError(e);
     }
 }

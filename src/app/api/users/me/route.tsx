@@ -1,3 +1,5 @@
+import { cookies } from 'next/headers';
+import { ApiAccessError, ApiError, ApiSuccess } from '@/app/api/common';
 import jwt from 'jsonwebtoken';
 import { NextRequest } from 'next/server';
 
@@ -9,14 +11,21 @@ export function GET(req: NextRequest)
         throw new Error("JWT_SECRET environment variable has not been set!");
     }
 
-    const authToken = req.cookies.get('auth');
-    if (!authToken)
+    try
     {
-        return new Response('Must be logged in to use user api!', {status: 403});
+        const authToken = cookies().get('auth');
+        if (!authToken)
+        {
+            return ApiAccessError('Must be logged in to use user api!');
+        }
+
+        // Verify the JWT and get the user data
+        const user = jwt.verify(authToken.value, jwtSecret);
+
+        return ApiSuccess(user);
     }
-
-    // Verify the JWT and get the user data
-    const user = jwt.verify(authToken.value, jwtSecret);
-
-    return new Response(JSON.stringify(user));
+    catch (e)
+    {
+        return ApiError(e);
+    }
 }

@@ -1,10 +1,10 @@
-import { GetDbArtistInfo } from '@/app/db/mongo-utils';
-import { NextResponse } from 'next/server';
- 
+import { ApiError, ApiSuccess } from '@/app/api/common';
+import { GetDbArtistInfo } from '@/app/server-db-services/mongo-utils';
+
 export async function GET(
-    request: Request,
-    { params }: { params: { slug: string } }
-    )
+    _request: Request,
+    { params }: { params: { slug: string; }; }
+)
 {
     // Surround GetDbTrackInfo with try-catch
     // This function handles user input, and users are stupid.
@@ -13,19 +13,12 @@ export async function GET(
     //  a server side function.
     try
     {
-
         const id = params.slug;
         const artistData = await GetDbArtistInfo(id);
-        let resp = new NextResponse(JSON.stringify(
-            artistData
-        ));
-        return resp;
+        return ApiSuccess(artistData);
     }
     catch (e)
     {
-        let resp = new NextResponse(JSON.stringify({
-            'error': e
-        }));
-        return resp;
+        return ApiError(e);
     };
 };

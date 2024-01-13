@@ -1,25 +1,26 @@
-import { SearchTracksDb } from "@/app/db/mongo-search";
+import { ApiError, ApiSearchError, ApiSuccess } from "@/app/api/common";
+import { SearchTracksDb } from "@/app/server-db-services/mongo-search";
 
 export async function GET(
     request: Request
-    )
+)
 {
-    const url = new URL(request.url);
-    const searchParams = new URLSearchParams(url.search);
-    if (!searchParams.has('q'))
+    try
     {
-        return new Response('Invalid query string!');
-    }
-    
-    const query = searchParams.get('q');
+        const url = new URL(request.url);
+        const searchParams = new URLSearchParams(url.search);
+        const query = searchParams.get('q');
+        if (!query)
+        {
+            throw new ApiSearchError();
+        }
 
-    // For the linter
-    if (!query)
+        const results = await SearchTracksDb(query);
+
+        return ApiSuccess(results);
+    }
+    catch (e)
     {
-        return new Response('Invalid query string!');
+        return ApiError(e);
     }
-
-    const results = await SearchTracksDb(query);   
-    
-    return new Response(JSON.stringify(results));
 };

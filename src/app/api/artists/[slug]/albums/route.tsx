@@ -1,16 +1,12 @@
-import { GetDbAlbumsOfArtist } from '@/app/db/mongo-utils';
+import { ApiError, ApiSuccess } from '@/app/api/common';
+import { GetDbAlbumsOfArtist } from '@/app/server-db-services/mongo-utils';
 import { NextRequest, NextResponse } from 'next/server';
- 
+
 export async function GET(
     request: NextRequest,
-    { params }: { params: { slug: string } }
-    )
+    { params }: { params: { slug: string; }; }
+)
 {
-    // Surround GetDbTrackInfo with try-catch
-    // This function handles user input, and users are stupid.
-    // Do not let them cause an internal server error.
-    // GetDbTrackInfo is allowed to throw an error since it is 
-    //  a server side function.
     try
     {
         const url = new URL(request.url);
@@ -28,7 +24,7 @@ export async function GET(
             limit = parseInt(searchParams.get('limit') as string, 10);
         }
 
-        let include_groups : string[] = [];
+        let include_groups: string[] = [];
         if (searchParams.has('include_groups'))
         {
             include_groups = (searchParams.get('include_groups') as string).split(',');
@@ -36,16 +32,11 @@ export async function GET(
 
         const id = params.slug;
         const artistAlbums = await GetDbAlbumsOfArtist(id, offset, limit, include_groups);
-        let resp = new NextResponse(JSON.stringify(
-            artistAlbums
-        ));
-        return resp;
+
+        return ApiSuccess(artistAlbums);
     }
     catch (e)
     {
-        let resp = new NextResponse(JSON.stringify({
-            'error': e
-        }));
-        return resp;
+        return ApiError(e);
     };
 };

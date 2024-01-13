@@ -1,0 +1,53 @@
+.modal-page-toolbar-container
+{
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 4em;
+    padding: 0.5em;
+    margin: 0.5em;
+    overflow: hidden;
+    z-index: 2;
+}
+
+.toolbar-item
+{
+    width: 2em;
+}
+
+.toolbar-item.page-close
+{
+    transition: all 0.15s cubic-bezier(0.165, 0.84, 0.44, 1);
+    color: white;
+}
+
+.toolbar-item.page-close:hover
+{
+    color: rgba(250, 20, 50, 0.95);
+}
+
+.modal-page-container
+{
+    position: absolute;
+    top: 0;
+    bottom: 14.2em;
+    left: 0;
+    right: 0;
+    backdrop-filter: blur(30px);
+    background-color: rgba(7, 13, 23, 0.95);
+    box-sizing: border-box;
+    padding: 1em;
+    margin: 1em;
+    margin-top: 4.4em;
+    border-radius: 2em;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    z-index: 15;
+    transition: all 0.2s cubic-bezier(0.47, 0, 0.745, 0.715);
+}
+
+.modal-page-container:hover
+{
+    bottom: 4.4em;
+}

@@ -1,7 +1,8 @@
-import { getUserId } from '@/app/api/user-utils';
-import { MediaId } from '@/app/db/media-objects/media-id';
-import { setUserPlayingTrack, getUserPlayingTrack } from '@/app/db/user-objects/player';
+import { getUserId } from '@/app/server-db-services/user-utils';
+import { MediaId } from '@/app/shared-api/media-objects/media-id';
+import { setUserPlayingTrack, getUserPlayingTrack } from '@/app/server-db-services/user-objects/player';
 import { NextRequest } from "next/server";
+import { ApiError, ApiSuccess } from '@/app/api/common';
 
 /**
  * Set the current playing track, overriding anything currently playing.
@@ -11,19 +12,16 @@ export async function POST(req: NextRequest)
 {
     try
     {
-        const userId = (await getUserId(req)) as string;
-        const commandData : {'type': string, 'id': MediaId} = await req.json();
+        const userId = await getUserId();
+        const commandData: { 'type': string, 'id': MediaId; } = await req.json();
         const trackId = commandData.id;
-        
-        console.log(`User "${userId}" wants to play track ${trackId} now.`);
-        
         const previousTrack = await setUserPlayingTrack(userId, trackId);
-        
-        return new Response(JSON.stringify(previousTrack), {status: 200});
+
+        return ApiSuccess(previousTrack);
     }
-    catch
+    catch (e)
     {
-        return new Response('no', {status: 400});
+        return ApiError(e);
     }
 }
 
@@ -31,15 +29,14 @@ export async function GET(req: NextRequest)
 {
     try
     {
-        const userId = (await getUserId(req)) as string;
-        
+        const userId = await getUserId();
+
         const playingTrack = await getUserPlayingTrack(userId);
-        
-        return new Response(JSON.stringify(playingTrack), {status: 200});
+
+        return ApiSuccess(playingTrack);
     }
-    catch
+    catch (e)
     {
-        return new Response('no', {status: 400});
+        return ApiError(e);
     }
 }
-    

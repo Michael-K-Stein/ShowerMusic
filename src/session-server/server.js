@@ -1,13 +1,13 @@
-const COMMON_SETTINGS = require('./../common');
-console.log(COMMON_SETTINGS);
+const COMMON_SETTINGS = require( './../common' );
+console.log( COMMON_SETTINGS );
 const WEBSOCKET_SESSION_SERVER_PORT = COMMON_SETTINGS.WEBSOCKET_SESSION_SERVER_PORT;
 const MessageTypes = COMMON_SETTINGS.MessageTypes;
 
-const WebSocket = require('ws');
+const WebSocket = require( 'ws' );
 
-let connectedUsers = { };
+let connectedUsers = {};
 
-const wss = new WebSocket.Server({
+const wss = new WebSocket.Server( {
     port: WEBSOCKET_SESSION_SERVER_PORT,
     perMessageDeflate: {
         zlibDeflateOptions: {
@@ -28,51 +28,57 @@ const wss = new WebSocket.Server({
         threshold: 1024 // Size (in bytes) below which messages
         // should not be compressed if context takeover is disabled.
     }
-});
+} );
 
-const registerUserSession = (ws, userId) => {
-    connectedUsers[userId] = ws;
+const registerUserSession = ( ws, userId ) =>
+{
+    connectedUsers[ userId ] = ws;
 };
 
-const handleServerMessage = (data) => {
-    console.log(`Server message ${data['type']}`);
-    if (data['type'] === MessageTypes.QUEUE_UPDATE)
+const handleServerMessage = ( data ) =>
+{
+    console.log( `Server message ${data[ 'type' ]}` );
+    if ( data[ 'type' ] === MessageTypes.QUEUE_UPDATE )
     {
-        data['targetUsers'].map((userId) => {
-            if (connectedUsers[userId] != null)
+        data[ 'targetUsers' ].map( ( userId ) =>
+        {
+            if ( connectedUsers[ userId ] != null )
             {
-                connectedUsers[userId].send(JSON.stringify({'type': MessageTypes.QUEUE_UPDATE}));
+                connectedUsers[ userId ].send( JSON.stringify( { 'type': MessageTypes.QUEUE_UPDATE } ) );
             }
-        });
+        } );
     }
-    else if (data['type'] === MessageTypes.CURRENTLY_PLAYING_UPDATE)
+    else if ( data[ 'type' ] === MessageTypes.CURRENTLY_PLAYING_UPDATE )
     {
-        data['targetUsers'].map((userId) => {
-            if (connectedUsers[userId] != null)
+        data[ 'targetUsers' ].map( ( userId ) =>
+        {
+            if ( connectedUsers[ userId ] != null )
             {
-                connectedUsers[userId].send(JSON.stringify({'type': MessageTypes.CURRENTLY_PLAYING_UPDATE}));
+                connectedUsers[ userId ].send( JSON.stringify( { 'type': MessageTypes.CURRENTLY_PLAYING_UPDATE } ) );
             }
-        });
+        } );
     }
 };
 
-wss.on('connection', (ws) => {
-    ws.on('error', () => console.error('[WebSocket] : connection error!'));
+wss.on( 'connection', ( ws ) =>
+{
+    ws.on( 'error', () => console.error( '[WebSocket] : connection error!' ) );
 
-    ws.on('message', (dataString) => {
-        console.log('[WebSocket] : Data: %s', dataString);
+    ws.on( 'message', ( dataString ) =>
+    {
+        console.log( '[WebSocket] : Data: %s', dataString );
 
-        const data = JSON.parse(dataString);
+        const data = JSON.parse( dataString );
 
-        if (data['sender'] === 'server')
+        if ( data[ 'sender' ] === 'server' )
         {
-            handleServerMessage(data);
+            handleServerMessage( data );
         }
 
-        if (data['type'] === MessageTypes.REGISTER_SESSION)
+        if ( data[ 'type' ] === MessageTypes.REGISTER_SESSION )
         {
-            registerUserSession(ws, data['userId']);
-            return ;
+            registerUserSession( ws, data[ 'userId' ] );
+            return;
         }
-    })
-});
+    } );
+} );

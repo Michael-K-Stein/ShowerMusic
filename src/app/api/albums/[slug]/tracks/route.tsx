@@ -1,10 +1,11 @@
-import { GetDbAlbumInfo, GetDbAlbumTracks } from '@/app/db/mongo-utils';
+import { ApiError, ApiSuccess } from '@/app/api/common';
+import { GetDbAlbumInfo, GetDbAlbumTracks } from '@/app/server-db-services/mongo-utils';
 import { NextResponse } from 'next/server';
- 
+
 export async function GET(
     request: Request,
-    { params }: { params: { slug: string } }
-    )
+    { params }: { params: { slug: string; }; }
+)
 {
     try
     {
@@ -24,17 +25,12 @@ export async function GET(
         }
 
         const id = params.slug;
-        const tracksData = await GetDbAlbumTracks(id, offset, limit);
-        let resp = new NextResponse(JSON.stringify(
-            tracksData
-        ));
-        return resp;
+        const tracksData = await GetDbAlbumTracks(id);
+
+        return ApiSuccess(tracksData);
     }
     catch (e)
     {
-        let resp = new NextResponse(JSON.stringify({
-            'error': e
-        }));
-        return resp;
+        return ApiError(e);
     };
 };

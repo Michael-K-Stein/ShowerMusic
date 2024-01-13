@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import './page-toolbar.css'
+import './page-toolbar.css';
 import Drawer from '@mui/material/Drawer';
 import React from 'react';
 import RadioTowerGlyph from '@/glyphs/radio-tower';
@@ -12,9 +12,9 @@ function MenuBurgerRoundedGlyph()
 {
     return (
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-          <path fill="none" stroke="#FFFFFF" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M36,27.486c1.933,0,3.5-1.567,3.5-3.5c0-1.933-1.567-3.5-3.5-3.5H12c-1.933,0-3.5,1.567-3.5,3.5c0,1.933,1.567,3.5,3.5,3.5H36z" />
-          <path fill="none" stroke="#FFFFFF" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M36,15.486c1.933,0,3.5-1.567,3.5-3.5c0-1.933-1.567-3.5-3.5-3.5H12c-1.933,0-3.5,1.567-3.5,3.5c0,1.933,1.567,3.5,3.5,3.5H36z" />
-          <path fill="none" stroke="#FFFFFF" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M36,39.486c1.933,0,3.5-1.567,3.5-3.5c0-1.933-1.567-3.5-3.5-3.5H12c-1.933,0-3.5,1.567-3.5,3.5c0,1.933,1.567,3.5,3.5,3.5H36z" />
+            <path fill="none" stroke="#FFFFFF" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M36,27.486c1.933,0,3.5-1.567,3.5-3.5c0-1.933-1.567-3.5-3.5-3.5H12c-1.933,0-3.5,1.567-3.5,3.5c0,1.933,1.567,3.5,3.5,3.5H36z" />
+            <path fill="none" stroke="#FFFFFF" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M36,15.486c1.933,0,3.5-1.567,3.5-3.5c0-1.933-1.567-3.5-3.5-3.5H12c-1.933,0-3.5,1.567-3.5,3.5c0,1.933,1.567,3.5,3.5,3.5H36z" />
+            <path fill="none" stroke="#FFFFFF" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M36,39.486c1.933,0,3.5-1.567,3.5-3.5c0-1.933-1.567-3.5-3.5-3.5H12c-1.933,0-3.5,1.567-3.5,3.5c0,1.933,1.567,3.5,3.5,3.5H36z" />
         </svg>
     );
 };
@@ -22,9 +22,10 @@ function MenuBurgerRoundedGlyph()
 /**
  * ToolbarItemProps interface for ToolbarItem component
  */
-interface ToolbarItemProps {
+interface ToolbarItemProps
+{
     name: string;
-    glyphGenerator: (glyphTitle: string) =>  JSX.Element;
+    glyphGenerator: (glyphTitle: string) => JSX.Element;
     link: string;
 };
 
@@ -37,28 +38,29 @@ interface ToolbarItemProps {
  * - A relative link to the relevant page
  */
 class ToolbarItem extends React.Component<ToolbarItemProps> {
-    render() {
+    render()
+    {
         const { name, glyphGenerator, link } = this.props;
 
         return (
-            <Link href={link} 
+            <Link href={ link }
             // className='transition duration-250 ease-in-out transform hover:-translate-y-1 hover:scale-105'
             >
                 <div className="toolbar-item flex flex-col center text-center items-center justify-center content-center pt-4">
                     <div className='w-14 h-14'>
                         { glyphGenerator(name) }
                     </div>
-                    <h3 className='text-lg font-bold'>{name}</h3>
+                    <h3 className='text-lg font-bold'>{ name }</h3>
                 </div>
             </Link>
         );
     };
-};    
+};
 
-const TOOLBAR_MENU_ITEMS : ToolbarItemProps[] = [
+const TOOLBAR_MENU_ITEMS: ToolbarItemProps[] = [
     {
         name: 'Home',
-        glyphGenerator: (_glyphTitle: string) => <HomeGlyph glyphTitle={''} />,
+        glyphGenerator: (_glyphTitle: string) => <HomeGlyph glyphTitle={ '' } />,
         link: 'stream/home',
     },
     {
@@ -73,12 +75,14 @@ export default function PageToolbar()
     const PAGE_TOOLBAR_STATE_STORAGE_KEY = 'page-toolbar-open';
     let pageToolbarState = useRef(true);
 
-    const togglePageToolbar = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
+    const togglePageToolbar = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) =>
+    {
         if (open)
         {
             document.getElementById('page-toolbar-open-burger')?.setAttribute('hidden', 'true');
             document.getElementById('stream-layout')?.setAttribute('toolbar', 'Openned');
-        } else {
+        } else
+        {
             document.getElementById('page-toolbar-open-burger')?.removeAttribute('hidden');
             document.getElementById('stream-layout')?.setAttribute('toolbar', 'Closed');
         }
@@ -89,10 +93,11 @@ export default function PageToolbar()
     // Render the last state of the session
     // Open the toolbar if it was openned, otherwise keep it closed
     // Use Memo with '[]' as the dependency will render only ONCE before the page has finished rendering
-    useMemo(() => {
+    useMemo(() =>
+    {
         if (typeof sessionStorage === 'undefined')
         {
-            return ;
+            return;
         }
 
         let initialPageToolbarState = sessionStorage.getItem(PAGE_TOOLBAR_STATE_STORAGE_KEY);
@@ -105,31 +110,33 @@ export default function PageToolbar()
     }, []);
 
     // UseEffect so this happens AFTER rendering has finished
-    useEffect(() => {
+    useEffect(() =>
+    {
         if (!pageToolbarState)
         {
             document.getElementById('stream-layout')?.setAttribute('toolbar', 'Closed');
         }
     }, []);
 
-    const toolbarMenuItems = TOOLBAR_MENU_ITEMS.map((item) => {
-        return ( <ToolbarItem key={item.name} name={item.name} glyphGenerator={item.glyphGenerator} link={item.link} /> )
+    const toolbarMenuItems = TOOLBAR_MENU_ITEMS.map((item) =>
+    {
+        return (<ToolbarItem key={ item.name } name={ item.name } glyphGenerator={ item.glyphGenerator } link={ item.link } />);
     });
 
     return (
         <div className='page-toolbar'>
             <Drawer
-                anchor='left' 
-                open={pageToolbarState.current} 
-                onClose={togglePageToolbar(false)}
+                anchor='left'
+                open={ pageToolbarState.current }
+                onClose={ togglePageToolbar(false) }
                 variant="persistent"
-                >
-                    <div onClick={togglePageToolbar(false)}>Close</div>
-                    { toolbarMenuItems }
-                    
+            >
+                {/* <div onClick={togglePageToolbar(false)}>Close</div> */ }
+                { toolbarMenuItems }
+
             </Drawer>
-            <div id='page-toolbar-open-burger' onClick={togglePageToolbar(true)} className='clickable w-8 h-8 absolute -left-10'>
-                <MenuBurgerRoundedGlyph />
+            <div id='page-toolbar-open-burger' onClick={ togglePageToolbar(true) } className='clickable w-8 h-8 absolute -left-10'>
+                {/* <MenuBurgerRoundedGlyph /> */ }
             </div>
         </div>
     );

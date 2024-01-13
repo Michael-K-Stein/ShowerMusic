@@ -2,7 +2,7 @@ const WEBSOCKET_SESSION_SERVER_PORT = 8088;
 const WEBSOCKET_SESSION_SERVER_HOST = '127.0.0.1';
 const WEBSOCKET_SESSION_SERVER_CONN_STRING = `ws://${WEBSOCKET_SESSION_SERVER_HOST}:${WEBSOCKET_SESSION_SERVER_PORT}/`;
 
-const MessageTypes = 
+const MessageTypes =
 {
     QUEUE_UPDATE: 'queue-update',
     CURRENTLY_PLAYING_UPDATE: 'currently-playing-update',

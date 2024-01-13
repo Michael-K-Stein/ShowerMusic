@@ -1,0 +1,25 @@
+.login-form
+{
+    display: flex;
+    flex-direction: column;
+    font-size: 1.4em;
+    min-width: 30vw;
+}
+
+.login-form input
+{
+    width: 100%;
+    padding: 0.5em;
+    padding-left: 0.8em;
+    padding-right: 0.8em;
+    margin: 0.5em;
+    border-radius: 1.3em;
+    background-color: rgba(98, 122, 161, 0.45);
+    backdrop-filter: blur(5px);
+}
+
+.login-form input:focus-visible
+{
+    border: none;
+    outline: none;
+}

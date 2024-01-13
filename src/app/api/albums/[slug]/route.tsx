@@ -1,25 +1,19 @@
-import { GetDbAlbumInfo } from '@/app/db/mongo-utils';
-import { NextResponse } from 'next/server';
- 
+import { ApiError, ApiSuccess } from '@/app/api/common';
+import { GetDbAlbumInfo } from '@/app/server-db-services/mongo-utils';
+
 export async function GET(
     _request: Request,
-    { params }: { params: { slug: string } }
-    )
+    { params }: { params: { slug: string; }; }
+)
 {
     try
     {
         const id = params.slug;
         const albumData = await GetDbAlbumInfo(id);
-        let resp = new NextResponse(JSON.stringify(
-            albumData
-        ));
-        return resp;
+        return ApiSuccess(albumData);
     }
     catch (e)
     {
-        let resp = new NextResponse(JSON.stringify({
-            'error': e
-        }));
-        return resp;
+        return ApiError(e);
     };
 };
