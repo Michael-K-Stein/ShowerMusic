@@ -1,65 +1,37 @@
 'use client';
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import assert from 'assert';
-import { UserId } from '@/app/shared-api/user-objects/users';
-import { ClientApiError, safeApiFetcher } from '@/app/client-api/common-utils';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { UserDict } from '@/app/shared-api/user-objects/users';
+import { safeApiFetcher } from '@/app/client-api/common-utils';
 
 type AuthContextState = {
-    isDefault: boolean;
-    isLoggedIn: boolean;
-    setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
+    userData?: UserDict;
 };
 
 // Create a context for the authentication state
-const AuthContext = createContext<AuthContextState>({
-    isDefault: true,
-    isLoggedIn: false,
-    setIsLoggedIn: () => { },
-});
+const AuthContext = createContext<AuthContextState | undefined>(undefined);
 
 export async function getUserMe()
 {
     const response = await safeApiFetcher('/api/users/me');
-    if (response === false)
-    {
-        throw new Error('Network response was not ok');
-    }
-
-    const data = response;
-
-    const parsedData: {
-        _id: UserId,
-        username: string,
-        playingNextTracks: never[],
-        friends: any[];
-    } = data;
-    const { _id: userId, ...rest } = parsedData;
-    const newData = { userId, ...rest };
-
-    return newData;
+    return response as UserDict;
 };
 
 // Create a provider component for the authentication state
 export const AuthProvider = ({ children }: { children: React.JSX.Element[] | React.JSX.Element | React.ReactNode | React.ReactNode[]; }) =>
 {
     const [ isLoggedIn, setIsLoggedIn ] = useState(true);
+    const [ userData, setUserData ] = useState<UserDict>();
 
     // Check if the user is logged in when the component mounts
-    useEffect(() =>
+    useMemo(() =>
     {
+        if (typeof window === 'undefined') { return; }
         async function checkIfUserIsLoggedIn()
         {
             try
             {
-                const response = await safeApiFetcher('/api/users/me');
-                assert(response !== true);
-
-                if (response === false)
-                {
-                    return false;
-                }
-
+                const response = await getUserMe();
+                setUserData(response);
                 return true;
             } catch (error)
             {
@@ -76,7 +48,7 @@ export const AuthProvider = ({ children }: { children: React.JSX.Element[] | Rea
         };
 
         checkLogin();
-    }, []);
+    }, [ setUserData ]);
 
     // Redirect the user to /login if they are not logged in
     useEffect(() =>
@@ -89,7 +61,7 @@ export const AuthProvider = ({ children }: { children: React.JSX.Element[] | Rea
 
     // Provide the authentication state and its setter function to the children
     return (
-        <AuthContext.Provider value={ { isDefault: false, isLoggedIn, setIsLoggedIn } }>
+        <AuthContext.Provider value={ { userData } }>
             { children }
         </AuthContext.Provider>
     );
@@ -100,7 +72,7 @@ export const useAuth = () =>
 {
     const context = useContext(AuthContext);
 
-    if (context.isDefault)
+    if (context === undefined)
     {
         throw new Error('useAuth must be used within an AuthProvider');
     }

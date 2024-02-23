@@ -1,8 +1,10 @@
 import { queryQueue } from '@/app/client-api/queue';
+import { enqueueApiErrorSnackbar, enqueueSnackbarWithSubtext } from '@/app/components/providers/global-props/global-modals';
 import useGlobalProps from '@/app/components/providers/global-props/global-props';
-import useUserSession from '@/app/components/providers/user-session';
+import useUserSession from '@/app/components/providers/user-provider/user-session';
 import { MessageTypes } from '@/app/settings';
 import { PlayingNextTracks } from '@/app/shared-api/media-objects/tracks';
+import { useSnackbar } from 'notistack';
 import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
 
 type QueueContextType = {
@@ -20,20 +22,22 @@ export const QueueContext = createContext<QueueContextType>({
 
 export const QueueProvider = ({ children }: { children: React.JSX.Element[] | React.JSX.Element; }) =>
 {
-    const { reportGeneralServerError } = useGlobalProps();
+    const { enqueueSnackbar } = useSnackbar();
     const { addMessageHandler } = useUserSession();
     const [ playingNextTracks, setPlayingNextTracks ] = useState<PlayingNextTracks>();
 
-    const reloadQueue = useCallback(async () =>
+    const reloadQueue = useCallback(() =>
     {
-        const playingNextTracks = await queryQueue();
-        if (playingNextTracks === false)
-        {
-            reportGeneralServerError();
-            return;
-        }
-        setPlayingNextTracks(playingNextTracks);
-    }, [ reportGeneralServerError ]);
+        queryQueue()
+            .then((playingNextTracks) =>
+            {
+                setPlayingNextTracks(playingNextTracks);
+            })
+            .catch((e) =>
+            {
+                enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to reload queue!`, e);
+            });
+    }, [ enqueueSnackbar ]);
 
     const messageHandler = useCallback((messageType: string, data: any) =>
     {

@@ -1,11 +1,6 @@
-const COMMON_SETTINGS = require('../common');
-export const WEBSOCKET_SESSION_SERVER_CONN_STRING = COMMON_SETTINGS.WEBSOCKET_SESSION_SERVER_CONN_STRING;
-export const MessageTypes = COMMON_SETTINGS.MessageTypes;
+export * from "@/session-server/src/common";
+
 export const MAX_STREAM_BUFFER_SIZE = 128000;
 
-export enum ApiStatusCodes
-{
-    STATUS_SUCCESS = 0,
-    STATUS_ERROR = -1,
-    STATUS_ACCESS_DENIED = 0xC0000022,
-};
+const SECONDS_IN_A_DAY = 86400;
+export const USER_RECOMMENDATIONS_INVALIDATION_TIME = SECONDS_IN_A_DAY;

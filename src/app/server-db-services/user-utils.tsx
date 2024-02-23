@@ -1,8 +1,11 @@
-import { getUserById } from '@/app/server-db-services/user-objects/user-object';
-import { UserId } from '@/app/shared-api/user-objects/users';
-import jwt from 'jsonwebtoken';
-import { cookies } from 'next/headers';
+export const dynamic = "force-dynamic";
 
+import { DbObjects } from '@/app/server-db-services/db-objects';
+import { JWTUserData } from '@/app/shared-api/user-objects/users';
+import jwt from 'jsonwebtoken';
+import { ObjectId } from 'mongodb';
+import { cookies } from 'next/headers';
+export type SSUserId = ObjectId;
 export async function getUser()
 {
     const jwtSecret = process.env.JWT_SECRET;
@@ -18,19 +21,29 @@ export async function getUser()
     }
 
     // Verify the JWT and get the user data
+
     try
     {
-        const user: { 'userId': UserId; } = jwt.verify(authToken.value, jwtSecret) as { userId: UserId; };
-        const userData = await getUserById(user.userId);
+        let user = undefined;
+        try
+        {
+            user = jwt.verify(authToken.value, jwtSecret) as JWTUserData;
+            user._id = new ObjectId(user._id);
+        }
+        catch (error)
+        {
+            throw new Error('Error verifying JWT!');
+        }
+        const userData = await DbObjects.Users.get(user._id);
         return userData;
     }
-    catch (error)
+    catch (e)
     {
-        throw new Error('Error verifying JWT!');
+        throw new Error('Error getting user data!');
     }
 }
 
-export async function getUserId()
+export async function getUserId(): Promise<SSUserId>
 {
     const jwtSecret = process.env.JWT_SECRET;
     if (!jwtSecret)
@@ -47,9 +60,8 @@ export async function getUserId()
     // Verify the JWT and get the user data
     try
     {
-
-        const user: { 'userId': UserId, 'username': string; } = jwt.verify(authToken.value, jwtSecret) as { 'userId': UserId, 'username': string; };
-        return user[ 'userId' ] as UserId;
+        const user = jwt.verify(authToken.value, jwtSecret) as JWTUserData;
+        return new ObjectId(user._id);
     }
     catch (error)
     {

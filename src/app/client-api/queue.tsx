@@ -1,102 +1,78 @@
 'use client';
 
-import { safeApiFetcher } from "@/app/client-api/common-utils";
-import { StreamStateType } from "@/app/components/providers/session/session";
+import { commandAnyAddArbitrary, commandAnyRemoveArbitrary, commandAnySetArbitrary, safeApiFetcher } from "@/app/client-api/common-utils";
 import { AlbumDict } from "@/app/shared-api/media-objects/albums";
+import { ArtistDict } from "@/app/shared-api/media-objects/artists";
 import { MediaId } from "@/app/shared-api/media-objects/media-id";
 import { PlayingNextTracks, QueuedTrackDict, TrackId } from "@/app/shared-api/media-objects/tracks";
-import { ShowerMusicObjectType } from "@/app/shared-api/other/common";
-import assert from "assert";
+import { ComplexItemType, ShowerMusicObjectType } from "@/app/shared-api/other/common";
+import { ApiNotImplementedError } from "@/app/shared-api/other/errors";
+import { PlaylistId } from "@/app/shared-api/other/playlist";
+import { ShowerMusicPlayableMediaId } from "@/app/shared-api/user-objects/users";
+import { ShowerMusicPlayableMediaType } from "@/app/showermusic-object-types";
 
-export async function addTrackToQueue(trackId: TrackId): Promise<void>
+export async function commandSetPlayNextArbitraryTypeTracks(mediaType: ShowerMusicObjectType, mediaId: MediaId): Promise<void>
 {
-    const r = await safeApiFetcher(`/api/commands/queue`, {
+    return await safeApiFetcher(`/api/commands/queue/next`, {
         method: 'POST',
         body: JSON.stringify({
-            'type': 'track',
-            'id': trackId,
+            'type': mediaType,
+            'id': mediaId,
         }),
     });
-    if (r === false) { throw new Error('Failed to add track to queue!'); }
 };
 
 export async function queryQueue()
 {
     const r = await safeApiFetcher(`/api/commands/queue`, { method: 'GET' });
-    if (r === false) { return false; }
-    assert(typeof (r) === 'object');
     return r as PlayingNextTracks;
 }
 
 export async function popTrackFromQueue()
 {
     const r = await safeApiFetcher(`/api/commands/queue/pop`, { method: 'GET' });
-    if (r === false) { return false; }
-    assert(typeof (r) === 'object');
     return r as QueuedTrackDict | null;
 }
 
 export async function peekTrackFromQueue()
 {
     const r = await safeApiFetcher(`/api/commands/queue/peek`, { method: 'GET' });
-    if (r === false) { return false; }
-    assert(typeof (r) === 'object');
     return r as QueuedTrackDict | null;
 }
 
 export async function removeTrackFromQueue(queueId: any)
 {
-    const r = await safeApiFetcher(`/api/commands/queue/remove`, {
+    return commandAnyRemoveArbitrary(queueId, ComplexItemType.RemovalId, ShowerMusicObjectType.User);
+}
+
+export async function skipToQueuedTrack(queueId: any)
+{
+    const r = await safeApiFetcher(`/api/commands/queue/skip`, {
         method: 'POST', body: JSON.stringify({
-            'type': 'track',
-            'id': queueId,
-        }),
+            toQueuedItem: queueId,
+        })
     });
-    if (r === false) { return false; }
-    return r as TrackId | null;
+    return r as QueuedTrackDict;
 }
 
 export async function flushPlayingNext()
 {
     const r = await safeApiFetcher(`/api/commands/queue/flush`, { method: 'GET' });
-    if (r === false) { return false; }
-    assert(typeof (r) === 'object');
     return r as QueuedTrackDict[];
 }
 
-export async function commandQueueSetAlbumTracks(
-    albumData: AlbumDict,
-    setStreamType?: React.Dispatch<React.SetStateAction<StreamStateType>>,
-    setMediaId?: React.Dispatch<React.SetStateAction<MediaId>>
-)
+export async function commandQueueAddArbitraryTypeTracks(mediaType: ShowerMusicObjectType, mediaId: MediaId)
 {
-    const r = await safeApiFetcher(`/api/commands/queue/set`, {
-        method: 'POST', body: JSON.stringify({
-            'type': 'album',
-            'id': albumData.id,
-            'targetType': ShowerMusicObjectType.User,
-        }),
-    });
-    if (r === false) { return false; }
-    assert(typeof (r) === 'object');
-    if (setStreamType && setMediaId)
-    {
-        setMediaId(albumData.id);
-        setStreamType(StreamStateType.AlbumTracks);
-    }
-    return r[ 'amount' ] as number;
+    return commandAnyAddArbitrary(mediaType, mediaId, ShowerMusicObjectType.User);
 }
 
-export async function commandQueueAddAlbumTracks(albumData: AlbumDict)
+export async function commandQueueSetPlaylistTracks(playlistId: PlaylistId)
 {
-    const r = await safeApiFetcher(`/api/commands/queue/add`, {
-        method: 'POST', body: JSON.stringify({
-            'type': 'album',
-            'id': albumData.id,
-            'targetType': ShowerMusicObjectType.User,
-        }),
-    });
-    if (r === false) { return false; }
-    assert(typeof (r) === 'object');
-    return r[ 'amount' ];
+    return commandAnySetArbitrary(ShowerMusicObjectType.Playlist, playlistId, ShowerMusicObjectType.User);
 }
+
+export async function commandQueueSetArbitraryTracks(itemId: ShowerMusicPlayableMediaId, itemType: ShowerMusicPlayableMediaType)
+{
+    return commandAnySetArbitrary(itemType, itemId, ShowerMusicObjectType.User);
+}
+

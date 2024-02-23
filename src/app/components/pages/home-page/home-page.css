@@ -1,0 +1,71 @@
+.home-page-scroll-container
+{
+    overflow-y: scroll;
+    height: 100%;
+}
+
+.home-page-container
+{
+    padding-top: 3em;
+    padding-bottom: 30vh;
+}
+
+.home-page-recents-container
+{
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    width: 100%;
+}
+
+.home-page-recents-container .played-item
+{
+    box-sizing: border-box;
+    position: relative;
+    padding: 0.5em;
+    margin: 0.5em;
+    background-color: rgba(220, 170, 200, 0.8);
+    backdrop-filter: blur(5px);
+    height: 3em;
+    font-size: 1.2em;
+    border-radius: 0.8em;
+    cursor: pointer;
+    transition: all 0.1s cubic-bezier(0.215, 0.610, 0.355, 1);
+    box-shadow: -0.1em 0.1em 2px 1px rgba(115, 81, 101, 0.265);
+    display: flex;
+    flex-direction: row;
+}
+
+.home-page-recents-container .played-item:hover
+{
+    transform: translateY(-0.1em) translateX(0.1em);
+    box-shadow: -0.2em 0.2em 2px 2px rgba(73, 1, 99, 0.3);
+}
+
+.home-page-recents-container .played-item .played-item-type
+{
+    box-sizing: border-box;
+    position: absolute;
+    bottom: 0.3em;
+    right: 0.3em;
+    width: min-content;
+    height: min-content;
+    padding: 0.2em;
+    padding-left: 0.4em;
+    padding-right: 0.4em;
+    background-color: rgba(147, 5, 111, 0.3);
+    backdrop-filter: blur(2px);
+    border-radius: 1em;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.home-page-recents-container .played-item .played-item-image
+{
+    width: 1.4em;
+    height: 1.4em;
+    margin-right: 0.3em;
+    overflow: hidden;
+    border-radius: 0.1em;
+}

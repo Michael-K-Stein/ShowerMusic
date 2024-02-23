@@ -1,20 +1,17 @@
-import { ApiStatusCodes } from "@/app/settings";
 import { ObjectId } from "mongodb";
+import { MediaId } from "@/app/shared-api/media-objects/media-id";
+import Playlist, { MinimalPlaylist, PlaylistTrack } from "@/app/shared-api/other/playlist";
+import { QueuedTrackDict, TrackDict, TrackId } from "@/app/shared-api/media-objects/tracks";
+import { ShowerMusicObjectType } from "@/app/showermusic-object-types";
+import { AlbumDict, MinimalAlbumDict } from "@/app/shared-api/media-objects/albums";
+import { ArtistDict, MinimalArtistDict } from "@/app/shared-api/media-objects/artists";
+export { ShowerMusicObjectType as ShowerMusicObjectType };
+
+export type RemovalId = string;
 
 export interface ShowerMusicObject
 {
     _id: ObjectId;
-}
-
-export enum ShowerMusicObjectType
-{
-    Unknown,
-    Track = 'track',
-    Album = 'album',
-    Artist = 'artist',
-    User = 'user',
-    Station = 'station',
-    Playlist = 'playlist',
 }
 
 export interface ShowerMusicImageDict
@@ -26,7 +23,40 @@ export interface ShowerMusicImageDict
 
 export interface ApiResponseJson
 {
-    status: ApiStatusCodes;
+    status: number;
     data?: any;
     error?: any;
 }
+
+export interface ArbitraryTargetAndDataApiRequestBody
+{
+
+    type: ShowerMusicObjectType;
+    id: MediaId;
+    targetId?: string;
+    targetType: ShowerMusicObjectType;
+
+}
+
+export type ComplexItem = MediaId | TrackId | PlaylistTrack | QueuedTrackDict | RemovalId;
+export enum ComplexItemType
+{
+
+    MediaId,
+    TrackId,
+    PlaylistTrack,
+    QueuedTrackDict,
+    RemovalId,
+};
+
+export interface ArbitraryTargetAndDataApiRequestBodyWithComplexItem
+{
+
+    item: ComplexItem;
+    itemType: ComplexItemType;
+    targetId?: string;
+    targetType: ShowerMusicObjectType;
+}
+
+export type ShowerMusicPlayableMediaDict = TrackDict | AlbumDict | ArtistDict | Playlist | MinimalAlbumDict | MinimalArtistDict | MinimalPlaylist;
+

@@ -1,12 +1,15 @@
 import { getTrackInfo } from "@/app/client-api/get-track";
-import { commandPlayerSetCurrentlyPlayingTrack, commandPlayerSkipCurrentTrack, queryCurrentlyPlayingTrack } from "@/app/client-api/player";
-import { peekTrackFromQueue, popTrackFromQueue } from "@/app/client-api/queue";
+import { commandPlayerSkipCurrentTrack, queryCurrentlyPlayingTrack } from "@/app/client-api/player";
+import { commandGetSeekTime, commandSetSeekTime } from "@/app/client-api/player/seek";
+import { peekTrackFromQueue } from "@/app/client-api/queue";
+import { enqueueApiErrorSnackbar, enqueueSnackbarWithSubtext } from "@/app/components/providers/global-props/global-modals";
 import useGlobalProps from "@/app/components/providers/global-props/global-props";
-import useUserSession from "@/app/components/providers/user-session";
+import { useSessionState } from "@/app/components/providers/session/session";
+import useUserSession from "@/app/components/providers/user-provider/user-session";
 import { MessageTypes } from "@/app/settings";
 import { TrackDict, TrackId } from "@/app/shared-api/media-objects/tracks";
 import { useSnackbar } from "notistack";
-import React, { Dispatch, SetStateAction, createContext, useCallback, useContext, useMemo } from "react";
+import React, { Dispatch, SetStateAction, createContext, useCallback, useContext, useLayoutEffect, useMemo } from "react";
 import { useEffect, useRef, useState } from "react";
 
 export type MusePausedState = boolean;
@@ -20,6 +23,7 @@ type SessionMuseType = {
     musePausedState: MusePausedState;
     setMusePausedState: SetMusePausedState;
     skipTrack: () => void;
+    seek: (newTimeSeconds: number) => void;
 };
 
 function promptUserAutoplayConsent(
@@ -50,14 +54,18 @@ export const SessionMuseContext = createContext<SessionMuseType>(
         musePausedState: true,
         setMusePausedState: () => { },
         skipTrack: () => { },
+        seek: () => { },
     }
 );
+
+let __globalMuse: HTMLAudioElement | undefined = undefined;
 
 export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[] | React.JSX.Element; }) =>
 {
     const { enqueueSnackbar } = useSnackbar();
     const { reportGeneralServerError } = useGlobalProps();
     const { addMessageHandler } = useUserSession();
+    const { requiresSyncOperations } = useSessionState();
 
     const _Muse = useRef<HTMLAudioElement>();
     const [ currentlyPlayingTrack, setCurrentlyPlayingTrack ] = useState<TrackDict>();
@@ -71,6 +79,11 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
     useMemo(() =>
     {
         if (typeof (window) === 'undefined') { return; }
+        if (__globalMuse)
+        {
+            __globalMuse.remove();
+            __globalMuse = undefined;
+        }
         if (_Muse.current)
         {
             _Muse.current.pause();
@@ -78,6 +91,7 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
             console.log('An audio element has been deleted!');
         }
         _Muse.current = new Audio();
+        __globalMuse = _Muse.current;
         console.log('A new audio element has been created!');
     }, []);
 
@@ -170,7 +184,7 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
             }).catch((reason) =>
             {
                 console.log(`Failed to load track data for ${currentlyPlayingTrackId}`);
-                enqueueSnackbar(`Failed to load track data for ${currentlyPlayingTrackId}`, { variant: 'error' });
+                enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to load track data for ${currentlyPlayingTrackId}`, reason);
             });
     }, [ currentlyPlayingTrackId, setCurrentlyPlayingTrack, enqueueSnackbar ]);
 
@@ -192,8 +206,12 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
     const updatePlayingSongEnded = useCallback(() =>
     {
         setMuseLoadingState(true);
-        commandPlayerSkipCurrentTrack();
-    }, [ setMuseLoadingState ]);
+        commandPlayerSkipCurrentTrack()
+            .catch((e: any) =>
+            {
+                enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to move to next track!`, e);
+            });
+    }, [ setMuseLoadingState, enqueueSnackbar ]);
 
     const trackPlayingReady = useCallback(() =>
     {
@@ -279,10 +297,75 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
         updatePlayingSongEnded();
     }, [ updatePlayingSongEnded ]);
 
+    const seekTimeRef = useRef<number | undefined>(undefined);
+
+    const seek = useCallback((newTrackTime: number) =>
+    {
+        if (!_Muse.current) { return; }
+        if (!isFinite(newTrackTime)) { return; }
+        if (requiresSyncOperations())
+        {
+            const newTrackTimeMs = newTrackTime * 1000;
+            throw new Error('Sync operations have not yet been implemented!');
+        }
+        seekTimeRef.current = newTrackTime;
+        _Muse.current.currentTime = newTrackTime;
+        // We do not care if this fails
+        commandSetSeekTime(seekTimeRef.current)
+            .catch((error) =>
+            {
+                // Pass undefined instead of enqueueSnackbar to avoid a user popup
+                enqueueApiErrorSnackbar(undefined, `Failed to update server seek time`, error);
+            });
+    }, [ requiresSyncOperations ]);
+
     useEffect(() =>
     {
         reloadCurrentlyPlaying();
     }, [ reloadCurrentlyPlaying ]);
+
+
+    useEffect(() =>
+    {
+        commandGetSeekTime()
+            .then((time) =>
+            {
+                seek(time);
+            });
+    }, [ seek ]);
+
+    useLayoutEffect(() =>
+    {
+        const beforeUnloadHandler = async (e: BeforeUnloadEvent) =>
+        {
+            if (seekTimeRef.current !== undefined && _Muse.current)
+            {
+                e.preventDefault();
+                e.returnValue = `Please wait while we save the current state - so you'll be able to hop right back in`;
+                commandSetSeekTime(_Muse.current.currentTime)
+                    .then(() =>
+                    {
+                        // Note: modern browsers may ignore the custom message and display a standard one
+                        window.removeEventListener('beforeunload', beforeUnloadHandler);
+                    });
+            }
+            else
+            {
+                window.removeEventListener('beforeunload', beforeUnloadHandler);
+            }
+        };
+
+        window.addEventListener('beforeunload', beforeUnloadHandler);
+
+        return () =>
+        {
+            if (seekTimeRef.current === undefined || _Muse.current === undefined)
+            {
+                return;
+            }
+            commandSetSeekTime(_Muse.current.currentTime);
+        };
+    }, []);
 
     return (
         <SessionMuseContext.Provider value={
@@ -292,7 +375,7 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
                 museLoadingState,
                 currentlyPlayingTrack,
                 musePausedState, setMusePausedState,
-                skipTrack,
+                skipTrack, seek
             }
         }>
             { children }

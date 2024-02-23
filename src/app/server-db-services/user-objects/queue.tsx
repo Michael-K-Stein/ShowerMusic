@@ -1,18 +1,21 @@
-import { GetUsersDb } from "@/app/server-db-services/mongo-utils";
+import databaseController from "@/app/server-db-services/mongo-db-controller";
 import { UserNotFoundError } from "@/app/server-db-services/user-objects/user-object";
+import { SSUserId } from "@/app/server-db-services/user-utils";
 import { MessageTypes } from "@/app/settings";
 import { QueuedTrackDict, TrackId } from "@/app/shared-api/media-objects/tracks";
-import { UserId } from "@/app/shared-api/user-objects/users";
-import { SendServerRequestToSessionServer } from "@/app/web-socket-utils";
+import { TrackNotFoundError } from "@/app/shared-api/other/errors";
+import { SendServerRequestToSessionServerForUsers } from "@/app/web-socket-utils";
 import { ObjectId } from "mongodb";
 
-export async function queryUserPlayingNextQueue(id: UserId)
+export async function queryUserPlayingNextQueue(userId: SSUserId)
 {
-    const users = await GetUsersDb();
+    const userData = await databaseController.users.findOne(
+        { '_id': userId },
+        {
+            'projection': { 'playingNextTracks': 1 }
+        }
+    );
 
-    const userData = await users.findOne({ '_id': new ObjectId(id) }, {
-        'projection': { 'playingNextTracks': 1 }
-    });
     if (!userData)
     {
         throw new UserNotFoundError('Could not find user by id!');
@@ -21,64 +24,76 @@ export async function queryUserPlayingNextQueue(id: UserId)
     return userData[ 'playingNextTracks' ];
 }
 
-export async function setUserPlayingNextQueue(userId: UserId, tracks: TrackId[])
+export async function setUserPlayingNextQueue(userId: SSUserId, tracks: TrackId[])
 {
-    const users = await GetUsersDb();
-
     const newQueuedTracks: QueuedTrackDict[] = tracks.map((trackId) =>
     {
         return { '_id': new ObjectId(), 'trackId': trackId };
     });
 
-    await users.updateOne(
-        { '_id': new ObjectId(userId) },
+    await databaseController.users.updateOne(
+        { '_id': userId },
         {
             '$set': {
                 'playingNextTracks.tracks': newQueuedTracks
             }
-        });
+        }
+    );
 
-    SendServerRequestToSessionServer(MessageTypes.QUEUE_UPDATE, [ userId ]);
+    SendServerRequestToSessionServerForUsers(MessageTypes.QUEUE_UPDATE, [ userId ]);
 }
 
-export async function addTracksToUserPlayingNextQueue(userId: UserId, trackIds: TrackId[])
+export async function addTracksToUserPlayingNextQueue(userId: SSUserId, trackIds: TrackId[])
 {
-    const users = await GetUsersDb();
+    return await addTracksToUserPlayingNextQueueWithPosition(userId, trackIds);
+}
+
+export async function setPlayingNextTracksToUserPlayingNextQueue(userId: SSUserId, trackIds: TrackId[])
+{
+    return await addTracksToUserPlayingNextQueueWithPosition(userId, trackIds, 0);
+}
+
+export async function addTracksToUserPlayingNextQueueWithPosition(userId: SSUserId, trackIds: TrackId[], position?: number)
+{
     const newQueuedTracks: QueuedTrackDict[] = trackIds.map((trackId) =>
     {
         return { '_id': new ObjectId(), 'trackId': trackId };
     });
 
-    users.updateOne({ '_id': new ObjectId(userId) }, {
+    const modifiers =
+        (position !== undefined) ?
+            { '$each': newQueuedTracks, '$position': position } :
+            { '$each': newQueuedTracks };
+
+    await databaseController.users.updateOne({ '_id': userId }, {
         '$push': {
-            'playingNextTracks.tracks': { '$each': newQueuedTracks },
+            'playingNextTracks.tracks': modifiers,
         }
     });
 
-    SendServerRequestToSessionServer(MessageTypes.QUEUE_UPDATE, [ userId ]);
+    SendServerRequestToSessionServerForUsers(MessageTypes.QUEUE_UPDATE, [ userId ]);
 }
 
-export async function addTrackToUserPlayingNextQueue(userId: UserId, trackId: string)
+async function addTrackToUserPlayingNextQueue(userId: SSUserId, trackId: string)
 {
-    const users = await GetUsersDb();
     const queueItem: QueuedTrackDict = {
         _id: new ObjectId(),
         trackId: trackId,
     };
-    users.updateOne({ '_id': new ObjectId(userId) }, {
+
+    await databaseController.users.updateOne({ '_id': userId }, {
         '$push': {
             'playingNextTracks.tracks': queueItem,
         }
     });
 
-    SendServerRequestToSessionServer(MessageTypes.QUEUE_UPDATE, [ userId ]);
+    SendServerRequestToSessionServerForUsers(MessageTypes.QUEUE_UPDATE, [ userId ]);
 }
 
-export async function popUserPlayingNextQueue(userId: UserId)
+export async function popUserPlayingNextQueue(userId: SSUserId)
 {
-    const users = await GetUsersDb();
-    const oldData = await users.findOneAndUpdate(
-        { '_id': new ObjectId(userId) },
+    const oldData = await databaseController.users.findOneAndUpdate(
+        { '_id': userId },
         {
             '$pop': {
                 'playingNextTracks.tracks': - 1,
@@ -95,7 +110,7 @@ export async function popUserPlayingNextQueue(userId: UserId)
         }
     );
 
-    SendServerRequestToSessionServer(MessageTypes.QUEUE_UPDATE, [ userId ]);
+    SendServerRequestToSessionServerForUsers(MessageTypes.QUEUE_UPDATE, [ userId ]);
 
     if (!oldData)
     {
@@ -106,11 +121,10 @@ export async function popUserPlayingNextQueue(userId: UserId)
 }
 
 
-export async function peekUserPlayingNextQueue(userId: UserId)
+export async function peekUserPlayingNextQueue(userId: SSUserId)
 {
-    const users = await GetUsersDb();
-    const returnedData = await users.findOne(
-        { '_id': new ObjectId(userId) },
+    const returnedData = await databaseController.users.findOne(
+        { '_id': userId },
         {
             'projection': {
                 'playingNextTracks': 1,
@@ -126,11 +140,10 @@ export async function peekUserPlayingNextQueue(userId: UserId)
     return returnedData.playingNextTracks.tracks[ 0 ] as QueuedTrackDict;
 }
 
-export async function removeUserQueuedTrack(userId: UserId, queueId: string)
+export async function removeUserQueuedTrack(userId: SSUserId, queueId: string)
 {
-    const users = await GetUsersDb();
-    const oldData = await users.findOneAndUpdate(
-        { '_id': new ObjectId(userId) },
+    const oldData = await databaseController.users.findOneAndUpdate(
+        { '_id': userId },
         {
             '$pull': {
                 'playingNextTracks.tracks': {
@@ -159,17 +172,16 @@ export async function removeUserQueuedTrack(userId: UserId, queueId: string)
 
     if (removedTrackId)
     {
-        SendServerRequestToSessionServer(MessageTypes.QUEUE_UPDATE, [ userId ]);
+        SendServerRequestToSessionServerForUsers(MessageTypes.QUEUE_UPDATE, [ userId ]);
     }
 
     return removedTrackId;
 }
 
-export async function flushUserPlayingNextQueue(userId: UserId)
+export async function flushUserPlayingNextQueue(userId: SSUserId)
 {
-    const users = await GetUsersDb();
-    const oldData = await users.findOneAndUpdate(
-        { '_id': new ObjectId(userId) },
+    const oldData = await databaseController.users.findOneAndUpdate(
+        { '_id': userId },
         {
             '$set': {
                 'playingNextTracks.tracks': [],
@@ -191,8 +203,54 @@ export async function flushUserPlayingNextQueue(userId: UserId)
 
     if (removedQueueItems)
     {
-        SendServerRequestToSessionServer(MessageTypes.QUEUE_UPDATE, [ userId ]);
+        SendServerRequestToSessionServerForUsers(MessageTypes.QUEUE_UPDATE, [ userId ]);
     }
 
     return removedQueueItems;
+}
+
+export async function skipToQueueItem(userId: SSUserId, targetQueueItem: QueuedTrackDict[ '_id' ])
+{
+    const currentQueue = await databaseController.users.findOne(
+        { _id: userId },
+        {
+            projection: {
+                'playingNextTracks': 1,
+            }
+        }
+    );
+    if (currentQueue === null)
+    {
+        throw new UserNotFoundError();
+    }
+
+    const index = currentQueue.playingNextTracks.tracks.findIndex((v) =>
+    {
+        return v._id.equals(targetQueueItem);
+    });
+
+    if (index < 0)
+    {
+        throw new TrackNotFoundError(`The requested queued track was not found in the given queue!`);
+    }
+
+    const foundItem = currentQueue.playingNextTracks.tracks[ index ];
+
+    const newQueue = currentQueue.playingNextTracks.tracks.slice(index);
+
+    // Update the user document with the modified array
+    await databaseController.users.updateOne(
+        { _id: userId },
+        {
+            $set:
+            {
+                'playingNextTracks.tracks': newQueue
+            }
+        }
+    );
+
+    // Send server request for queue update
+    SendServerRequestToSessionServerForUsers(MessageTypes.QUEUE_UPDATE, [ userId ]);
+
+    return foundItem;
 }

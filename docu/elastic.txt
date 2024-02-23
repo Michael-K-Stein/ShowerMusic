@@ -1,0 +1,37 @@
+sudo docker network create elastic
+sudo docker pull docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+sudo docker run --name elasticsearch --net elastic -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -t docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+
+
+✅ Elasticsearch security features have been automatically configured!
+✅ Authentication is enabled and cluster connections are encrypted.
+
+ℹ️  Password for the elastic user (reset with `bin/elasticsearch-reset-password -u elastic`):
+  qEooYG3NUeahJ3_brTW0
+
+ℹ️  HTTP CA certificate SHA-256 fingerprint:
+  50e45c36e372bb49c1baecb2a8c0ae465761edfe46a5c5634e139bd1ec5cf48c
+
+ℹ️  Configure Kibana to use this cluster:
+• Run Kibana and click the configuration link in the terminal when Kibana starts.
+• Copy the following enrollment token and paste it into Kibana in your browser (valid for the next 30 minutes):
+  eyJ2ZXIiOiI4LjEyLjAiLCJhZHIiOlsiMTcyLjE4LjAuMjo5MjAwIl0sImZnciI6IjUwZTQ1YzM2ZTM3MmJiNDljMWJhZWNiMmE4YzBhZTQ2NTc2MWVkZmU0NmE1YzU2MzRlMTM5YmQxZWM1Y2Y0OGMiLCJrZXkiOiItQV9YVm8wQlhkRHhHcjFlWjRJUTp6VDFXcHFueFNaYW9kMDN6M3NoWF9BIn0=
+
+ℹ️ Configure other nodes to join this cluster:
+• Copy the following enrollment token and start new Elasticsearch nodes with `bin/elasticsearch --enrollment-token <token>` (valid for the next 30 minutes):
+  eyJ2ZXIiOiI4LjEyLjAiLCJhZHIiOlsiMTcyLjE4LjAuMjo5MjAwIl0sImZnciI6IjUwZTQ1YzM2ZTM3MmJiNDljMWJhZWNiMmE4YzBhZTQ2NTc2MWVkZmU0NmE1YzU2MzRlMTM5YmQxZWM1Y2Y0OGMiLCJrZXkiOiItZ19YVm8wQlhkRHhHcjFlWjRJUjpodThIbEhhQVNtR1Z0bVZHTUdNaVBRIn0=
+
+  If you're running in Docker, copy the enrollment token and run:
+  `docker run -e "ENROLLMENT_TOKEN=<token>" docker.elastic.co/elasticsearch/elasticsearch:8.12.0`
+
+
+  ---
+
+  sudo docker pull docker.elastic.co/kibana/kibana:8.12.0
+
+
+
+
+
+  docker run -e "ENROLLMENT_TOKEN=eyJ2ZXIiOiI4LjEyLjAiLCJhZHIiOlsiMTcyLjE4LjAuMjo5MjAwIl0sImZnciI6IjUwZTQ1YzM2ZTM3MmJiNDljMWJhZWNiMmE4YzBhZTQ2NTc2MWVkZmU0NmE1YzU2MzRlMTM5YmQxZWM1Y2Y0OGMiLCJrZXkiOiItZ19YVm8wQlhkRHhHcjFlWjRJUjpodThIbEhhQVNtR1Z0bVZHTUdNaVBRIn0" docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+  

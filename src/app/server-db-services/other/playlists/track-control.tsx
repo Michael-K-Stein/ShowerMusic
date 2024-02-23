@@ -1,0 +1,56 @@
+import databaseController from "@/app/server-db-services/mongo-db-controller";
+import { MessageTypes, ShowerMusicObjectType } from "@/app/settings";
+import { TrackId } from "@/app/shared-api/media-objects/tracks";
+import { RemovalId } from "@/app/shared-api/other/common";
+import { PlaylistNotFoundError } from "@/app/shared-api/other/errors";
+import { PlaylistId, PlaylistTrack } from "@/app/shared-api/other/playlist";
+import { SendServerRequestToSessionServer, SendServerRequestToSessionServerForPlaylistListeners } from "@/app/web-socket-utils";
+import { ObjectId } from "mongodb";
+
+export async function addTracksToPlaylistWithPosition(playlistId: PlaylistId, trackIds: TrackId[], position?: number)
+{
+    const newPlaylistTracks: PlaylistTrack[] = trackIds.map((trackId) =>
+    {
+        return {
+            _id: new ObjectId(), trackId: trackId
+        };
+    });
+
+    const modifiers =
+        (position !== undefined) ?
+            { '$each': newPlaylistTracks, '$position': position } :
+            { '$each': newPlaylistTracks };
+
+    await databaseController.playlists.updateOne(
+        { id: playlistId },
+        {
+            '$push': {
+                'tracks': modifiers,
+            }
+        }
+    );
+
+    SendServerRequestToSessionServerForPlaylistListeners(MessageTypes.PLAYLIST_UPDATE, [ playlistId ]);
+}
+
+export async function pushTracksToPlaylist(playlistId: PlaylistId, tracks: TrackId[])
+{
+    return addTracksToPlaylistWithPosition(playlistId, tracks);
+}
+
+export async function removeTrackFromPlaylist(playlistId: PlaylistId, trackRemovableId: RemovalId)
+{
+    console.log(trackRemovableId);
+    await databaseController.playlists.updateOne(
+        { id: playlistId },
+        {
+            '$pull': {
+                'tracks': {
+                    '_id': new ObjectId(trackRemovableId),
+                },
+            }
+        }
+    );
+
+    SendServerRequestToSessionServerForPlaylistListeners(MessageTypes.PLAYLIST_UPDATE, [ playlistId ]);
+}

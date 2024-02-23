@@ -1,6 +1,13 @@
-import { addTrackToQueue } from "@/app/client-api/queue";
-import { GenericGlobalModal, reportGeneralServerErrorWithSnackbar } from "@/app/components/providers/global-props/global-modals";
+import { commandCreateNewPlaylist } from "@/app/client-api/get-playlist";
+import { commandQueueAddArbitraryTypeTracks, commandSetPlayNextArbitraryTypeTracks } from "@/app/client-api/queue";
+import removeTrackFromArbitrary from "@/app/client-api/remove";
+import { addArbitraryToQueueClickHandler, setPlayNextArbitraryClickHandler } from "@/app/components/providers/global-props/arbitrary-click-handler-factories";
+import { GenericGlobalModal, enqueueApiErrorSnackbar, reportGeneralServerErrorWithSnackbar } from "@/app/components/providers/global-props/global-modals";
+import { MediaId } from "@/app/shared-api/media-objects/media-id";
 import { TrackDict } from "@/app/shared-api/media-objects/tracks";
+import { RemovalId, ShowerMusicObjectType, ShowerMusicPlayableMediaDict } from "@/app/shared-api/other/common";
+import { NewPlaylistInitOptions } from "@/app/shared-api/other/playlist";
+import { ShowerMusicPlayableMediaType } from "@/app/showermusic-object-types";
 import { EnqueueSnackbar, useSnackbar } from "notistack";
 import { Dispatch, MouseEventHandler, SetStateAction, createContext, useCallback, useContext, useEffect, useState } from "react";
 
@@ -74,22 +81,47 @@ export const useGlobalProps = () =>
 
 export default useGlobalProps;
 
+
 export const addTrackToQueueClickHandler = (track: TrackDict, enqueueSnackbar?: EnqueueSnackbar): MouseEventHandler =>
+{
+    return addArbitraryToQueueClickHandler(track, ShowerMusicObjectType.Track, enqueueSnackbar);
+};
+
+export const setPlayNextTrackClickHandler = (track: TrackDict, enqueueSnackbar?: EnqueueSnackbar): MouseEventHandler =>
+{
+    return setPlayNextArbitraryClickHandler(track, ShowerMusicObjectType.Track, enqueueSnackbar);
+};
+
+export const removeTrackClickHandler = (
+    track: TrackDict,
+    removalId: RemovalId,
+    fromId: MediaId,
+    fromType: ShowerMusicObjectType,
+    enqueueSnackbar?: EnqueueSnackbar
+): MouseEventHandler =>
 {
     return (_event: React.MouseEvent<Element, MouseEvent>) =>
     {
-        addTrackToQueue(track.id)
-            .then((_v) =>
+        removeTrackFromArbitrary(removalId, track.name, fromId, fromType, enqueueSnackbar);
+    };
+};
+
+export const newPlaylistClickHandler = (initOptions?: NewPlaylistInitOptions, enqueueSnackbar?: EnqueueSnackbar): MouseEventHandler =>
+{
+    return (_event: React.MouseEvent<Element, MouseEvent>) =>
+    {
+        commandCreateNewPlaylist(initOptions)
+            .then((playlist) =>
             {
                 if (enqueueSnackbar)
                 {
-                    enqueueSnackbar(`"${track.name}" has been added to your queue`, { variant: 'success' });
+                    enqueueSnackbar(`"${playlist.name}" has been created`, { variant: 'success' });
                 }
-            }).catch((_e) =>
+            }).catch((e: any) =>
             {
                 if (enqueueSnackbar)
                 {
-                    enqueueSnackbar(`Failed to add "${track.name}" to your queue`, { variant: 'error' });
+                    enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to create new playlist`, e);
                 }
             });
     };

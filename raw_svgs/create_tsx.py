@@ -49,7 +49,7 @@ def main():
         )
         svg_data = re.sub(
             r"(\<svg\s+.*?\>)",
-            r'\1<rect fill="transparent" width="100%" height="100%" />',
+            r'\1<rect fill="transparent" stroke="none" width="100%" height="100%" />',
             svg_data,
             re.MULTILINE,
         )
@@ -68,15 +68,17 @@ def main():
             printInfo(f"Multiple fills! {c}")
         else:
             svg_data = re.sub(r'\bfill="#\w+?"', r'fill="currentColor"', svg_data)
+            svg_data = re.sub(r'\bstroke="#\w+?"', r'stroke="currentColor"', svg_data)
 
         tsx_name = os.path.splitext(os.path.basename(file_name))[0].replace("_", "-")
+        glyph_custom_css_class = f"{tsx_name}-glyph"
         tsx_file_name = os.path.join(OUTPUT_DIR, tsx_name + ".tsx")
         svg_glyph_name = (
             "".join((x[0].upper() + x[1:]) for x in tsx_name.split("-")) + "Glyph"
         )
         with open(tsx_file_name, "w") as tsx_file:
             tsx_file.write(
-                f'import "./glyphs.css"\nimport Glypher from "./glypher"\nexport default function {svg_glyph_name}({{glyphTitle}} : {{glyphTitle: string}}){{return(<Glypher glyphTitle={{glyphTitle}}><div className="svg-glyph">{svg_data}</div></Glypher>);}};'
+                f'import "./glyphs.css"\nimport {{ Tooltip, TooltipProps }} from "@mui/material";\nimport Glypher from "./glypher"\nexport default function {svg_glyph_name}({{glyphTitle, placement, ...props}} : {{glyphTitle: string, placement?: TooltipProps[ "placement" ]}} & React.HTMLAttributes<HTMLDivElement>){{return(<Glypher glyphTitle={{glyphTitle}} placement={{placement}} {{ ...props }}><div className="svg-glyph {glyph_custom_css_class}">{svg_data}</div></Glypher>);}};'
             )
         printSuccess(f"Extracted svg {svg_glyph_name} to {tsx_file_name}")
 

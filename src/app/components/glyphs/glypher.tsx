@@ -1,11 +1,13 @@
-import { Tooltip } from "@mui/material";
-import { ReactElement } from "react";
+import { Tooltip, TooltipProps } from "@mui/material";
+import React, { ReactElement } from "react";
 
-export default function Glypher( { children, glyphTitle } : { children: React.ReactElement<any, any>, glyphTitle: string } )
+export default function Glypher({ children, glyphTitle, placement, ...props }: { children: React.ReactElement<any, any>, glyphTitle: string, placement?: TooltipProps[ 'placement' ]; } & React.HTMLAttributes<HTMLDivElement>)
 {
     return (
-        <Tooltip title={glyphTitle}>
-            { children }
-        </Tooltip>
+        <div { ...props }>
+            <Tooltip title={ glyphTitle } placement={ placement }>
+                { children }
+            </Tooltip>
+        </div>
     );
 }

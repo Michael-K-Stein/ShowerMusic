@@ -4,11 +4,14 @@ import './stream-layout.css';
 import React from 'react';
 import { AlbumPageLoader } from '@/app/components/pages/album-page/album-page';
 import { ViewportType, useSessionState } from '@/app/components/providers/session/session';
-import useGlobalProps from '@/app/components/providers/global-props/global-props';
+import { ArtistPageLoader } from '@/app/components/pages/artist-page/artist-page';
+import HomePageLoader from '@/app/components/pages/home-page/home-page';
+import PlaylistPage from '@/app/components/pages/playlist-page/playlist-page';
+import LyricsPage from '@/app/components/pages/lyrics-page/lyrics-page';
 
 export default function Home()
 {
-    const { viewportType, viewMediaId } = useSessionState();
+    const { viewportType, viewMediaId, streamMediaId } = useSessionState();
 
     let viewportElements = null;
     switch (viewportType)
@@ -22,9 +25,29 @@ export default function Home()
                 </div>
             );
             break;
+        case ViewportType.Home:
+            viewportElements = (
+                <HomePageLoader />
+            );
+            break;
         case ViewportType.Album:
             viewportElements = (
                 <AlbumPageLoader albumId={ viewMediaId } />
+            );
+            break;
+        case ViewportType.Artist:
+            viewportElements = (
+                <ArtistPageLoader artistId={ viewMediaId } />
+            );
+            break;
+        case ViewportType.Playlist:
+            viewportElements = (
+                <PlaylistPage playlistId={ viewMediaId } />
+            );
+            break;
+        case ViewportType.Lyrics:
+            viewportElements = (
+                <></>
             );
             break;
     };

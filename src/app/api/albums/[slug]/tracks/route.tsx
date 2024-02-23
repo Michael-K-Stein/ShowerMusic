@@ -1,6 +1,5 @@
-import { ApiError, ApiSuccess } from '@/app/api/common';
-import { GetDbAlbumInfo, GetDbAlbumTracks } from '@/app/server-db-services/mongo-utils';
-import { NextResponse } from 'next/server';
+import { ApiSuccess, catchHandler } from '@/app/api/common';
+import { DbObjects } from '@/app/server-db-services/db-objects';
 
 export async function GET(
     request: Request,
@@ -25,12 +24,12 @@ export async function GET(
         }
 
         const id = params.slug;
-        const tracksData = await GetDbAlbumTracks(id);
+        const tracksData = await DbObjects.MediaObjects.Albums.getTracks(id);
 
         return ApiSuccess(tracksData);
     }
     catch (e)
     {
-        return ApiError(e);
+        return catchHandler(e);
     };
 };

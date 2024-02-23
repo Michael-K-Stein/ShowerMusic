@@ -1,6 +1,7 @@
-import { ApiError, ApiSuccess } from '@/app/api/common';
-import { GetDbAlbumsOfArtist } from '@/app/server-db-services/mongo-utils';
-import { NextRequest, NextResponse } from 'next/server';
+import { ApiSuccess, catchHandler } from '@/app/api/common';
+import { DbObjects } from '@/app/server-db-services/db-objects';
+import { ArtistAlbumsSearchType } from '@/app/shared-api/media-objects/artists';
+import { NextRequest } from 'next/server';
 
 export async function GET(
     request: NextRequest,
@@ -24,19 +25,19 @@ export async function GET(
             limit = parseInt(searchParams.get('limit') as string, 10);
         }
 
-        let include_groups: string[] = [];
-        if (searchParams.has('include_groups'))
+        let albumTypes: ArtistAlbumsSearchType[] = [ 'single', 'album' ];
+        if (searchParams.has('albumTypes'))
         {
-            include_groups = (searchParams.get('include_groups') as string).split(',');
+            albumTypes = (searchParams.get('albumTypes') as string).split(',') as ArtistAlbumsSearchType[];
         }
 
         const id = params.slug;
-        const artistAlbums = await GetDbAlbumsOfArtist(id, offset, limit, include_groups);
+        const artistAlbums = await DbObjects.MediaObjects.Compound.getAlbumsOfArtist(id, offset, limit, albumTypes);
 
         return ApiSuccess(artistAlbums);
     }
     catch (e)
     {
-        return ApiError(e);
+        return catchHandler(e);
     };
 };

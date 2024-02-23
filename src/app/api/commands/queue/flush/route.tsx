@@ -1,19 +1,21 @@
-import { ApiError, ApiSuccess } from '@/app/api/common';
-import { flushUserPlayingNextQueue } from '@/app/server-db-services/user-objects/queue';
+export const dynamic = "force-dynamic";
+
+import { ApiSuccess, catchHandler } from '@/app/api/common';
+import { DbObjects } from '@/app/server-db-services/db-objects';
 import { getUserId } from '@/app/server-db-services/user-utils';
 import { NextRequest } from "next/server";
 
-export async function GET(req: NextRequest)
+export async function GET(_req: NextRequest)
 {
     try
     {
         const userId = await getUserId();
 
-        const flushedTracks = await flushUserPlayingNextQueue(userId);
+        const flushedTracks = await DbObjects.Users.Queue.flushAll(userId);
         return ApiSuccess(flushedTracks);
     }
     catch (e)
     {
-        return ApiError(e);
+        return catchHandler(e);
     }
 }

@@ -1,0 +1,107 @@
+@import url('./../../modal-page.css');
+
+.modal-flat-track
+{
+    display: grid;
+    box-sizing: border-box;
+    grid-template-columns: 2em calc(100% - 2em);
+    position: relative;
+    width: 100%;
+    padding: 0.8em;
+    margin: 0.3em;
+    background-color: rgba(70, 70, 90, 0.10);
+    border-radius: 0.5em;
+
+}
+
+.modal-flat-track[not-found]
+{
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+.modal-flat-tracks-container
+{
+    box-sizing: border-box;
+    top: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+.modal-flat-track .modal-flat-track-number
+{
+    transform: scale(1);
+    transition: all 0.15s cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.modal-flat-track:hover .modal-flat-track-number
+{
+    transform: scale(0);
+}
+
+.modal-flat-track .modal-flat-track-play
+{
+    position: absolute;
+    left: 0;
+    transform: scale(0);
+    transition: all 0.15s cubic-bezier(0.075, 0.82, 0.165, 1);
+    display: flex;
+    width: 1.2em;
+    height: 1.2em;
+}
+
+.modal-flat-track:hover .modal-flat-track-play
+{
+    transform: scale(1);
+}
+
+.modal-flat-track .modal-flat-track-controls
+{
+    width: 0;
+    max-width: 0em;
+    padding-right: 0em;
+    overflow: hidden;
+    transition: all 0.6s cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.modal-flat-track:hover .modal-flat-track-controls
+{
+    width: auto;
+    max-width: 6em;
+    padding-right: 0.3em;
+}
+
+.modal-flat-track .modal-flat-track-end-controls
+{
+    position: absolute;
+    right: 0;
+}
+
+.modal-page-container .modal-page-tracks-container
+{
+    box-sizing: border-box;
+    bottom: 0;
+    display: block;
+    width: 100%;
+    overflow: auto;
+    flex-grow: 100;
+    margin: 0.5em;
+}
+
+.modal-page-container .modal-page-tracks-container .modal-flat-tracks-container
+{
+    box-sizing: border-box;
+    top: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}

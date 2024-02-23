@@ -1,24 +1,26 @@
 import argparse
 import os
 import re
-from typing import Callable
+from typing import Any, Callable
 import requests
 import tqdm
-from src.printer import printError
+from src.printer import printError, printLog
 
 
 class ShowerMusicException(Exception):
     pass
 
+
 class ShowerMusicDbUtilsException(ShowerMusicException):
     pass
 
 
-def __walkFilesInternal(
+def walk_files_internal(
     root: str,
     current_dir: str,
     callback: Callable[[str, str], None],
-    file_name_regex: str | re.Pattern[str]
+    file_name_regex: str | re.Pattern[str] | None = None,
+    progress_bar: tqdm.tqdm | None = None,
 ) -> None:
     """
     Internal function for recursively walking files in a directory and applying a callback function.
@@ -27,21 +29,31 @@ def __walkFilesInternal(
         root (str): The root directory to start the search from.
         current_dir (str): The current directory being processed.
         callback (Callable[[str, str], None]): The callback function to apply to matching files.
-        file_name_regex (str | re.Pattern[str]): A regular expression pattern to match file names.
+        file_name_regex (str | re.Pattern[str] | None): A regular expression pattern to match file names.
+        progress_bar (tqdm.tqdm | None): An optional progress bar.
+
 
     Returns:
         None: The function returns nothing.
     """
-    for r, ds, fs in tqdm.tqdm(os.walk(current_dir)):
-        for f in fs:
-            # If a file name regex was specified but does not match, skip
-            if file_name_regex and (not re.search(file_name_regex, f, re.I)):
-                continue
-            p = os.path.join(r, f)
-            callback(root, p)
+    compiled_pattern: re.Pattern[Any] = re.compile(file_name_regex, re.I)
+    for entry in os.scandir(current_dir):
+        full_path = os.path.join(root, entry.path)
+        if entry.is_dir():
+            walk_files_internal(
+                root, full_path, callback, file_name_regex, progress_bar
+            )
+        elif entry.is_file() and compiled_pattern.search(entry.name):
+            callback(root, full_path)
+            if progress_bar:
+                progress_bar.update()
 
 
-def walkFiles(root: str, callback: Callable[[str, str], None], file_name_regex: str | re.Pattern[str]) -> None:
+def walkFiles(
+    root: str,
+    callback: Callable[[str, str], None],
+    file_name_regex: str | re.Pattern[str] | None,
+) -> None:
     """
     Recursively walks through files in a directory and applies a callback function to matching files.
 
@@ -68,12 +80,22 @@ def walkFiles(root: str, callback: Callable[[str, str], None], file_name_regex: 
         walkFiles('/path/to/directory', print_text_files, r'.*\.txt$')
         ```
     """
-    __walkFilesInternal(root, root, callback, file_name_regex)
+    file_name_regex = file_name_regex if file_name_regex else r""
+    progress_bar = tqdm.tqdm(total=0, unit="file(s)", desc="Walking Directory")
+
+    def countTotalFiles(file_path, file_name):
+        progress_bar.reset(progress_bar.total + 1)
+
+    printLog(f"Calculating directory size...")
+    walk_files_internal(root, root, countTotalFiles, file_name_regex)
+    walk_files_internal(root, root, callback, file_name_regex, progress_bar)
 
 
 def validateFilePath(file_path):
     if not os.path.exists(file_path):
-        raise argparse.ArgumentTypeError(f"'{file_path}' is neither a file nor a directory!")  
+        raise argparse.ArgumentTypeError(
+            f"'{file_path}' is neither a file nor a directory!"
+        )
     return file_path
 
 
@@ -95,12 +117,14 @@ def validateRegex(pattern):
 def downloadFileWithProgress(url: str, fileName: str):
     response = requests.get(url, stream=True)
 
-    totalSizeInBytes = int(response.headers.get('content-length', 0))
+    totalSizeInBytes = int(response.headers.get("content-length", 0))
     blockSize = 1024  # 1 Kibibyte
 
-    progressBar = tqdm.tqdm(total=totalSizeInBytes, unit='iB', unit_scale=True, colour='yellow')
+    progressBar = tqdm.tqdm(
+        total=totalSizeInBytes, unit="iB", unit_scale=True, colour="yellow"
+    )
 
-    with open(fileName, 'wb') as file:
+    with open(fileName, "wb") as file:
         for data in response.iter_content(blockSize):
             progressBar.update(len(data))
             file.write(data)
@@ -114,17 +138,17 @@ def downloadFileWithProgress(url: str, fileName: str):
 def monthToNumber(monthName: str) -> str | int:
     """Translate month name to month number."""
     monthDict = {
-        'January': 1,
-        'February': 2,
-        'March': 3,
-        'April': 4,
-        'May': 5,
-        'June': 6,
-        'July': 7,
-        'August': 8,
-        'September': 9,
-        'October': 10,
-        'November': 11,
-        'December': 12
+        "January": 1,
+        "February": 2,
+        "March": 3,
+        "April": 4,
+        "May": 5,
+        "June": 6,
+        "July": 7,
+        "August": 8,
+        "September": 9,
+        "October": 10,
+        "November": 11,
+        "December": 12,
     }
     return monthDict.get(monthName, "Invalid month name")

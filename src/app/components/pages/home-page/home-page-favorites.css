@@ -1,0 +1,14 @@
+.favorites-item-type
+{
+    box-sizing: border-box;
+    position: absolute;
+    width: min-content;
+    padding: 0.1em;
+    padding-left: 0.3em;
+    padding-right: 0.3em;
+    background-color: black;
+    border-radius: 0.5em;
+    text-transform: uppercase;
+    right: 0.5em;
+    bottom: 0.5em;
+}

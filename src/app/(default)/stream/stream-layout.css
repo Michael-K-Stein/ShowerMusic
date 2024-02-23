@@ -2,13 +2,10 @@
  * CSS for the layout of all pages under the "stream" URI forest
 */
 
-.stream-layout {
+.stream-layout
+{
+    box-sizing: border-box;
+    width: 100%;
     display: grid;
-    grid-template-columns: var(--page-toolbar-width) 1.0fr;
+    grid-template-columns: var(--page-toolbar-width) calc(100% - var(--page-toolbar-width));
 }
-
-.stream-layout[toolbar=Closed] {
-    display: grid;
-    grid-template-columns: 3em 1.0fr;
-}
-

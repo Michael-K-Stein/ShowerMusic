@@ -4,6 +4,7 @@ import { TrackId } from "@/app/shared-api/media-objects/tracks";
 import { ShowerMusicImageDict, ShowerMusicObject, ShowerMusicObjectType } from "@/app/shared-api/other/common";
 
 export type AlbumId = MediaId;
+export type AlbumType = 'album' | 'compilation' | 'single';
 
 export interface MinimalAlbumDict extends ShowerMusicObject
 {
@@ -11,12 +12,12 @@ export interface MinimalAlbumDict extends ShowerMusicObject
     name: string;
     type: ShowerMusicObjectType;
     album_group: string;
-    album_type: string;
+    album_type: AlbumType;
     total_tracks: number;
     artists: MinimalArtistDict[];
     images: ShowerMusicImageDict[];
     href: string;
-    release_date: string;
+    release_date: Date;
     release_date_precision: string;
     uri: string;
 }

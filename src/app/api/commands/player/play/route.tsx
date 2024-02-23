@@ -2,7 +2,8 @@ import { getUserId } from '@/app/server-db-services/user-utils';
 import { MediaId } from '@/app/shared-api/media-objects/media-id';
 import { setUserPlayingTrack, getUserPlayingTrack } from '@/app/server-db-services/user-objects/player';
 import { NextRequest } from "next/server";
-import { ApiError, ApiSuccess } from '@/app/api/common';
+import { ApiSuccess, catchHandler } from '@/app/api/common';
+import { DbObjects } from '@/app/server-db-services/db-objects';
 
 /**
  * Set the current playing track, overriding anything currently playing.
@@ -15,13 +16,13 @@ export async function POST(req: NextRequest)
         const userId = await getUserId();
         const commandData: { 'type': string, 'id': MediaId; } = await req.json();
         const trackId = commandData.id;
-        const previousTrack = await setUserPlayingTrack(userId, trackId);
+        const previousTrack = await DbObjects.Users.Player.setPlayingTrack(userId, trackId);
 
         return ApiSuccess(previousTrack);
     }
     catch (e)
     {
-        return ApiError(e);
+        return catchHandler(e);
     }
 }
 
@@ -31,12 +32,12 @@ export async function GET(req: NextRequest)
     {
         const userId = await getUserId();
 
-        const playingTrack = await getUserPlayingTrack(userId);
+        const playingTrack = await DbObjects.Users.Player.getPlayingTrack(userId);
 
         return ApiSuccess(playingTrack);
     }
     catch (e)
     {
-        return ApiError(e);
+        return catchHandler(e);
     }
 }

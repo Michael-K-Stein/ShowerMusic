@@ -1,0 +1,158 @@
+@import url('./../../modal-page.css');
+
+.playlist-page-container .playlist-page-info-container
+{
+    position: relative;
+    display: grid;
+    grid-template-columns: 16em calc(100% - 16em);
+    flex-shrink: 100;
+}
+
+.playlist-page-container .playlist-page-main-info-container
+{
+    position: absolute;
+    box-sizing: border-box;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 0.5em;
+}
+
+.playlist-page-container .playlist-page-sub-info-container
+{
+    position: relative;
+    left: 0;
+    top: 0;
+}
+
+.playlist-page-container .playlist-page-main-info-container .playlist-name
+{
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 2.4em;
+    cursor: pointer;
+}
+
+.playlist-page-container .playlist-page-main-info-container .artists-names
+{
+    display: flex;
+    flex-direction: row;
+}
+
+.playlist-track
+{
+    display: grid;
+    box-sizing: border-box;
+    grid-template-columns: 2em calc(100% - 2em);
+    position: relative;
+    width: 100%;
+    padding: 0.8em;
+    margin: 0.3em;
+    background-color: rgba(70, 70, 90, 0.10);
+    border-radius: 0.5em;
+
+}
+
+.playlist-track[not-found]
+{
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+.playlist-page-container .playlist-page-tracks-container
+{
+    box-sizing: border-box;
+    bottom: 0;
+    display: block;
+    width: 100%;
+    overflow: auto;
+    flex-grow: 100;
+    margin: 0.5em;
+}
+
+.playlist-page-container .playlist-page-tracks-container .playlist-tracks-container
+{
+    box-sizing: border-box;
+    top: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+.playlist-track .playlist-track-number
+{
+    transform: scale(1);
+    transition: all 0.15s cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.playlist-track:hover .playlist-track-number
+{
+    transform: scale(0);
+}
+
+.playlist-track .playlist-track-play
+{
+    position: absolute;
+    left: 0;
+    transform: scale(0);
+    transition: all 0.15s cubic-bezier(0.075, 0.82, 0.165, 1);
+    display: flex;
+    width: 1.2em;
+    height: 1.2em;
+}
+
+.playlist-track:hover .playlist-track-play
+{
+    transform: scale(1);
+}
+
+.playlist-track .playlist-track-controls
+{
+    width: 0;
+    overflow: hidden;
+    transition: all 0.6s cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.playlist-track:hover .playlist-track-controls
+{
+    width: 4em;
+}
+
+.rename-playlist-glyph
+{
+    position: absolute;
+    left: 0;
+    width: 1em;
+    height: 100%;
+    opacity: 0;
+    transform: translateX(0);
+    transition: all 0.2s cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.playlist-name:hover .rename-playlist-glyph
+{
+    opacity: 1;
+    transform: translateX(calc(-100%));
+}
+
+.playlist-name .playlist-name-text
+{
+    transition: all 0.2s cubic-bezier(0.075, 0.82, 0.165, 1);
+    transform: translateX(0);
+}
+
+.playlist-name:hover .playlist-name-text
+{
+    transform: translateX(0.3em);
+}

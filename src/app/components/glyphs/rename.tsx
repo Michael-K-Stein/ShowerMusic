@@ -1,0 +1,7 @@
+import "./glyphs.css"
+import { Tooltip, TooltipProps } from "@mui/material";
+import Glypher from "./glypher"
+export default function RenameGlyph({glyphTitle, placement, ...props} : {glyphTitle: string, placement?: TooltipProps[ "placement" ]} & React.HTMLAttributes<HTMLDivElement>){return(<Glypher glyphTitle={glyphTitle} placement={placement} { ...props }><div className="svg-glyph rename-glyph"><svg xmlns="http://www.w3.org/2000/svg" className="min-h-full min-w-full max-h-full max-w-full w-full h-full" viewBox="0 0 50 50"><rect fill="transparent" stroke="none" width="100%" height="100%" />
+  <path d="M49,36V14H36V9.33c0.001-0.046,0.192-4.56,8.23-4.56c0.553,0,1-0.448,1-1s-0.447-1-1-1c-5.518,0-8.058,1.974-9.229,3.753c-1.17-1.776-3.71-3.753-9.231-3.753c-0.552,0-1,0.448-1,1s0.448,1,1,1c7.937,0,8.223,4.384,8.23,4.538v31.378V40.7c0,0.013-0.023,1.258-1.183,2.425c-1.368,1.377-3.805,2.105-7.048,2.105c-0.552,0-1,0.447-1,1s0.448,1,1,1c3.842,0,6.69-0.907,8.467-2.696C34.548,44.22,34.789,43.9,35,43.585c0.211,0.315,0.452,0.635,0.764,0.949c1.776,1.789,4.625,2.696,8.467,2.696c0.553,0,1-0.447,1-1s-0.447-1-1-1c-8.063,0-8.228-4.356-8.23-4.537V36H49z" fill="currentColor" />
+  <path d="M31,14H1v22h30V14z" fill="currentColor" />
+</svg></div></Glypher>);};

@@ -1,0 +1,8 @@
+import "./glyphs.css"
+import { Tooltip, TooltipProps } from "@mui/material";
+import Glypher from "./glypher"
+export default function PlaylistGlyph({glyphTitle, placement, ...props} : {glyphTitle: string, placement?: TooltipProps[ "placement" ]} & React.HTMLAttributes<HTMLDivElement>){return(<Glypher glyphTitle={glyphTitle} placement={placement} { ...props }><div className="svg-glyph playlist-glyph"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" className="min-h-full min-w-full max-h-full max-w-full w-full h-full"><rect fill="transparent" stroke="none" width="100%" height="100%" />
+  <path d="M5,4C4.448,4,4,4.448,4,5v40c0,0.552,0.448,1,1,1h40c0.552,0,1-0.448,1-1V5c0-0.552-0.448-1-1-1H5z M6,6h38v38H6V6z" fill="currentColor" />
+  <path d="M5,4C4.448,4,4,4.448,4,5v40c0,0.552,0.448,1,1,1h40c0.552,0,1-0.448,1-1V5c0-0.552-0.448-1-1-1H5z M6,6h38v38H6V6z" fill="currentColor" />
+  <path d="M5,5v40h40V5H5z M14,38c-1.105,0-2-0.895-2-2s0.895-2,2-2s2,0.895,2,2S15.105,38,14,38z M14,27c-1.105,0-2-0.895-2-2c0-1.105,0.895-2,2-2s2,0.895,2,2C16,26.105,15.105,27,14,27z M14,16c-1.105,0-2-0.895-2-2c0-1.105,0.895-2,2-2s2,0.895,2,2C16,15.105,15.105,16,14,16z M38,37H21c-0.552,0-1-0.447-1-1s0.448-1,1-1h17c0.552,0,1,0.447,1,1S38.552,37,38,37z M38,26H21c-0.552,0-1-0.447-1-1s0.448-1,1-1h17c0.552,0,1,0.447,1,1S38.552,26,38,26z M38,15H21c-0.552,0-1-0.447-1-1s0.448-1,1-1h17c0.552,0,1,0.447,1,1S38.552,15,38,15z" fill="currentColor" />
+</svg></div></Glypher>);};

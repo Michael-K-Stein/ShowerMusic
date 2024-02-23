@@ -1,4 +1,4 @@
-mongodb
+pymongo
 eyed3
 argparse
 tqdm

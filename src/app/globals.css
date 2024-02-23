@@ -2,43 +2,139 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+:root
+{
+    --foreground-rgb: 250, 250, 250;
+    --background-start-rgb: 214, 219, 220;
+    --background-end-rgb: 255, 255, 255;
 
-  --global-background-color: rgba(43, 40, 64, 0.35);
+    --global-background-color: rgba(43, 40, 64, 0.35);
 
-  --page-toolbar-width: 7rem;
+    --page-toolbar-width: 7rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+@media (prefers-color-scheme: dark)
+{
+    :root
+    {
+        --foreground-rgb: 255, 255, 255;
+        --background-start-rgb: 0, 0, 0;
+        --background-end-rgb: 0, 0, 0;
+    }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+body
+{
+    color: rgb(var(--foreground-rgb));
+    background: linear-gradient(to bottom,
+            transparent,
+            rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
 }
 
-.clickable {
-  cursor: pointer;
-}
-
-.song-artist-name 
+.clickable
 {
     cursor: pointer;
 }
 
-.song-artist-name:hover {
+:not([data-static-glyph]) > .play-glyph:hover
+{
+    color: rgba(29, 205, 91, 1);
+}
+
+.song-artist-name
+{
+    cursor: pointer;
+}
+
+.song-artist-name:hover
+{
     text-decoration: underline;
+}
+
+.super-mini-track-control
+{
+    box-sizing: border-box;
+    width: 1.5em;
+    height: 1.5em;
+    padding-right: 0.3em;
+}
+
+.user-playlist
+{
+    position: relative;
+    cursor: pointer;
+    transform: scale(0.95);
+    transition: all 0.2s cubic-bezier(0.19, 1, 0.22, 1);
+    overflow: hidden;
+}
+
+.user-playlist .playlist-image
+{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    object-fit: cover;
+}
+
+.user-playlist:hover
+{
+    transform: scale(1.0);
+}
+
+.user-playlist .playlist-name
+{
+    position: absolute;
+    top: 0;
+    width: 100%;
+    text-shadow: -0.1em 0.1em rgba(10, 6, 13, 0.35);
+    background-color: rgba(10, 6, 13, 0.15);
+    transition: all 0.2s cubic-bezier(0.19, 1, 0.22, 1);
+    padding: 0.2em;
+}
+
+.user-playlist:hover .playlist-name
+{
+    background-color: rgba(10, 6, 13, 0.35);
+    backdrop-filter: blur(2px);
+}
+
+.playlist-image
+{
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    grid-template-rows: repeat(1, 1fr);
+    overflow: hidden;
+    border-radius: 0em;
+}
+
+.playlist-image[data-playlist-image-grid-track-count="2"]
+{
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+}
+
+.playlist-image[data-playlist-image-grid-track-count="3"]
+{
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+}
+
+.playlist-image[data-playlist-image-grid-track-count="4"]
+{
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+}
+
+.playlist-image[data-playlist-image-grid-track-count="5"]
+{
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+}
+
+.playlist-image .playlist-image-tile
+{
+    position: relative;
 }

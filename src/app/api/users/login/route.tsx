@@ -1,8 +1,12 @@
+export const dynamic = "force-dynamic";
+
 import jwt from 'jsonwebtoken';
 import { loginUser } from '@/app/server-db-services/user-objects/user-object';
 import { NextRequest, NextResponse } from 'next/server';
-import { ApiError } from '@/app/api/common';
-import { cookies } from 'next/headers';
+import { catchHandler } from '@/app/api/common';
+import { cookies, headers } from 'next/headers';
+import { JWTUserData } from '@/app/shared-api/user-objects/users';
+import { DbObjects } from '@/app/server-db-services/db-objects';
 
 export async function POST(req: NextRequest)
 {
@@ -29,11 +33,21 @@ export async function POST(req: NextRequest)
             return NextResponse.json({ status: 400 });
         }
 
-        const user = await loginUser(username, password);
-        let res = NextResponse.redirect(new URL(new URL(`${req.url}`).origin + '/stream'), 303);
+        const user = await DbObjects.Users.login(username, password);
+        const url = new URL('http://' + headers().get('Host') ?? 'localhost');
+        url.pathname = '/stream';
+        let res = NextResponse.redirect(url, 303);
+
+        const userJWTData: JWTUserData = {
+            username: user.username,
+            _id: user._id
+        };
 
         // Generate a JWT with the user data and a secret key
-        const token = jwt.sign({ 'userId': user._id, 'username': user.username }, jwtSecret, { expiresIn: '7d' });
+        const token = jwt.sign(
+            userJWTData,
+            jwtSecret, { expiresIn: '7d' }
+        );
 
         // Set the JWT as a cookie
         cookies().set('auth', token, {
@@ -47,6 +61,6 @@ export async function POST(req: NextRequest)
         return res;
     } catch (e)
     {
-        return ApiError(e);
+        return catchHandler(e);
     }
 }

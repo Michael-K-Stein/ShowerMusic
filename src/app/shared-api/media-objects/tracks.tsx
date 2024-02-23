@@ -13,7 +13,7 @@ export type TrackId = MediaId;
 export interface TrackDict extends ShowerMusicObject
 {
     id: TrackId;
-    type: ShowerMusicObjectType;
+    type: ShowerMusicObjectType.Track;
     album: MinimalAlbumDict;
     artists: MinimalArtistDict[];
     disc_number: number;
@@ -24,6 +24,7 @@ export interface TrackDict extends ShowerMusicObject
     name: string;
     popularity: number;
     track_number: number;
+    file_path?: string;
 };
 
 export interface QueuedTrackDict extends ShowerMusicObject

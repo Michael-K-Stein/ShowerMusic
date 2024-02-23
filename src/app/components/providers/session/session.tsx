@@ -1,14 +1,22 @@
 'use client';
+import AddToArbitraryModal, { AddToArbitraryModalStateType } from "@/app/components/media-modals/add-to-arbitrary-modal";
 import { MediaId } from "@/app/shared-api/media-objects/media-id";
+import { ShowerMusicPlayableMediaId } from "@/app/shared-api/user-objects/users";
+import { ShowerMusicPlayableMediaType } from "@/app/showermusic-object-types";
 import React, { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef } from "react";
 import { URLSearchParams } from "url";
 
 export enum ViewportType
 {
     None,
+    Home,
     SearchResults,
     Album,
     Artist,
+    Station,
+    Playlist,
+    Lyrics,
+
 };
 
 export enum StreamStateType
@@ -33,6 +41,12 @@ export interface PoppedState
 };
 export type PopStateHandler = (state: PoppedState) => void;
 
+export type SetView = (newViewportType: ViewportType, newViewMediaId?: MediaId) => void;
+
+export type SetAddToArbitraryModalState = React.Dispatch<React.SetStateAction<AddToArbitraryModalStateType | undefined>>;
+
+export type SetStream = (newStreamStateType: StreamStateType, newStreamMediaId: MediaId) => void;
+
 type SessionStateType = {
     isDefault: boolean;
 
@@ -41,14 +55,18 @@ type SessionStateType = {
     // setViewMediaId: React.Dispatch<React.SetStateAction<MediaId>>;
     viewportType: ViewportType;
     // setViewportType: React.Dispatch<React.SetStateAction<ViewportType>>;
-    setView: (newViewportType: ViewportType, newViewMediaId?: MediaId) => void;
+    setView: SetView;
+    popBackView: () => void;
 
     streamMediaId: MediaId;
     // setStreamMediaId: React.Dispatch<React.SetStateAction<MediaId>>;
     streamType: StreamStateType;
     // setStreamType: React.Dispatch<React.SetStateAction<StreamStateType>>;
-    setStream: (newStreamStateType: StreamStateType, newStreamMediaId: MediaId) => void;
+    setStream: SetStream;
 
+    addToArbitraryModalOpenState: boolean;
+    addToArbitraryModalState?: AddToArbitraryModalStateType;
+    setAddToArbitraryModalState: SetAddToArbitraryModalState;
 
     registerPopStateHandler: (handler: PopStateHandler) => void;
     // gotoPage: (newViewportType: ViewportType, newMediaId?: MediaId) => void;
@@ -64,10 +82,10 @@ export const SessionStateContext = createContext<SessionStateType>({
 
     viewMediaId: '',
     // setViewMediaId: () => { },
-    viewportType: ViewportType.None,
+    viewportType: ViewportType.Home,
     // setViewportType: () => { },
     setView: (newViewportType: ViewportType, newViewMediaId?: MediaId) => { },
-
+    popBackView: () => { },
 
     streamMediaId: '',
     // setStreamMediaId: () => { },
@@ -75,6 +93,9 @@ export const SessionStateContext = createContext<SessionStateType>({
     // setStreamType: () => { },
     setStream: (newStreamStateType: StreamStateType, newMediaId: MediaId) => { },
 
+    addToArbitraryModalOpenState: false,
+    addToArbitraryModalState: undefined,
+    setAddToArbitraryModalState: () => { },
 
     registerPopStateHandler: (handler) => { },
     // gotoPage: (newViewportType: ViewportType, newMediaId?: MediaId) => { },
@@ -87,13 +108,23 @@ export const SessionStateProvider = ({ children }: { children: React.JSX.Element
 {
     // Context of the page being previewed
     const [ viewMediaId, setViewMediaId ] = React.useState<MediaId>('');
-    const [ viewportType, setViewportType ] = React.useState<ViewportType>(ViewportType.None);
+    const [ viewportType, setViewportType ] = React.useState<ViewportType>(ViewportType.Home);
 
     // Context of the music being played
     const [ streamMediaId, setStreamMediaId ] = React.useState<MediaId>('');
     const [ streamType, setStreamType ] = React.useState<StreamStateType>(StreamStateType.None);
 
+    const [ addToArbitraryModalOpenState, setAddToArbitraryModalOpenState ] = React.useState<boolean>(false);
+    const [ addToArbitraryModalState, setAddToArbitraryModalStateRaw ] = React.useState<AddToArbitraryModalStateType>();
+
     const popStateHandlers = useRef<PopStateHandler[]>([]);
+    const viewStack = useRef<{ viewportType: ViewportType, viewMediaId: MediaId; }[]>([]);
+
+    const setAddToArbitraryModalState = useCallback((value?: React.SetStateAction<AddToArbitraryModalStateType | undefined>) =>
+    {
+        setAddToArbitraryModalStateRaw(value);
+        setAddToArbitraryModalOpenState(true);
+    }, [ setAddToArbitraryModalStateRaw ]);
 
     const pushWindowHistory = useCallback((
         {
@@ -149,11 +180,33 @@ export const SessionStateProvider = ({ children }: { children: React.JSX.Element
 
     const setView = useCallback((newViewportType: ViewportType, newViewMediaId?: MediaId) =>
     {
-        setViewMediaId(newViewMediaId ?? '');
+        const finalMediaId = newViewMediaId ?? viewMediaId;
+        setViewMediaId(finalMediaId);
         setViewportType(newViewportType);
+        if (finalMediaId !== viewMediaId || newViewportType !== viewportType)
+        {
+            console.log('Pushing: ', newViewportType);
+            viewStack.current.push({ viewportType: newViewportType, viewMediaId: finalMediaId });
+            pushWindowHistory({ newViewMediaId: newViewMediaId, newViewportType: newViewportType });
+        }
+    }, [ viewportType, viewMediaId, viewStack, setViewMediaId, setViewportType, pushWindowHistory ]);
 
-        pushWindowHistory({ newViewMediaId: newViewMediaId, newViewportType: newViewportType });
-    }, [ setViewMediaId, setViewportType, pushWindowHistory ]);
+    const popBackView = useCallback(() =>
+    {
+        // Pop the current view, then if it existed, pop again to get the previous one.
+        // This works since at the end of this function we will be pushing the "previous view"
+        //  back to the stack through setView
+        const poppedView = viewStack.current.pop() ? viewStack.current.pop() : undefined;
+        console.log('Popping: ', poppedView);
+        if (poppedView)
+        {
+            setView(poppedView.viewportType, poppedView.viewMediaId);
+        }
+        else
+        {
+            setView(ViewportType.None);
+        }
+    }, [ viewStack, setView ]);
 
     const setStream = useCallback((newStreamStateType: StreamStateType, newStreamMediaId: MediaId) =>
     {
@@ -257,46 +310,22 @@ export const SessionStateProvider = ({ children }: { children: React.JSX.Element
         windowStateCallback(state);
     }, [ windowStateCallback ]);
 
-    // const gotoPage = useCallback((newViewportType: ViewportType, newMediaId?: MediaId) =>
-    // {
-    //     if (typeof (window) === 'undefined') { return; }
-    //     const url = new URL(window.location.toString());
-    //     url.searchParams.forEach((v, k, p) =>
-    //     {
-    //         p.delete(k, v);
-    //     });
-    //     url.searchParams.set('viewportType', newViewportType.toString());
-    //     url.searchParams.set('streamStateType', streamType.toString());
-    //     if (newMediaId)
-    //     {
-    //         url.searchParams.set('mediaId', newMediaId.toString());
-    //     }
-    //     const state: PoppedState = {
-    //         viewportType: newViewportType,
-    //         mediaId: newMediaId ?? mediaId,
-    //         streamStateType: streamType,
-    //     };
-    //     window.history.pushState(state, '', url);
-
-    //     __showPage(newViewportType, newMediaId);
-    // }, [ __showPage, streamType, mediaId ]);
-
     // Provide the session state and its setter function to the children
     return (
         <SessionStateContext.Provider value={
             {
                 isDefault: false,
                 viewMediaId,
-                viewportType,
-                setView,
+                viewportType, setView, popBackView,
                 streamMediaId,
-                streamType,
-                setStream,
+                streamType, setStream,
+                addToArbitraryModalState, setAddToArbitraryModalState, addToArbitraryModalOpenState,
                 registerPopStateHandler,
-                requiresSyncOperations
+                requiresSyncOperations,
             }
         }>
             { children }
+            <AddToArbitraryModal />
         </SessionStateContext.Provider>
     );
 };

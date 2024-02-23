@@ -1,9 +1,10 @@
-import { cookies } from 'next/headers';
-import { ApiAccessError, ApiError, ApiSuccess } from '@/app/api/common';
-import jwt from 'jsonwebtoken';
-import { NextRequest } from 'next/server';
+export const dynamic = "force-dynamic";
 
-export function GET(req: NextRequest)
+import { ApiSuccess, catchHandler } from '@/app/api/common';
+import { NextRequest } from 'next/server';
+import { getUser } from '@/app/server-db-services/user-utils';
+
+export async function GET(_req: NextRequest)
 {
     const jwtSecret = process.env.JWT_SECRET;
     if (!jwtSecret)
@@ -13,19 +14,11 @@ export function GET(req: NextRequest)
 
     try
     {
-        const authToken = cookies().get('auth');
-        if (!authToken)
-        {
-            return ApiAccessError('Must be logged in to use user api!');
-        }
-
-        // Verify the JWT and get the user data
-        const user = jwt.verify(authToken.value, jwtSecret);
-
-        return ApiSuccess(user);
+        const fullUserData = await getUser();
+        return ApiSuccess(fullUserData);
     }
     catch (e)
     {
-        return ApiError(e);
+        return catchHandler(e);
     }
 }

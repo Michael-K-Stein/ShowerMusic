@@ -1,21 +1,38 @@
-import { NextResponse } from "next/server";
-import { ApiStatusCodes } from "@/app/settings";
+export const dynamic = "force-dynamic";
 
-export class ApiGenericError extends Error { };
-export class ApiNotImplementedError extends ApiGenericError { };
-export class ApiSearchError extends ApiGenericError { };
+import { NextResponse } from "next/server";
+import { ClientApiError } from "@/app/shared-api/other/errors";
+
+
+export function ApiResponseMaker(data: any)
+{
+    return new NextResponse(JSON.stringify({ 'status': 0, 'data': data }), { status: 200 });
+}
+export function ApiErrorMaker(e: any)
+{
+    return new NextResponse(JSON.stringify({ 'status': -1, 'error': e }), { status: 200 });
+}
 
 export function ApiError(e: any)
 {
-    return new NextResponse(JSON.stringify({ 'status': ApiStatusCodes.STATUS_ERROR, 'error': e }), { status: 200 });
+    return ApiErrorMaker(e);
 }
 
 export function ApiAccessError(e: any)
 {
-    return new NextResponse(JSON.stringify({ 'status': ApiStatusCodes.STATUS_ACCESS_DENIED, 'error': e }), { status: 200 });
+    return ApiErrorMaker(e);
 }
 
 export function ApiSuccess(data?: any)
 {
-    return new NextResponse(JSON.stringify({ 'status': ApiStatusCodes.STATUS_SUCCESS, 'data': data }), { status: 200 });
+    return ApiResponseMaker(data);
+}
+
+export function catchHandler(e: any)
+{
+    if (e instanceof ClientApiError)
+    {
+        return ApiErrorMaker(e);
+    }
+    return ApiError(e);
 }

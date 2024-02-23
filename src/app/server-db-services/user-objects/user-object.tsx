@@ -1,14 +1,20 @@
-import { GetUsersDb } from "@/app/server-db-services/mongo-utils";
-import { MessageTypes } from "@/app/settings";
-import { QueuedTrackDict } from "@/app/shared-api/media-objects/tracks";
-import { UserDict, UserId } from "@/app/shared-api/user-objects/users";
-import { SendServerRequestToSessionServer } from "@/app/web-socket-utils";
-import { ObjectId } from "mongodb";
+import databaseController from "@/app/server-db-services/mongo-db-controller";
+import { SSUserId } from "@/app/server-db-services/user-utils";
+import { ClientApiError } from "@/app/shared-api/other/errors";
+import { LoopState, LyricsState, PauseState, UserDict, UserId, UserPublicInfo } from "@/app/shared-api/user-objects/users";
+import { FindOptions, ObjectId, WithId } from "mongodb";
 
 export class UserNotFoundError extends Error { };
 export class UserPasswordError extends Error { };
 export class UserCreationError extends Error { };
-export class UserAccessDeniedError extends Error { };
+export class UserAccessDeniedError extends ClientApiError
+{
+    constructor(message?: string)
+    {
+        super(message);
+        this.name = 'UserAccessDeniedError';
+    }
+};
 
 export async function loginUser(username: string, password: string)
 {
@@ -16,10 +22,10 @@ export async function loginUser(username: string, password: string)
     try
     {
         const v = await getUserByUsername(username);
-        user = (v) as unknown as UserDict;
+        user = v;
         if (user.password !== password)
         {
-            throw new UserPasswordError('Password is incorrect!');
+            throw new UserPasswordError('Username or password is incorrect!');
         }
     }
     catch (e)
@@ -29,7 +35,7 @@ export async function loginUser(username: string, password: string)
             e = new Error('Could not find user!');
         }
 
-        user = (await createUser(username, password)) as unknown as UserDict;
+        user = (await createUser(username, password));
     };
 
     return user;
@@ -37,8 +43,7 @@ export async function loginUser(username: string, password: string)
 
 export async function getUserByUsername(username: string)
 {
-    const users = await GetUsersDb();
-    const user = await users.findOne({ 'username': username });
+    const user = await databaseController.users.findOne({ 'username': username });
     if (!user)
     {
         throw new UserNotFoundError('User not found!');
@@ -46,10 +51,14 @@ export async function getUserByUsername(username: string)
     return user;
 };
 
-export async function getUserById(id: UserId)
+export async function getUserByStringId(id: UserId)
 {
-    const users = await GetUsersDb();
-    const user = await users.findOne({ '_id': new ObjectId(id) });
+    return getUserById(new ObjectId(id));
+}
+
+export async function getUserById(userId: SSUserId, options?: FindOptions<Document>)
+{
+    const user = await databaseController.users.findOne({ '_id': userId }, options);
     if (!user)
     {
         throw new UserNotFoundError('User not found!');
@@ -59,19 +68,30 @@ export async function getUserById(id: UserId)
 
 async function createUser(username: string, password: string)
 {
-    const users = await GetUsersDb();
-    const newUserInfo = await users.insertOne({
+    const newUserInfo = await databaseController.users.insertOne({
         'username': username,
         'password': password,
         'playingNextTracks': { _id: new ObjectId, tracks: [] },
         'friends': [],
         'player': {
             'currentlyPlayingTrack': '',
+            'lastSavedSeekTime': 0,
+            'loopState': LoopState.None,
+            'lyricsState': LyricsState.Hidden,
+            'pauseState': PauseState.Paused,
         },
-        _id: new ObjectId
+        _id: new ObjectId,
+        'listenHistory': {
+            'lastAlbums': [],
+            'lastPlaylists': [],
+            'lastArtists': [],
+            'lastTracks': [],
+            'recents': [],
+        },
+        playlists: []
     });
 
-    const user = await users.findOne({ _id: newUserInfo.insertedId });
+    const user = await databaseController.users.findOne({ _id: newUserInfo.insertedId });
     if (!user)
     {
         throw new UserCreationError('Could not find newly created user!');
@@ -80,7 +100,25 @@ async function createUser(username: string, password: string)
     return user;
 };
 
-export async function verifyAdminUser(userId: UserId)
+// Throws an error if the user is not an admin.Use as a barrier check.;
+export async function verifyAdminUser(userId: SSUserId)
 {
     throw new UserAccessDeniedError();
+}
+
+export async function getUserPublicInfo(userId: UserId): Promise<UserPublicInfo>
+{
+
+    const user = await databaseController.users.findOne(
+        { '_id': new ObjectId(userId) },
+        {
+            projection: {
+                username: 1,
+            }
+        });
+    if (!user)
+    {
+        throw new UserNotFoundError('User not found!');
+    }
+    return user as UserPublicInfo;
 }

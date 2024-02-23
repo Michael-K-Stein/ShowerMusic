@@ -3,18 +3,17 @@
 import { safeApiFetcher } from "@/app/client-api/common-utils";
 import { popTrackFromQueue } from "@/app/client-api/queue";
 import { TrackId } from "@/app/shared-api/media-objects/tracks";
+import { LoopState } from "@/app/shared-api/user-objects/users";
 
 export async function commandPlayerSetCurrentlyPlayingTrack(trackId: TrackId | null)
 {
-    const r = await safeApiFetcher(`/api/commands/player/play`, {
+    return safeApiFetcher(`/api/commands/player/play`, {
         method: 'POST',
         body: JSON.stringify({
             'type': 'track',
             'id': trackId,
         }),
     });
-    if (!r) { return false; }
-    return true;
 };
 
 export async function queryCurrentlyPlayingTrack()
@@ -26,15 +25,29 @@ export async function queryCurrentlyPlayingTrack()
 
 export async function commandPlayerSkipCurrentTrack()
 {
-    popTrackFromQueue()
+    return popTrackFromQueue()
         .then((nextTrack) =>
         {
-            if (nextTrack === false) { return; }
             if (!nextTrack)
             {
-                commandPlayerSetCurrentlyPlayingTrack(nextTrack);
+                commandPlayerSetCurrentlyPlayingTrack(null);
                 return;
             }
             commandPlayerSetCurrentlyPlayingTrack(nextTrack.trackId);
         });
+}
+
+export async function commandQueryPlayerLoopState()
+{
+    return await safeApiFetcher(`/api/commands/player/loop`, { method: 'GET' }) as LoopState;
+}
+
+export async function commandSetPlayerLoopState(newLoopState: LoopState)
+{
+    return await safeApiFetcher(`/api/commands/player/loop`, {
+        method: 'POST',
+        body: JSON.stringify({
+            state: newLoopState
+        })
+    });
 }

@@ -2,19 +2,30 @@
 import { Box, Typography } from '@mui/material';
 import './playing-next.css';
 import { StreamStateType, useSessionState } from '@/app/components/providers/session/session';
-import { getTrackInfo } from '@/app/client-api/get-track';
+import { getMultipleTracksInfo, getTrackInfo } from '@/app/client-api/get-track';
 import Image from 'next/image';
 import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import assert from 'assert';
 import ContentLoader, { IContentLoaderProps } from 'react-content-loader';
 import RemoveGlyph from '@/app/components/glyphs/remove';
-import { removeTrackFromQueue } from '@/app/client-api/queue';
+import { removeTrackFromQueue, skipToQueuedTrack } from '@/app/client-api/queue';
 import { useSnackbar } from 'notistack';
 import { getAlbumInfo } from '@/app/client-api/get-album';
 import { useMediaControls } from '@/app/components/providers/media-controls';
 import { useQueue } from '@/app/components/providers/queue-provider';
 import useGlobalProps from '@/app/components/providers/global-props/global-props';
-import { QueuedTrackDict, TrackDict } from '@/app/shared-api/media-objects/tracks';
+import { QueuedTrackDict, TrackDict, TrackId } from '@/app/shared-api/media-objects/tracks';
+import { gotoAlbumCallbackFactory } from '@/app/components/pages/album-page/album-page';
+import { ArtistList, enqueueApiErrorSnackbar, enqueueSnackbarWithSubtext } from '@/app/components/providers/global-props/global-modals';
+import { addAnyToArbitraryClickHandlerFactory, getClientSideObjectId } from '@/app/client-api/common-utils';
+import AddGlyph from '@/app/components/glyphs/add';
+import FastForwardGlyph from '@/app/components/glyphs/fast-forward';
+import useSessionMuse from '@/app/components/providers/session-muse';
+import SaveAsGlyph from '@/app/components/glyphs/save-as';
+import { commandCreateNewPlaylist } from '@/app/client-api/get-playlist';
+import { NewPlaylistInitialItem } from '@/app/shared-api/other/playlist';
+import { gotoPlaylistCallbackFactory } from '@/app/components/pages/playlist-page/playlist-page';
+import { ShowerMusicObjectType } from '@/app/shared-api/other/common';
 
 const MyLoader = (props: React.JSX.IntrinsicAttributes & IContentLoaderProps) => (
     <ContentLoader
@@ -37,10 +48,12 @@ const MyLoader = (props: React.JSX.IntrinsicAttributes & IContentLoaderProps) =>
     </ContentLoader>
 );
 
-function PlayingNextTrack({ queuedTrack }: { queuedTrack: QueuedTrackDict; })
+function PlayingNextTrack({ queuedTrack, trackData }: { queuedTrack: QueuedTrackDict, trackData: TrackDict; })
 {
     const { enqueueSnackbar } = useSnackbar();
     const { reportGeneralServerError } = useGlobalProps();
+    const { setView, setAddToArbitraryModalState } = useSessionState();
+    const { skipTrack } = useSessionMuse();
 
     const [ track, setTrack ] = useState<TrackDict>();
 
@@ -49,8 +62,27 @@ function PlayingNextTrack({ queuedTrack }: { queuedTrack: QueuedTrackDict; })
         removeTrackFromQueue(queuedTrack._id);
     }, [ queuedTrack ]);
 
+    const skipToTrack = useCallback(() =>
+    {
+        skipToQueuedTrack(queuedTrack._id)
+            .then((requestedTrack) =>
+            {
+                skipTrack();
+            })
+            .catch((error) =>
+            {
+                enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to skip to track ${track ? track.name : queuedTrack.trackId}`, error);
+            });
+    }, [ queuedTrack, track, skipTrack, enqueueSnackbar ]);
+
     useEffect(() =>
     {
+        if (trackData)
+        {
+            setTrack(trackData);
+            return;
+        }
+        console.log(`No track data found for ${queuedTrack.trackId}`);
         getTrackInfo(queuedTrack.trackId)
             .then(
                 (v) =>
@@ -62,7 +94,7 @@ function PlayingNextTrack({ queuedTrack }: { queuedTrack: QueuedTrackDict; })
                 enqueueSnackbar(`Track ${queuedTrack.trackId} was not found, removing it from queue`, { variant: 'warning', preventDuplicate: true });
                 removeQueuedTrack();
             });
-    }, [ queuedTrack, reportGeneralServerError, enqueueSnackbar, removeQueuedTrack ]);
+    }, [ trackData, queuedTrack, reportGeneralServerError, enqueueSnackbar, removeQueuedTrack ]);
 
     if (!track)
     {
@@ -78,16 +110,34 @@ function PlayingNextTrack({ queuedTrack }: { queuedTrack: QueuedTrackDict; })
     return (
         <div className='playing-next-track-entry'>
             <div className='playing-next-track-entry-cover-art'>
-                <Image width={ 256 } height={ 256 } src={ track.album.images[ 0 ].url } alt={ '' } />
+                <div className='cover-art'>
+                    <Image width={ 256 } height={ 256 } src={ track.album.images[ 0 ].url } alt={ '' } />
+                </div>
+                <div className='skip-to-track' onClick={ skipToTrack }>
+                    <FastForwardGlyph glyphTitle='Skip to track' />
+                </div>
             </div>
             <Box sx={ { marginLeft: '0.3em' } } />
-            <div>
-                <Typography fontSize={ '1.1em' }>{ track.name }</Typography>
-                <Typography fontSize={ '0.9em' } className='song-artist-name pl-2'>{ track.artists[ 0 ].name }</Typography>
+            <div className='max-w-full'>
+                <div className='flex flex-row items-center'>
+                    <Typography fontSize={ '1.1em' } fontWeight={ 700 }>{ track.name }</Typography>
+                    <Box sx={ { width: '0.3em' } } /> ─ <Box sx={ { width: '0.3em' } } />
+                    <div className='clickable' onClick={ gotoAlbumCallbackFactory(setView, track.album.id) }>
+                        <Typography fontSize={ '1em' } fontWeight={ 400 }>{ track.album.name }</Typography>
+                    </div>
+                </div>
+                <div style={ { fontSize: '0.9em ' } } className='max-w-full'>
+                    <ArtistList artists={ track.artists } setView={ setView } />
+                </div>
             </div>
             <Box sx={ { marginLeft: '0.3em' } } />
-            <div className='h-8 float-right' onClick={ removeQueuedTrack }>
-                <RemoveGlyph glyphTitle='Remove' />
+            <div className='playing-next-track-end-controls float-right flex'>
+                <div className='playing-next-track-end-control' onClick={ addAnyToArbitraryClickHandlerFactory(track, ShowerMusicObjectType.Track, setAddToArbitraryModalState) }>
+                    <AddGlyph glyphTitle='Add to' />
+                </div>
+                <div className='playing-next-track-end-control' onClick={ removeQueuedTrack }>
+                    <RemoveGlyph glyphTitle='Remove' />
+                </div>
             </div>
         </div>
     );
@@ -95,24 +145,47 @@ function PlayingNextTrack({ queuedTrack }: { queuedTrack: QueuedTrackDict; })
 
 export default function PlayingNext()
 {
-    const { streamMediaId, streamType } = useSessionState();
+    const { enqueueSnackbar } = useSnackbar();
+    const { streamMediaId, streamType, setView } = useSessionState();
     const { playingNextModalHiddenState } = useMediaControls();
     const { playingNextTracks } = useQueue();
+    const [ playingNextTitle, setPlayingNextTitle ] = useState<string>('Playing Next');
+    const [ queuedTracksFullData, setQueuedTracksFullData ] = useState<{ [ x: TrackId ]: TrackDict; } | undefined>();
 
     let nextUpTracks: React.JSX.Element[] = [];
 
-    if (playingNextTracks)
+    const saveQueueAsPlaylist = useCallback(() =>
     {
-        nextUpTracks = playingNextTracks.tracks.map((queuedTrack: QueuedTrackDict) =>
+        if (!playingNextTracks) { return; }
+        const playlistItems = playingNextTracks.tracks.map((v) =>
         {
-            if (!queuedTrack) { return <></>; }
-            return (
-                <PlayingNextTrack key={ queuedTrack._id.toString() } queuedTrack={ queuedTrack } />
-            );
+            return {
+                mediaId: v.trackId,
+                mediaType: ShowerMusicObjectType.Track,
+            } as NewPlaylistInitialItem;
         });
-    }
+        commandCreateNewPlaylist({
+            items: playlistItems,
+            name: (playingNextTitle !== 'Playing Next') ? playingNextTitle : undefined
+        })
+            .then((newPlaylist) =>
+            {
+                enqueueSnackbarWithSubtext(
+                    enqueueSnackbar,
+                    `Created playlist '${newPlaylist.name}' from your queue`,
+                    <>
+                        <p>{ newPlaylist.tracks.length } tracks were added to the playlist</p>
+                        <a onClick={ gotoPlaylistCallbackFactory(setView, newPlaylist.id) } className='clickable'>Click to open playlist now</a>
+                    </>,
+                    { variant: 'success', autoHideDuration: 15000 }
+                );
+            })
+            .catch((error) =>
+            {
+                enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to create playlist from queue!`, error);
+            });
+    }, [ playingNextTitle, playingNextTracks, setView, enqueueSnackbar ]);
 
-    const [ playingNextTitle, setPlayingNextTitle ] = useState<string>('Playing Next');
     useLayoutEffect(() =>
     {
         if (streamType === StreamStateType.AlbumTracks)
@@ -141,10 +214,51 @@ export default function PlayingNext()
         }
     }, [ playingNextModalHiddenState ]);
 
+    useEffect(() =>
+    {
+        if (!playingNextTracks) { return; }
+        getMultipleTracksInfo(playingNextTracks.tracks.map((q) => q.trackId))
+            .then((tracks) =>
+            {
+                const newFullTrackInfoDictionary: typeof queuedTracksFullData = {};
+                tracks.map((v) =>
+                {
+                    newFullTrackInfoDictionary[ v.id ] = v;
+                });
+                setQueuedTracksFullData(newFullTrackInfoDictionary);
+            })
+            .catch((error) =>
+            {
+                enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to load tracks' data!`, error);
+            });
+    }, [ playingNextTracks, setQueuedTracksFullData, enqueueSnackbar ]);
+
+    if (playingNextTracks && queuedTracksFullData)
+    {
+        nextUpTracks = playingNextTracks.tracks.map((queuedTrack: QueuedTrackDict) =>
+        {
+            if (!queuedTrack) { return <></>; }
+            return (
+                <PlayingNextTrack
+                    key={ getClientSideObjectId(queuedTrack) }
+                    queuedTrack={ queuedTrack }
+                    trackData={ queuedTracksFullData[ queuedTrack.trackId ] }
+                />
+            );
+        });
+    }
+
     return (
         <div className="playing-next-parent-container" id="playing-next-parent-container">
             <div className='flex flex-col items-center justify-center w-full pt-2'>
-                <Typography fontSize={ 'x-large' }>{ playingNextTitle }</Typography>
+                <div className='relative w-full flex flex-row items-center justify-center'>
+                    <Typography fontSize={ 'x-large' }>{ playingNextTitle }</Typography>
+                    <div className='absolute right-2'>
+                        <div className='w-5 h-5' onClick={ saveQueueAsPlaylist }>
+                            <SaveAsGlyph glyphTitle='Save as playlist' />
+                        </div>
+                    </div>
+                </div>
                 <Box sx={ { width: '82%', height: '0.15em', backgroundColor: 'rgba(240,240,240,0.15)' } } />
             </div>
             <div className='track-container flex flex-col max-h-full'>

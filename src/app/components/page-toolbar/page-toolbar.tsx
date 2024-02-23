@@ -6,7 +6,10 @@ import Drawer from '@mui/material/Drawer';
 import React from 'react';
 import RadioTowerGlyph from '@/glyphs/radio-tower';
 import HomeGlyph from '@/glyphs/home';
-import Link from 'next/link';
+import { SetView, ViewportType, useSessionState } from '@/app/components/providers/session/session';
+import assert from 'assert';
+import { Paper } from '@mui/material';
+import ToolbarUserFavorites from '@/app/components/toolbar-user-favorites';
 
 function MenuBurgerRoundedGlyph()
 {
@@ -26,7 +29,8 @@ interface ToolbarItemProps
 {
     name: string;
     glyphGenerator: (glyphTitle: string) => JSX.Element;
-    link: string;
+    viewType: ViewportType;
+    setView?: SetView;
 };
 
 /**
@@ -40,19 +44,20 @@ interface ToolbarItemProps
 class ToolbarItem extends React.Component<ToolbarItemProps> {
     render()
     {
-        const { name, glyphGenerator, link } = this.props;
+        const { setView } = this.props;
+        const { name, glyphGenerator, viewType } = this.props;
+
+        assert(setView !== undefined);
 
         return (
-            <Link href={ link }
-            // className='transition duration-250 ease-in-out transform hover:-translate-y-1 hover:scale-105'
-            >
+            <div onClick={ () => { setView(viewType); } }>
                 <div className="toolbar-item flex flex-col center text-center items-center justify-center content-center pt-4">
                     <div className='w-14 h-14'>
                         { glyphGenerator(name) }
                     </div>
                     <h3 className='text-lg font-bold'>{ name }</h3>
                 </div>
-            </Link>
+            </div>
         );
     };
 };
@@ -61,12 +66,12 @@ const TOOLBAR_MENU_ITEMS: ToolbarItemProps[] = [
     {
         name: 'Home',
         glyphGenerator: (_glyphTitle: string) => <HomeGlyph glyphTitle={ '' } />,
-        link: 'stream/home',
+        viewType: ViewportType.Home,
     },
     {
         name: 'Stations',
         glyphGenerator: (_glyphTitle: string) => <RadioTowerGlyph glyphTitle='' />,
-        link: 'stream/stations',
+        viewType: ViewportType.Station,
     },
 ];
 
@@ -74,6 +79,7 @@ export default function PageToolbar()
 {
     const PAGE_TOOLBAR_STATE_STORAGE_KEY = 'page-toolbar-open';
     let pageToolbarState = useRef(true);
+    const { setView } = useSessionState();
 
     const togglePageToolbar = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) =>
     {
@@ -120,24 +126,24 @@ export default function PageToolbar()
 
     const toolbarMenuItems = TOOLBAR_MENU_ITEMS.map((item) =>
     {
-        return (<ToolbarItem key={ item.name } name={ item.name } glyphGenerator={ item.glyphGenerator } link={ item.link } />);
+        return (<ToolbarItem key={ item.name } name={ item.name } glyphGenerator={ item.glyphGenerator } viewType={ item.viewType } setView={ setView } />);
     });
 
     return (
         <div className='page-toolbar'>
-            <Drawer
-                anchor='left'
-                open={ pageToolbarState.current }
-                onClose={ togglePageToolbar(false) }
-                variant="persistent"
-            >
-                {/* <div onClick={togglePageToolbar(false)}>Close</div> */ }
+            <div className='toolbar-menu-items'>
                 { toolbarMenuItems }
-
-            </Drawer>
-            <div id='page-toolbar-open-burger' onClick={ togglePageToolbar(true) } className='clickable w-8 h-8 absolute -left-10'>
-                {/* <MenuBurgerRoundedGlyph /> */ }
             </div>
+            <ToolbarSubItems />
         </div>
     );
 };
+
+function ToolbarSubItems()
+{
+    return (
+        <div className='toolbar-sub-items'>
+            <ToolbarUserFavorites />
+        </div>
+    );
+}

@@ -1,0 +1,22 @@
+.home-page-playlists-container .home-page-user-playlist
+{
+    box-sizing: border-box;
+    text-align: center;
+    width: 10em;
+    height: 10em;
+    background-color: rgba(40, 30, 45, 0.3);
+    border-radius: 2em;
+    margin: 0.5em;
+}
+
+.home-page-playlists-container .home-page-user-playlist:hover
+{}
+
+.home-page-playlists-container
+{
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+}

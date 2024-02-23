@@ -1,19 +1,16 @@
-import { ApiStatusCodes } from "@/app/settings";
-import { ApiResponseJson } from "@/app/shared-api/other/common";
-
-export class ClientError extends Error { };
-export class ClientApiError extends ClientError { };
+import { AlbumNotFoundError, ArtistNotFoundError, ClientApiError, ClientError, ServerNetworkError, TrackNotFoundError, constructErrorFromNetworkMessage } from "@/app/shared-api/other/errors";
+import { ApiResponseJson, ArbitraryTargetAndDataApiRequestBody, ArbitraryTargetAndDataApiRequestBodyWithComplexItem, ComplexItem, ComplexItemType, RemovalId, ShowerMusicObject, ShowerMusicObjectType, ShowerMusicPlayableMediaDict } from "@/app/shared-api/other/common";
+import { MediaId } from "@/app/shared-api/media-objects/media-id";
+import { SetAddToArbitraryModalState } from "@/app/components/providers/session/session";
+import { MouseEventHandler } from "react";
+import { ShowerMusicPlayableMediaType } from "@/app/showermusic-object-types";
 
 export function safeFetcher(input: RequestInfo, init?: RequestInit | undefined): Promise<Response | false>
 {
-    return fetch(input, init)
-        .catch((reason) =>
-        {
-            return false;
-        });
+    return fetch(input, init);
 }
 
-export function safeApiFetcher(input: RequestInfo, init?: RequestInit | undefined): Promise<any | false>
+export function safeApiFetcher(input: RequestInfo, init?: RequestInit | undefined, withCatch?: boolean): Promise<any | false>
 {
     return safeFetcher(input, init)
         .then((response) =>
@@ -22,21 +19,17 @@ export function safeApiFetcher(input: RequestInfo, init?: RequestInit | undefine
             return response.json()
                 .then((data: ApiResponseJson) =>
                 {
-                    if (data.status === ApiStatusCodes.STATUS_SUCCESS)
+                    if (data.status === 0)
                     {
                         return data.data;
                     }
-                    else if (data.status === ApiStatusCodes.STATUS_ERROR)
-                    {
-                        throw new ClientApiError(data.error);
-                    }
-                    else
-                    {
-                        throw new ClientError(`Api response format not recognized! Data: ${data}`);
-                    }
+
+                    throw constructErrorFromNetworkMessage(data.error as ClientApiError);
                 })
-                .catch((e) =>
+                .catch((e: any | ClientApiError) =>
                 {
+                    if (withCatch !== true) { throw e; }
+
                     if (e instanceof ClientApiError)
                     {
                         console.log(`[ClientApiError] ${e}`);
@@ -51,5 +44,88 @@ export function safeApiFetcher(input: RequestInfo, init?: RequestInit | undefine
                     }
                     return false;
                 });
+        })
+        .catch((e: any) =>
+        {
+            if (e instanceof ClientApiError) { throw e; }
+            throw new ServerNetworkError(JSON.stringify(e));
         });
+}
+
+export async function commandAnyAddArbitrary(
+    sourceType: ShowerMusicObjectType, sourceId: MediaId,
+    targetType: ShowerMusicObjectType, targetId?: MediaId
+)
+{
+    const data: ArbitraryTargetAndDataApiRequestBody = {
+        id: sourceId,
+        type: sourceType,
+        targetType: targetType,
+        targetId: targetId,
+    };
+
+    return await safeApiFetcher(`/api/commands/any/add`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+}
+
+export async function commandAnySetArbitrary(
+    sourceType: ShowerMusicObjectType, sourceId: MediaId,
+    targetType: ShowerMusicObjectType, targetId?: MediaId
+)
+{
+    const data: ArbitraryTargetAndDataApiRequestBody = {
+        id: sourceId,
+        type: sourceType,
+        targetType: targetType,
+        targetId: targetId,
+    };
+
+    return await safeApiFetcher(`/api/commands/any/set`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+}
+
+export async function commandAnyRemoveArbitrary(
+    removalId: RemovalId, itemType: ComplexItemType,
+    targetType: ShowerMusicObjectType, targetId?: MediaId
+)
+{
+    const data: ArbitraryTargetAndDataApiRequestBodyWithComplexItem = {
+        item: removalId,
+        itemType: itemType,
+        targetType: targetType,
+        targetId: targetId,
+    };
+
+    return await safeApiFetcher(`/api/commands/any/remove`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+}
+
+export function getClientSideObjectId(object: ShowerMusicObject)
+{
+    return object._id as unknown as string;
+}
+
+export function addAnyToArbitraryClickHandlerFactory<T extends ShowerMusicPlayableMediaDict>(
+    object: T | undefined,
+    objectType: ShowerMusicPlayableMediaType | undefined,
+    setAddToArbitraryModalState: SetAddToArbitraryModalState,
+): MouseEventHandler
+{
+    return (event: React.MouseEvent<HTMLElement, MouseEvent>) =>
+    {
+        if (object === undefined || objectType === undefined) { return; }
+        setAddToArbitraryModalState({
+            posX: event.clientX,
+            posY: event.clientY,
+            event: event,
+            mediaType: objectType,
+            mediaData: object,
+        });
+    };
 }

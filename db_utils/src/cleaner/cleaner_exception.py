@@ -1,0 +1,2 @@
+class CleanerException(Exception):
+    pass

@@ -1,9 +1,10 @@
+import { getClientSideObjectId } from "@/app/client-api/common-utils";
 import { getUserMe } from "@/app/components/auth-provider";
 import { MessageTypes, WEBSOCKET_SESSION_SERVER_CONN_STRING } from "@/app/settings";
 import { UserId } from "@/app/shared-api/user-objects/users";
 import { createContext, useCallback, useContext, useEffect, useRef } from "react";
 
-export type MessageHandlerType = (messageType: string, data: any) => void;
+export type MessageHandlerType = (messageType: MessageTypes, data: any) => void;
 const MessageHandlerContext = createContext<MessageHandlerType>(() => { });
 export default function useSessionWebSocketContext(
     setUserId: React.Dispatch<React.SetStateAction<UserId>>
@@ -70,10 +71,10 @@ export default function useSessionWebSocketContext(
         const loadUserData = async () =>
         {
             const me = await getUserMe();
-            setUserId(me.userId);
+            setUserId(getClientSideObjectId(me));
             console.log(me);
 
-            waitForSocketConnection(ws.current, () => { registerCurrentSession(me.userId); });
+            waitForSocketConnection(ws.current, () => { registerCurrentSession(me._id.toString()); });
         };
 
         loadUserData();

@@ -8,6 +8,13 @@
     margin: 0.5em;
     overflow: hidden;
     z-index: 2;
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+.modal-page-toolbar-container .toolbar-item
+{
+    margin: 0.2em;
 }
 
 .toolbar-item
@@ -43,11 +50,41 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    z-index: 15;
+    z-index: 90;
     transition: all 0.2s cubic-bezier(0.47, 0, 0.745, 0.715);
 }
 
 .modal-page-container:hover
 {
     bottom: 4.4em;
+}
+
+.modal-cover-art
+{
+    position: relative;
+    left: 0;
+    top: 0;
+    width: 16em;
+    height: 16em;
+    border-radius: 1em;
+    overflow: hidden;
+}
+
+
+.modal-page-control-bar
+{
+    display: flex;
+    flex-direction: row;
+    margin-top: 0.5em;
+}
+
+.modal-page-control-bar[data-controls-enabled=false]
+{
+    pointer-events: none;
+    opacity: 0.3;
+}
+
+.modal-page-control-bar[data-controls-enabled=false] *
+{
+    pointer-events: none;
 }
