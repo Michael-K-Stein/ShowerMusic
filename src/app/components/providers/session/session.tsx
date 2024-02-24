@@ -14,10 +14,17 @@ export enum ViewportType
     Album,
     Artist,
     Station,
+    Stations,
     Playlist,
     Lyrics,
 
 };
+
+function isModalView(view: ViewportType | undefined): boolean
+{
+    if (view === undefined) { return false; }
+    return view in [ ViewportType.Album, ViewportType.Artist, ViewportType.Station, ViewportType.Playlist ];
+}
 
 export enum StreamStateType
 {
@@ -57,6 +64,7 @@ type SessionStateType = {
     // setViewportType: React.Dispatch<React.SetStateAction<ViewportType>>;
     setView: SetView;
     popBackView: () => void;
+    popBackToNonModalView: () => void;
 
     streamMediaId: MediaId;
     // setStreamMediaId: React.Dispatch<React.SetStateAction<MediaId>>;
@@ -86,6 +94,7 @@ export const SessionStateContext = createContext<SessionStateType>({
     // setViewportType: () => { },
     setView: (newViewportType: ViewportType, newViewMediaId?: MediaId) => { },
     popBackView: () => { },
+    popBackToNonModalView: () => { },
 
     streamMediaId: '',
     // setStreamMediaId: () => { },
@@ -208,6 +217,28 @@ export const SessionStateProvider = ({ children }: { children: React.JSX.Element
         }
     }, [ viewStack, setView ]);
 
+    const popBackToNonModalView = useCallback(() =>
+    {
+        console.log(viewStack.current);
+        let poppedView = undefined;
+        while (poppedView === undefined)
+        {
+            const view = viewStack.current.pop();
+            console.log(`Popped: `, view);
+            if (view === undefined) { break; }
+            if (isModalView(view.viewportType)) { continue; }
+            poppedView = view;
+        }
+        if (poppedView !== undefined)
+        {
+            setView(poppedView.viewportType, poppedView.viewMediaId);
+        }
+        else
+        {
+            setView(ViewportType.None);
+        }
+    }, [ viewStack, setView ]);
+
     const setStream = useCallback((newStreamStateType: StreamStateType, newStreamMediaId: MediaId) =>
     {
         setStreamMediaId(newStreamMediaId);
@@ -316,7 +347,7 @@ export const SessionStateProvider = ({ children }: { children: React.JSX.Element
             {
                 isDefault: false,
                 viewMediaId,
-                viewportType, setView, popBackView,
+                viewportType, setView, popBackView, popBackToNonModalView,
                 streamMediaId,
                 streamType, setStream,
                 addToArbitraryModalState, setAddToArbitraryModalState, addToArbitraryModalOpenState,

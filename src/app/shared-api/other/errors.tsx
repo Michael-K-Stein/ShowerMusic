@@ -123,6 +123,15 @@ export class PlaylistApiError extends ClientApiError
     }
 }
 
+export class StationApiError extends PlaylistApiError
+{
+    constructor(message?: string)
+    {
+        super(message);
+        this.name = 'StationApiError';
+    }
+}
+
 export class PlaylistCreationError extends PlaylistApiError
 {
     constructor(message?: string)
@@ -141,6 +150,14 @@ export class PlaylistNotFoundError extends PlaylistApiError
     }
 }
 
+export class StationNotFoundError extends StationApiError
+{
+    constructor(message?: string)
+    {
+        super(message);
+        this.name = 'StationNotFoundError';
+    }
+}
 
 export class InvalidTargetTypeError extends ClientApiError
 {

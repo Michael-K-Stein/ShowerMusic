@@ -2,9 +2,8 @@ import databaseController from "@/app/server-db-services/mongo-db-controller";
 import { MessageTypes, ShowerMusicObjectType } from "@/app/settings";
 import { TrackId } from "@/app/shared-api/media-objects/tracks";
 import { RemovalId } from "@/app/shared-api/other/common";
-import { PlaylistNotFoundError } from "@/app/shared-api/other/errors";
 import { PlaylistId, PlaylistTrack } from "@/app/shared-api/other/playlist";
-import { SendServerRequestToSessionServer, SendServerRequestToSessionServerForPlaylistListeners } from "@/app/web-socket-utils";
+import { SendServerRequestToSessionServerForPlaylistListeners } from "@/app/web-socket-utils";
 import { ObjectId } from "mongodb";
 
 export async function addTracksToPlaylistWithPosition(playlistId: PlaylistId, trackIds: TrackId[], position?: number)
@@ -22,7 +21,10 @@ export async function addTracksToPlaylistWithPosition(playlistId: PlaylistId, tr
             { '$each': newPlaylistTracks };
 
     await databaseController.playlists.updateOne(
-        { id: playlistId },
+        {
+            id: playlistId,
+            type: ShowerMusicObjectType.Playlist,
+        },
         {
             '$push': {
                 'tracks': modifiers,
@@ -42,7 +44,10 @@ export async function removeTrackFromPlaylist(playlistId: PlaylistId, trackRemov
 {
     console.log(trackRemovableId);
     await databaseController.playlists.updateOne(
-        { id: playlistId },
+        {
+            id: playlistId,
+            type: ShowerMusicObjectType.Playlist,
+        },
         {
             '$pull': {
                 'tracks': {

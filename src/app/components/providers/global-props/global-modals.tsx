@@ -1,34 +1,33 @@
 'use client';
-import './flat-track.css';
+import { addAnyToArbitraryClickHandlerFactory, getClientSideObjectId } from '@/app/client-api/common-utils';
 import { getTrackInfo } from "@/app/client-api/get-track";
 import { commandPlayerSetCurrentlyPlayingTrack } from "@/app/client-api/player";
 import AddGlyph from "@/app/components/glyphs/add";
+import AddSongGlyph from '@/app/components/glyphs/add-song';
+import BackToGlyph from '@/app/components/glyphs/back-to';
 import CancelGlyph from "@/app/components/glyphs/cancel";
-import LoveCircledGlyph from "@/app/components/glyphs/love-circled";
 import PlayGlyph from "@/app/components/glyphs/play";
+import ShareGlyph from '@/app/components/glyphs/share';
+import ItemFavoriteGlyph from '@/app/components/other/item-favorite-glyph';
 import { gotoArtistCallbackFactory } from "@/app/components/pages/artist-page/artist-page";
 import SuperMiniTrackControls, { SuperMiniTrackEndControls } from "@/app/components/pages/super-mini-track-controls";
+import { addArbitraryToQueueClickHandler, playArbitraryClickHandlerFactory } from '@/app/components/providers/global-props/arbitrary-click-handler-factories';
 import { SetStream, SetView, ViewportType, useSessionState } from "@/app/components/providers/session/session";
 import { MinimalArtistDict } from "@/app/shared-api/media-objects/artists";
+import { MediaId } from '@/app/shared-api/media-objects/media-id';
 import { TrackDict, TrackId } from "@/app/shared-api/media-objects/tracks";
 import { RemovalId, ShowerMusicObject, ShowerMusicObjectType, ShowerMusicPlayableMediaDict } from "@/app/shared-api/other/common";
+import { ClientApiError } from '@/app/shared-api/other/errors';
 import { PlaylistTrack } from '@/app/shared-api/other/playlist';
-import { Modal, Box, Typography } from "@mui/material";
+import { ShowerMusicPlayableMediaType } from '@/app/showermusic-object-types';
+import { spotifileDownloadTrack } from '@/app/spotifile-utils/spotifile';
+import { Box, Modal, Typography } from "@mui/material";
 import assert from "assert";
+import Image from 'next/image';
 import { EnqueueSnackbar, OptionsObject, VariantType, useSnackbar } from "notistack";
 import { MouseEventHandler, useCallback, useEffect, useState } from "react";
 import ContentLoader, { IContentLoaderProps } from "react-content-loader";
-import Image from 'next/image';
-import { MediaId } from '@/app/shared-api/media-objects/media-id';
-import { addAnyToArbitraryClickHandlerFactory, getClientSideObjectId } from '@/app/client-api/common-utils';
-import { ClientApiError } from '@/app/shared-api/other/errors';
-import AddSongGlyph from '@/app/components/glyphs/add-song';
-import { addToFavoritesClickHandlerFactory } from '@/app/client-api/favorites/favorites';
-import { ShowerMusicPlayableMediaType } from '@/app/showermusic-object-types';
-import { spotifileDownloadTrack } from '@/app/spotifile-utils/spotifile';
-import BackToGlyph from '@/app/components/glyphs/back-to';
-import ShareGlyph from '@/app/components/glyphs/share';
-import { addArbitraryToQueueClickHandler, playArbitraryClickHandlerFactory } from '@/app/components/providers/global-props/arbitrary-click-handler-factories';
+import './flat-track.css';
 
 
 export function GenericGlobalModal(
@@ -130,12 +129,12 @@ export function enqueueApiErrorSnackbar(enqueueSnackbar: EnqueueSnackbar | undef
 
 export function ModalPageToolbar()
 {
-    const { popBackView, setView } = useSessionState();
+    const { popBackView, popBackToNonModalView } = useSessionState();
 
     const handleClose = useCallback(() =>
     {
-        setView(ViewportType.SearchResults);
-    }, [ setView ]);
+        popBackToNonModalView();
+    }, [ popBackToNonModalView ]);
 
     const handleBack = useCallback(() =>
     {
@@ -188,7 +187,7 @@ export interface GenericControlBarProps
     objectType: ShowerMusicPlayableMediaType;
     playPrompt: string | 'Play';
     addToQueuePrompt: string | 'Add to queue';
-    favoritePrompt: string | 'Favorite';
+    favoritePrompt?: string | 'Favorite';
 }
 
 export function GenericControlBar({ ...props }: GenericControlBarProps)
@@ -247,7 +246,11 @@ export function GenericControlBar({ ...props }: GenericControlBarProps)
             <PlayGlyph glyphTitle={ props.playPrompt } className='w-10 h-10 m-1' onClick={ operationWrapperSetStream(playArbitraryClickHandlerFactory) } />
             <AddSongGlyph glyphTitle={ props.addToQueuePrompt } className='w-10 h-10 m-1' onClick={ operationWrapper(addArbitraryToQueueClickHandler) } />
             <AddGlyph glyphTitle='Add to' className='w-10 h-10 m-1' onClick={ addAnyToArbitraryClickHandlerFactory(props.objectData, props.objectType, setAddToArbitraryModalState) } />
-            <LoveCircledGlyph glyphTitle={ props.favoritePrompt } className='w-10 h-10 m-1' onClick={ operationWrapper(addToFavoritesClickHandlerFactory) } />
+            <ItemFavoriteGlyph
+                item={ props.objectData }
+                itemType={ props.objectType }
+                glyphTitle={ props.favoritePrompt }
+                className='w-10 h-10 m-1 clickable' />
             <ShareGlyph glyphTitle={ 'Share' } className='w-10 h-10 m-1' />
         </div>
     );
@@ -328,10 +331,6 @@ export function ModalFlatTrack(
             .then((trackValue) =>
             {
                 setTrack(trackValue);
-                if ('2024' in trackValue)
-                {
-                    spotifileDownloadTrack(trackId);
-                }
             }).catch((e) =>
             {
                 setTrackNotFound(true);

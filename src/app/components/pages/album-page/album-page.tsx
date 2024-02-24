@@ -21,7 +21,6 @@ function AlbumControlBar({ albumData }: { albumData: AlbumDict | undefined; })
             objectType={ ShowerMusicObjectType.Album }
             playPrompt={ `Play Album` }
             addToQueuePrompt={ `Add to queue` }
-            favoritePrompt={ `Favorite Album` }
         />
     );
 }

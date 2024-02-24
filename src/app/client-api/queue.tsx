@@ -55,7 +55,7 @@ export async function skipToQueuedTrack(queueId: any)
     return r as QueuedTrackDict;
 }
 
-export async function flushPlayingNext()
+export async function commandFlushQueue()
 {
     const r = await safeApiFetcher(`/api/commands/queue/flush`, { method: 'GET' });
     return r as QueuedTrackDict[];

@@ -1,43 +1,47 @@
 'use client';
 import './stream-bar.css';
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import PauseGlyph from "@/components/glyphs/pause";
 import PlayGlyph from "@/components/glyphs/play";
 import RewindGlyph from "@/components/glyphs/rewind";
 import FastForwardGlyph from "@/glyphs/fast-forward";
 import { Box, CircularProgress, Slide, SlideProps, Snackbar, Typography } from "@mui/material";
-import { useSessionState } from "@/app/components/providers/session/session";
+import { StreamStateType, useSessionState } from "@/app/components/providers/session/session";
 import { gotoAlbumCallbackFactory as gotoAlbumCallbackFactory } from "@/app/components/pages/album-page/album-page";
 import useSessionMuse from "@/app/components/providers/session-muse";
 import { useMediaControls } from "@/app/components/providers/media-controls";
 import { TrackDict } from "@/app/shared-api/media-objects/tracks";
 import { ArtistList, TrackCoverImage } from '@/app/components/providers/global-props/global-modals';
 import StreamBarExtraControls from '@/app/components/stream-bar/stream-bar-extra-controls';
+import { commandUserStationAccess } from '@/app/client-api/stations/get-station-specific';
 
-function StreamBarSongControls()
+function StreamBarSongControls({ userCanSeek }: { userCanSeek: boolean; })
 {
     const { museLoadingState, musePausedState, setMusePausedState, skipTrack } = useSessionMuse();
 
     const pauseTrack = useCallback(() =>
     {
+        if (!userCanSeek) { return; }
         setMusePausedState(true);
-    }, [ setMusePausedState ]);
+    }, [ userCanSeek, setMusePausedState ]);
 
     const unpauseTrack = useCallback(() =>
     {
+        if (!userCanSeek) { return; }
         setMusePausedState(false);
-    }, [ setMusePausedState ]);
+    }, [ userCanSeek, setMusePausedState ]);
 
     const skipTrackHandler = useCallback(() =>
     {
+        if (!userCanSeek) { return; }
         skipTrack();
-    }, [ skipTrack ]);
+    }, [ userCanSeek, skipTrack ]);
 
     return (
         <div className="absolute top-0 flex flex-row min-w-full max-w-full items-center justify-center mt-3">
-            <div className="w-10 m-1 clickable">
+            { userCanSeek && <div className="w-10 m-1 clickable">
                 <RewindGlyph glyphTitle={ "Rewind" } />
-            </div>
+            </div> }
             {
                 museLoadingState &&
                 <div className="w-10 m-1">
@@ -45,18 +49,27 @@ function StreamBarSongControls()
                 </div>
                 || (
                     musePausedState &&
-                    <div className="w-10 m-1 clickable" onClick={ unpauseTrack } data-static-glyph >
-                        <PlayGlyph glyphTitle={ "Play" } />
-                    </div>
+
+                    <PlayGlyph
+                        className={ `w-10 m-1 ` + (userCanSeek ? 'clickable' : '') }
+                        onClick={ unpauseTrack }
+                        aria-disabled={ !userCanSeek }
+                        glyphTitle={ "Play" }
+                        data-static-glyph
+                    />
                     ||
-                    <div className="w-10 m-1 clickable" onClick={ pauseTrack }>
-                        <PauseGlyph glyphTitle={ "Pause" } />
-                    </div>
+                    <PauseGlyph
+                        className={ `w-10 m-1 ` + (userCanSeek ? 'clickable' : '') }
+                        onClick={ pauseTrack }
+                        aria-disabled={ !userCanSeek }
+                        glyphTitle={ "Pause" }
+                    />
+
                 )
             }
-            <div className="w-10 m-1 clickable" onClick={ skipTrackHandler }>
+            { userCanSeek && <div className="w-10 m-1 clickable" onClick={ skipTrackHandler }>
                 <FastForwardGlyph glyphTitle={ "Skip" } />
-            </div>
+            </div> }
         </div>
     );
 };
@@ -98,9 +111,27 @@ function PlayingNextModal()
 
 export default function StreamBar()
 {
-    const { setView } = useSessionState();
+    const { streamMediaId, streamType, setView } = useSessionState();
     const { playingNextModalHiddenState } = useMediaControls();
     const { Muse, currentlyPlayingTrack, seek } = useSessionMuse();
+
+    const [ userCanSeek, setUserCanSeek ] = useState<boolean>(true);
+
+    useMemo(() =>
+    {
+        if (streamType !== StreamStateType.Station && streamType !== StreamStateType.PrivateStation)
+        {
+            setUserCanSeek(true);
+            return;
+        }
+
+        commandUserStationAccess(streamMediaId)
+            .then((access) =>
+            {
+                setUserCanSeek(access.player);
+            });
+
+    }, [ streamMediaId, streamType, setUserCanSeek ]);
 
     const handleSeek: React.MouseEventHandler<HTMLDivElement> = useCallback((ev) =>
     {
@@ -145,8 +176,8 @@ export default function StreamBar()
 
                 </div>
                 <div className="relative">
-                    <StreamBarSongControls />
-                    <StreamBarExtraControls />
+                    <StreamBarSongControls userCanSeek={ userCanSeek } />
+                    <StreamBarExtraControls userCanSeek={ userCanSeek } />
                 </div>
                 {/* <PlayingNextModal /> */ }
             </div>
@@ -174,8 +205,8 @@ export default function StreamBar()
 
             </div>
             <div className="relative">
-                <StreamBarSongControls />
-                <StreamBarExtraControls track={ currentlyPlayingTrack } />
+                <StreamBarSongControls userCanSeek={ userCanSeek } />
+                <StreamBarExtraControls userCanSeek={ userCanSeek } track={ currentlyPlayingTrack } />
             </div>
             {/* <PlayingNextModal /> */ }
         </div>

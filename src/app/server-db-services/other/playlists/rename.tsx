@@ -2,16 +2,15 @@ import databaseController from "@/app/server-db-services/mongo-db-controller";
 import { UserAccessDeniedError } from "@/app/server-db-services/user-objects/user-object";
 import { SSUserId } from "@/app/server-db-services/user-utils";
 import { MessageTypes, ShowerMusicObjectType } from "@/app/settings";
-import { PlaylistNotFoundError } from "@/app/shared-api/other/errors";
 import { PlaylistId } from "@/app/shared-api/other/playlist";
-import { SendServerRequestToSessionServer, SendServerRequestToSessionServerForPlaylistListeners } from "@/app/web-socket-utils";
-import { ObjectId } from "mongodb";
+import { SendServerRequestToSessionServerForPlaylistListeners } from "@/app/web-socket-utils";
 
 export default async function renamePlaylist(userId: SSUserId, playlistId: PlaylistId, newName: string)
 {
     const updatePlaylistCommandResponse = await databaseController.playlists.updateOne({
         id: playlistId,
         creator: userId,
+        type: ShowerMusicObjectType.Playlist,
     }, {
         $set: {
             'name': newName,

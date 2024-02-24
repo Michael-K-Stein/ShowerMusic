@@ -13,8 +13,9 @@ import { useState, useMemo, useCallback } from "react";
 import AddSongGlyph from '@/app/components/glyphs/add-song';
 import { playArbitraryClickHandlerFactory, addArbitraryToQueueClickHandler } from '@/app/components/providers/global-props/arbitrary-click-handler-factories';
 import AddGlyph from '@/app/components/glyphs/add';
+import ItemFavoriteGlyph from '@/app/components/other/item-favorite-glyph';
 
-function UserPlaylistModalControls({ item, itemType }: { item?: ShowerMusicPlayableMediaDict, itemType: ShowerMusicPlayableMediaType; })
+export function UserFavoriteModalControls({ item, itemType }: { item?: ShowerMusicPlayableMediaDict, itemType: ShowerMusicPlayableMediaType; })
 {
     const { enqueueSnackbar } = useSnackbar();
     const { setAddToArbitraryModalState, setStream } = useSessionState();
@@ -43,6 +44,13 @@ function UserPlaylistModalControls({ item, itemType }: { item?: ShowerMusicPlaya
                     glyphTitle='Add to'
                     placement='right'
                     onClick={ addAnyToArbitraryClickHandlerFactory(item, itemType, setAddToArbitraryModalState) }
+                />
+
+                <ItemFavoriteGlyph
+                    item={ item }
+                    itemType={ itemType }
+                    className='card-modal-add-glyph'
+                    placement='right'
                 />
             </div>
         </div >
@@ -75,7 +83,7 @@ function UserFavoritesItem({ item }: { item: FavoritesItem; })
             <div className='favorites-item-type'>
                 <Typography fontSize={ '0.8em' }>{ item.mediaType }</Typography>
             </div>
-            <UserPlaylistModalControls item={ itemData } itemType={ item.mediaType } />
+            <UserFavoriteModalControls item={ itemData } itemType={ item.mediaType } />
         </div>
     );
 }

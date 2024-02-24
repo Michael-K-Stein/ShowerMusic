@@ -22,6 +22,7 @@ export async function POST(req: NextRequest)
         // Check valid parameter combinations
         const validCombintations: [ ShowerMusicObjectType, ComplexItemType ][] = [
             [ ShowerMusicObjectType.Playlist, ComplexItemType.RemovalId ],
+            [ ShowerMusicObjectType.Station, ComplexItemType.RemovalId ],
             [ ShowerMusicObjectType.User, ComplexItemType.RemovalId ],
         ];
         const isValidType = validCombintations.reduce((typePassedCheck: boolean, validItem) =>
@@ -46,6 +47,12 @@ export async function POST(req: NextRequest)
                 {
                     if (!fromTargetId) { throw new InvalidTargetIdError(); }
                     await DbObjects.Playlists.removeTrack(fromTargetId, mediaToRemove as RemovalId);
+                    break;
+                }
+            case ShowerMusicObjectType.Station:
+                {
+                    if (!fromTargetId) { throw new InvalidTargetIdError(); }
+                    await DbObjects.Stations.removeTrack(fromTargetId, mediaToRemove as RemovalId);
                     break;
                 }
             case ShowerMusicObjectType.User:

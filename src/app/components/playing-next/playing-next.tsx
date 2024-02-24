@@ -4,11 +4,11 @@ import './playing-next.css';
 import { StreamStateType, useSessionState } from '@/app/components/providers/session/session';
 import { getMultipleTracksInfo, getTrackInfo } from '@/app/client-api/get-track';
 import Image from 'next/image';
-import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import assert from 'assert';
 import ContentLoader, { IContentLoaderProps } from 'react-content-loader';
 import RemoveGlyph from '@/app/components/glyphs/remove';
-import { removeTrackFromQueue, skipToQueuedTrack } from '@/app/client-api/queue';
+import { commandFlushQueue, removeTrackFromQueue, skipToQueuedTrack } from '@/app/client-api/queue';
 import { useSnackbar } from 'notistack';
 import { getAlbumInfo } from '@/app/client-api/get-album';
 import { useMediaControls } from '@/app/components/providers/media-controls';
@@ -17,7 +17,7 @@ import useGlobalProps from '@/app/components/providers/global-props/global-props
 import { QueuedTrackDict, TrackDict, TrackId } from '@/app/shared-api/media-objects/tracks';
 import { gotoAlbumCallbackFactory } from '@/app/components/pages/album-page/album-page';
 import { ArtistList, enqueueApiErrorSnackbar, enqueueSnackbarWithSubtext } from '@/app/components/providers/global-props/global-modals';
-import { addAnyToArbitraryClickHandlerFactory, getClientSideObjectId } from '@/app/client-api/common-utils';
+import { addAnyToArbitraryClickHandlerFactory, commandAnySetArbitrary, getClientSideObjectId } from '@/app/client-api/common-utils';
 import AddGlyph from '@/app/components/glyphs/add';
 import FastForwardGlyph from '@/app/components/glyphs/fast-forward';
 import useSessionMuse from '@/app/components/providers/session-muse';
@@ -26,6 +26,9 @@ import { commandCreateNewPlaylist } from '@/app/client-api/get-playlist';
 import { NewPlaylistInitialItem } from '@/app/shared-api/other/playlist';
 import { gotoPlaylistCallbackFactory } from '@/app/components/pages/playlist-page/playlist-page';
 import { ShowerMusicObjectType } from '@/app/shared-api/other/common';
+import TrashCanGlyph from '@/app/components/glyphs/trash-can';
+import EraseGlyph from '@/app/components/glyphs/erase';
+import { commandUserStationAccess, getStation } from '@/app/client-api/stations/get-station-specific';
 
 const MyLoader = (props: React.JSX.IntrinsicAttributes & IContentLoaderProps) => (
     <ContentLoader
@@ -48,7 +51,7 @@ const MyLoader = (props: React.JSX.IntrinsicAttributes & IContentLoaderProps) =>
     </ContentLoader>
 );
 
-function PlayingNextTrack({ queuedTrack, trackData }: { queuedTrack: QueuedTrackDict, trackData: TrackDict; })
+function PlayingNextTrack({ queuedTrack, trackData, userCanSeek, userCanRemove }: { queuedTrack: QueuedTrackDict, trackData: TrackDict, userCanSeek: boolean, userCanRemove: boolean; })
 {
     const { enqueueSnackbar } = useSnackbar();
     const { reportGeneralServerError } = useGlobalProps();
@@ -113,9 +116,9 @@ function PlayingNextTrack({ queuedTrack, trackData }: { queuedTrack: QueuedTrack
                 <div className='cover-art'>
                     <Image width={ 256 } height={ 256 } src={ track.album.images[ 0 ].url } alt={ '' } />
                 </div>
-                <div className='skip-to-track' onClick={ skipToTrack }>
+                { userCanSeek && <div className='skip-to-track' onClick={ skipToTrack }>
                     <FastForwardGlyph glyphTitle='Skip to track' />
-                </div>
+                </div> }
             </div>
             <Box sx={ { marginLeft: '0.3em' } } />
             <div className='max-w-full'>
@@ -135,9 +138,9 @@ function PlayingNextTrack({ queuedTrack, trackData }: { queuedTrack: QueuedTrack
                 <div className='playing-next-track-end-control' onClick={ addAnyToArbitraryClickHandlerFactory(track, ShowerMusicObjectType.Track, setAddToArbitraryModalState) }>
                     <AddGlyph glyphTitle='Add to' />
                 </div>
-                <div className='playing-next-track-end-control' onClick={ removeQueuedTrack }>
+                { userCanRemove && <div className='playing-next-track-end-control' onClick={ removeQueuedTrack }>
                     <RemoveGlyph glyphTitle='Remove' />
-                </div>
+                </div> }
             </div>
         </div>
     );
@@ -151,6 +154,27 @@ export default function PlayingNext()
     const { playingNextTracks } = useQueue();
     const [ playingNextTitle, setPlayingNextTitle ] = useState<string>('Playing Next');
     const [ queuedTracksFullData, setQueuedTracksFullData ] = useState<{ [ x: TrackId ]: TrackDict; } | undefined>();
+
+    const [ userCanSeek, setUserCanSeek ] = useState<boolean>(true);
+    const [ userCanRemove, setUserCanRemove ] = useState<boolean>(true);
+
+    useMemo(() =>
+    {
+        if (streamType !== StreamStateType.Station && streamType !== StreamStateType.PrivateStation)
+        {
+            setUserCanSeek(true);
+            setUserCanRemove(true);
+            return;
+        }
+
+        commandUserStationAccess(streamMediaId)
+            .then((access) =>
+            {
+                setUserCanSeek(access.player);
+                setUserCanRemove(access.tracks);
+            });
+
+    }, [ streamMediaId, streamType, setUserCanSeek, setUserCanRemove ]);
 
     let nextUpTracks: React.JSX.Element[] = [];
 
@@ -186,6 +210,31 @@ export default function PlayingNext()
             });
     }, [ playingNextTitle, playingNextTracks, setView, enqueueSnackbar ]);
 
+    const clearQueue = useCallback(() =>
+    {
+        commandFlushQueue()
+            .then((flushedTracks) =>
+            {
+                if (flushedTracks.length === 0)
+                {
+                    enqueueSnackbar(`Queue has been cleared`, { variant: 'success' });
+                }
+                else if (flushedTracks.length === 1)
+                {
+                    enqueueSnackbarWithSubtext(enqueueSnackbar, `Queue has been cleared`, `${flushedTracks.length} track has been removed`, { variant: 'success' });
+                }
+                else
+                {
+                    enqueueSnackbarWithSubtext(enqueueSnackbar, `Queue has been cleared`, `${flushedTracks.length} tracks have been removed`, { variant: 'success' });
+                }
+                setPlayingNextTitle('Playing Next');
+            })
+            .catch((error) =>
+            {
+                enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to clear queue!`, error);
+            });
+    }, [ enqueueSnackbar ]);
+
     useLayoutEffect(() =>
     {
         if (streamType === StreamStateType.AlbumTracks)
@@ -198,6 +247,17 @@ export default function PlayingNext()
             };
             asyncHandler();
         }
+        else if (streamType === StreamStateType.Station)
+        {
+            const asyncHandler = async () =>
+            {
+                const stationInfo = await getStation(streamMediaId);
+                if (!stationInfo) { return; }
+                setPlayingNextTitle(`Tuned in to ${stationInfo.name}`);
+            };
+            asyncHandler();
+        }
+
     }, [ streamMediaId, streamType ]);
 
     useLayoutEffect(() =>
@@ -243,6 +303,8 @@ export default function PlayingNext()
                     key={ getClientSideObjectId(queuedTrack) }
                     queuedTrack={ queuedTrack }
                     trackData={ queuedTracksFullData[ queuedTrack.trackId ] }
+                    userCanSeek={ userCanSeek }
+                    userCanRemove={ userCanRemove }
                 />
             );
         });
@@ -253,10 +315,9 @@ export default function PlayingNext()
             <div className='flex flex-col items-center justify-center w-full pt-2'>
                 <div className='relative w-full flex flex-row items-center justify-center'>
                     <Typography fontSize={ 'x-large' }>{ playingNextTitle }</Typography>
-                    <div className='absolute right-2'>
-                        <div className='w-5 h-5' onClick={ saveQueueAsPlaylist }>
-                            <SaveAsGlyph glyphTitle='Save as playlist' />
-                        </div>
+                    <div className='absolute right-2 flex flex-row'>
+                        <SaveAsGlyph glyphTitle='Save as playlist' className='w-5 h-5 m-1' onClick={ saveQueueAsPlaylist } />
+                        <EraseGlyph glyphTitle='Clear queue' className='w-5 h-5 m-1' onClick={ clearQueue } />
                     </div>
                 </div>
                 <Box sx={ { width: '82%', height: '0.15em', backgroundColor: 'rgba(240,240,240,0.15)' } } />

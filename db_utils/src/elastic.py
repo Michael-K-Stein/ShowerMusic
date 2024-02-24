@@ -13,7 +13,7 @@ tracksdb = mongodb.showermusic.tracks
 
 # Assuming 'client' is your Elasticsearch client
 es = client = Elasticsearch(
-    "https://localhost:9200",
+    "https://172.27.93.191:9200",
     api_key="Q0l1Q1lZMEJrMTFRdG9vV1JQcXY6VWF2OTdZR0JSYW1peHJDTW9pNUZQZw==",
     verify_certs=False,
 )

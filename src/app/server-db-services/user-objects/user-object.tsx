@@ -2,7 +2,7 @@ import databaseController from "@/app/server-db-services/mongo-db-controller";
 import { SSUserId } from "@/app/server-db-services/user-utils";
 import { ClientApiError } from "@/app/shared-api/other/errors";
 import { LoopState, LyricsState, PauseState, UserDict, UserId, UserPublicInfo } from "@/app/shared-api/user-objects/users";
-import { FindOptions, ObjectId, WithId } from "mongodb";
+import { FindOptions, ObjectId } from "mongodb";
 
 export class UserNotFoundError extends Error { };
 export class UserPasswordError extends Error { };
@@ -84,6 +84,7 @@ async function createUser(username: string, password: string)
         'listenHistory': {
             'lastAlbums': [],
             'lastPlaylists': [],
+            'lastStations': [],
             'lastArtists': [],
             'lastTracks': [],
             'recents': [],

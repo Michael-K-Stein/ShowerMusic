@@ -8,6 +8,8 @@ import { ArtistPageLoader } from '@/app/components/pages/artist-page/artist-page
 import HomePageLoader from '@/app/components/pages/home-page/home-page';
 import PlaylistPage from '@/app/components/pages/playlist-page/playlist-page';
 import LyricsPage from '@/app/components/pages/lyrics-page/lyrics-page';
+import StationsPage from '@/app/components/pages/stations/stations-page/stations-page';
+import StationPage from '@/app/components/pages/stations/station-page/station-page';
 
 export default function Home()
 {
@@ -45,9 +47,19 @@ export default function Home()
                 <PlaylistPage playlistId={ viewMediaId } />
             );
             break;
+        case ViewportType.Station:
+            viewportElements = (
+                <StationPage stationId={ viewMediaId } />
+            );
+            break;
         case ViewportType.Lyrics:
             viewportElements = (
                 <></>
+            );
+            break;
+        case ViewportType.Stations:
+            viewportElements = (
+                <StationsPage />
             );
             break;
     };

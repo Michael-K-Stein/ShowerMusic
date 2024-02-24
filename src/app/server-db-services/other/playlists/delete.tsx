@@ -30,6 +30,7 @@ export default async function deletePlaylist(userId: SSUserId, playlistId: Playl
         _id: new ObjectId(playlistId),
         id: playlistId,
         creator: userId,
+        type: ShowerMusicObjectType.Playlist,
     });
     if (!deleteResults.acknowledged || deleteResults.deletedCount !== 1)
     {

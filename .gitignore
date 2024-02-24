@@ -38,3 +38,6 @@ next-env.d.ts
 
 **/__pycache__/
 **/node_modules/
+
+
+public/art/

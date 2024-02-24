@@ -5,6 +5,7 @@ import { QueuedTrackDict, TrackDict, TrackId } from "@/app/shared-api/media-obje
 import { ShowerMusicObjectType } from "@/app/showermusic-object-types";
 import { AlbumDict, MinimalAlbumDict } from "@/app/shared-api/media-objects/albums";
 import { ArtistDict, MinimalArtistDict } from "@/app/shared-api/media-objects/artists";
+import { MinimalStation, Station, StationsCategory } from "@/app/shared-api/other/stations";
 export { ShowerMusicObjectType as ShowerMusicObjectType };
 
 export type RemovalId = string;
@@ -58,5 +59,9 @@ export interface ArbitraryTargetAndDataApiRequestBodyWithComplexItem
     targetType: ShowerMusicObjectType;
 }
 
-export type ShowerMusicPlayableMediaDict = TrackDict | AlbumDict | ArtistDict | Playlist | MinimalAlbumDict | MinimalArtistDict | MinimalPlaylist;
-
+export type ShowerMusicPlayableMediaDict =
+    TrackDict |
+    AlbumDict | MinimalAlbumDict |
+    ArtistDict | MinimalArtistDict |
+    Playlist | MinimalPlaylist |
+    Station | MinimalStation | StationsCategory;

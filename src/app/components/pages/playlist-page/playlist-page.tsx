@@ -22,6 +22,8 @@ import useGlobalProps from '@/app/components/providers/global-props/global-props
 import SendIcon from '@mui/icons-material/Send';
 import commandGetUserById from '@/app/client-api/users/get-user';
 import { ShowerMusicPlayableMediaType } from '@/app/showermusic-object-types';
+import { MinimalStation, Station, StationId } from '@/app/shared-api/other/stations';
+import RadioTowerGlyph from '@/app/components/glyphs/radio-tower';
 
 export function playPlaylistClickHandlerFactory(
     playlistData: MinimalPlaylist | Playlist | undefined,
@@ -112,7 +114,6 @@ function PlaylistControlBar({ playlistData }: { playlistData?: Playlist | undefi
             objectType={ ShowerMusicObjectType.Playlist }
             playPrompt='Play'
             addToQueuePrompt='Queue playlist tracks'
-            favoritePrompt='Favorite'
         />
     );
 }
@@ -169,7 +170,22 @@ export async function resolvePlaylistData(
     return undefined;
 }
 
-export function PlaylistImage({ playlistInitData }: { playlistInitData: Playlist | MinimalPlaylist | PlaylistId | undefined; })
+function getStationCoverImage(stationId: StationId): string
+{
+    return `/art/stations/${stationId}.png`;
+}
+
+function StationCoverImage({ station }: { station: MinimalStation | Station; })
+{
+    return (
+        <div className='relative'>
+            <Image src={ getStationCoverImage(station.id) } width={ 640 } height={ 640 } alt={ `${station.name} Cover Image` } />
+            <RadioTowerGlyph glyphTitle='' className='absolute bottom-1 right-1 w-7 h-7' />
+        </div>
+    );
+}
+
+export function PlaylistImage({ playlistInitData }: { playlistInitData: Playlist | MinimalPlaylist | PlaylistId | undefined | Station | MinimalStation; })
 {
     const { enqueueSnackbar } = useSnackbar();
     const { addMessageHandler } = useSharedSyncObject(false);
@@ -179,16 +195,19 @@ export function PlaylistImage({ playlistInitData }: { playlistInitData: Playlist
 
     const loadPlaylistData = useCallback(() =>
     {
+        if (typeof playlistInitData === 'object' && playlistInitData.type === ShowerMusicObjectType.Station) { return; }
         resolvePlaylistData(playlistInitData, setPlaylistData, enqueueSnackbar);
     }, [ playlistInitData, setPlaylistData, enqueueSnackbar ]);
 
     const playlistUpdatedCallbackHandler = useCallback(() =>
     {
+        if (typeof playlistInitData === 'object' && playlistInitData.type === ShowerMusicObjectType.Station) { return; }
         loadPlaylistData();
     }, [ loadPlaylistData ]);
 
     useMemo(() =>
     {
+        if (typeof playlistInitData === 'object' && playlistInitData.type === ShowerMusicObjectType.Station) { return; }
         loadPlaylistData();
 
         if (!addMessageHandler) { return; }
@@ -199,6 +218,10 @@ export function PlaylistImage({ playlistInitData }: { playlistInitData: Playlist
     useMemo(() =>
     {
         if (!playlistData) { return; };
+
+        if (typeof playlistInitData === 'object' && playlistInitData.type === ShowerMusicObjectType.Station) { return; }
+        if (playlistData.type === ShowerMusicObjectType.Station) { return; }
+
         let tracksNeededAmount = Math.min(4, playlistData.tracks.length);
         let tracksNeeded: PlaylistTrack[] = [];
         for (let i = 0; i < tracksNeededAmount; ++i)
@@ -225,6 +248,17 @@ export function PlaylistImage({ playlistInitData }: { playlistInitData: Playlist
             }, Promise.resolve([] as TrackDict[])
         ).then(setTracksData);
     }, [ playlistData, enqueueSnackbar ]);
+
+    if (
+        typeof playlistInitData === 'object' &&
+        playlistInitData.type === ShowerMusicObjectType.Station
+    )
+    {
+        const station = playlistInitData as Station | MinimalStation;
+        return (
+            <StationCoverImage station={ station } />
+        );
+    }
 
     let playlistImageContent: React.JSX.Element[] = [ (
         <Image key={ `playlist-empty-image` } src={ 'https://static.thenounproject.com/png/258896-200.png' } width={ 200 } height={ 200 } alt='' />

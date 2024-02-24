@@ -43,6 +43,9 @@ function objectTypeToListenHistoryMediaType(objectType: ShowerMusicObjectType): 
         case ShowerMusicObjectType.Playlist:
             return 'lastPlaylists';
 
+        case ShowerMusicObjectType.Station:
+            return 'lastStations';
+
         default:
             throw new Error(`Unsupported ShowerMusicObjectType: ${objectType}`);
     }
@@ -63,6 +66,9 @@ function listenHistoryMediaTypeToObjectType(mediaType: UserListenHistoryMediaTyp
 
         case 'lastPlaylists':
             return ShowerMusicObjectType.Playlist;
+
+        case 'lastStations':
+            return ShowerMusicObjectType.Station;
 
         default:
             throw new Error(`Unsupported UserListenHistoryMediaTypes: ${mediaType}`);

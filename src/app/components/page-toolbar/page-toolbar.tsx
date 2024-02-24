@@ -41,7 +41,8 @@ interface ToolbarItemProps
  * - A function which generates a glyph representing the item
  * - A relative link to the relevant page
  */
-class ToolbarItem extends React.Component<ToolbarItemProps> {
+class ToolbarItem extends React.Component<ToolbarItemProps>
+{
     render()
     {
         const { setView } = this.props;
@@ -71,7 +72,7 @@ const TOOLBAR_MENU_ITEMS: ToolbarItemProps[] = [
     {
         name: 'Stations',
         glyphGenerator: (_glyphTitle: string) => <RadioTowerGlyph glyphTitle='' />,
-        viewType: ViewportType.Station,
+        viewType: ViewportType.Stations,
     },
 ];
 

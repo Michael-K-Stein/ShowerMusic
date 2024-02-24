@@ -1,0 +1,12 @@
+.stations-category
+{
+    margin: 1em;
+    padding: 1em;
+    width: 100%;
+}
+
+.stations-category .stations-container
+{
+    width: 100%;
+    overflow-x: scroll;
+}

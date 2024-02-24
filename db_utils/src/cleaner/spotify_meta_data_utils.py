@@ -1,4 +1,6 @@
 import sys
+import threading
+import time
 from pymongo import MongoClient
 from src.cleaner.cleaner_exception import CleanerException
 from src.db_generator import remove_unnecessary_fields_from_track_data
@@ -17,6 +19,17 @@ client: MongoClient = MongoClient(
 )
 tracksdb = client.showermusic.tracks
 spotify_client = SpotifyClient()
+
+
+def renew_tokens():
+    while True:
+        spotify_client.refresh_tokens()
+        time.sleep(120)
+
+
+t = threading.Thread(target=renew_tokens)
+t.daemon = True
+t.start()
 
 
 def get_spotify_metadata(spotify_id: str):

@@ -7,7 +7,7 @@ export namespace ElasticSSApi
         const PAGE_SIZE = 27;
         const client = new Client(
             {
-                node: "https://localhost:9200",
+                node: "https://172.27.93.191:9200",
                 auth: {
                     username: 'showermusic-client',
                     password: 'Password1', /* Dummy password */
@@ -33,7 +33,7 @@ export namespace ElasticSSApi
     {
         const client = new Client(
             {
-                node: "https://localhost:9200",
+                node: "https://172.27.93.191:9200",
                 auth: {
                     username: 'showermusic-client',
                     password: 'Password1', /* Dummy password */

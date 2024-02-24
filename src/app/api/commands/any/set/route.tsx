@@ -3,10 +3,8 @@ import { ApiSuccess, catchHandler } from "@/app/api/common";
 import { DbObjects } from "@/app/server-db-services/db-objects";
 import { getUserId } from "@/app/server-db-services/user-utils";
 import { MediaId } from "@/app/shared-api/media-objects/media-id";
-import { TrackId } from "@/app/shared-api/media-objects/tracks";
 import { ArbitraryTargetAndDataApiRequestBody, ShowerMusicObjectType } from "@/app/shared-api/other/common";
-import { InvalidSourceTypeError, InvalidTargetIdError, InvalidTargetTypeError, TrackNotFoundError } from "@/app/shared-api/other/errors";
-import { PlaylistTrack } from "@/app/shared-api/other/playlist";
+import { InvalidTargetIdError, InvalidTargetTypeError, TrackNotFoundError } from "@/app/shared-api/other/errors";
 import { NextRequest } from "next/server";
 
 export async function POST(req: NextRequest)
@@ -22,7 +20,7 @@ export async function POST(req: NextRequest)
 
         // Currently, there is nothing that can be "set" other than a queue.
         // In the future maybe this could be used to duplicate playlists and such.
-        // Or turn a queue into a playlist
+        // Or turn a queue into a playlist - Already done apparently...
         if (targetId)
         {
             throw new InvalidTargetIdError(`This API does not support ANY target id!`);

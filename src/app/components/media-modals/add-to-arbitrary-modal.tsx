@@ -1,9 +1,11 @@
 import { commandAnyAddArbitrary } from "@/app/client-api/common-utils";
+import { removeFromFavoritesClickHandlerFactory, addToFavoritesClickHandlerFactory } from "@/app/client-api/favorites/favorites";
 import { getUserMe, useAuth } from "@/app/components/auth-provider";
 import AddSongGlyph from "@/app/components/glyphs/add-song";
 import CreateGlyph from "@/app/components/glyphs/create";
 import PlayPropertyGlyph from "@/app/components/glyphs/play-property";
 import PlaylistGlyph from "@/app/components/glyphs/playlist";
+import ItemFavoriteGlyph from "@/app/components/other/item-favorite-glyph";
 import { PlaylistImage } from "@/app/components/pages/playlist-page/playlist-page";
 import { addArbitraryToQueueClickHandler, setPlayNextArbitraryClickHandler } from "@/app/components/providers/global-props/arbitrary-click-handler-factories";
 import { enqueueApiErrorSnackbar } from "@/app/components/providers/global-props/global-modals";
@@ -17,7 +19,7 @@ import { UserDict } from "@/app/shared-api/user-objects/users";
 import { ShowerMusicPlayableMediaType } from "@/app/showermusic-object-types";
 import { Divider, ListItemIcon, ListItemText, Menu, MenuItem, MenuItemProps, Paper, PopperProps } from "@mui/material";
 import { useSnackbar } from "notistack";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export interface AddToArbitraryModalStateType
 {
@@ -64,8 +66,30 @@ const RecursiveMenuItem = (props: RecursiveMenuItemProps) =>
 export default function AddToArbitraryModal()
 {
     const { enqueueSnackbar } = useSnackbar();
-    const { userPlaylists } = useUserSession();
+    const { userPlaylists, isItemInUsersFavorites } = useUserSession();
     const { addToArbitraryModalState, setAddToArbitraryModalState, addToArbitraryModalOpenState } = useSessionState();
+
+    const [ itemInUserFavorites, setItemInUserFavorites ] = useState<boolean>(false);
+
+    useMemo(() =>
+    {
+        if (!addToArbitraryModalState?.mediaData) { return; }
+        setItemInUserFavorites(isItemInUsersFavorites(addToArbitraryModalState?.mediaData.id, addToArbitraryModalState.mediaType));
+    }, [ addToArbitraryModalState?.mediaData, addToArbitraryModalState?.mediaType, isItemInUsersFavorites, setItemInUserFavorites ]);
+
+    const favoritesButtonClickHandlerFactory = useCallback(() =>
+    {
+        if (!addToArbitraryModalState?.mediaData) { return () => { }; }
+        if (itemInUserFavorites)
+        {
+            return removeFromFavoritesClickHandlerFactory(addToArbitraryModalState?.mediaData, addToArbitraryModalState.mediaType, enqueueSnackbar);
+        }
+        else
+        {
+            return addToFavoritesClickHandlerFactory(addToArbitraryModalState?.mediaData, addToArbitraryModalState.mediaType, enqueueSnackbar);
+        }
+    }, [ addToArbitraryModalState?.mediaData, addToArbitraryModalState?.mediaType, itemInUserFavorites, enqueueSnackbar ]);
+
 
     const addToQueueClickHandlerFactory = useCallback(() =>
     {
@@ -163,6 +187,17 @@ export default function AddToArbitraryModal()
                         </div>
                     </ListItemIcon>
                     <ListItemText>Add to queue</ListItemText>
+                </MenuItem>
+                <MenuItem onClick={ favoritesButtonClickHandlerFactory() }>
+                    <ListItemIcon>
+                        <ItemFavoriteGlyph
+                            glyphTitle=""
+                            item={ addToArbitraryModalState.mediaData }
+                            itemType={ addToArbitraryModalState.mediaType }
+                            className="w-6 flex items-center flex-col justify-center content-center"
+                        />
+                    </ListItemIcon>
+                    <ListItemText>{ itemInUserFavorites ? "Unfavorite" : "Favorite" }</ListItemText>
                 </MenuItem>
                 <Divider />
                 <RecursiveMenuItem

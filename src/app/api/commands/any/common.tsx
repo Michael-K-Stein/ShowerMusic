@@ -4,6 +4,7 @@ import { ShowerMusicObjectType } from "@/app/settings";
 import { TrackId } from "@/app/shared-api/media-objects/tracks";
 import { ApiNotImplementedError, InvalidSourceTypeError } from "@/app/shared-api/other/errors";
 import { PlaylistTrack } from "@/app/shared-api/other/playlist";
+import { StationTrack } from "@/app/shared-api/other/stations";
 import { ObjectId } from "mongodb";
 
 interface LogUserActionOptionsStub
@@ -40,6 +41,12 @@ export async function getTracksFromArbitrarySource(
     else if (sourceType === ShowerMusicObjectType.Artist)
     {
         tracks = await DbObjects.MediaObjects.Artists.getTracks(sourceId);
+    }
+    else if (sourceType === ShowerMusicObjectType.Station)
+    {
+        tracks = (await DbObjects.Stations.get(sourceId)).tracks.map(
+            (v: StationTrack): TrackId => { return v.trackId; }
+        );
     }
     else
     {

@@ -14,14 +14,17 @@ export interface MinimalPlaylist extends ShowerMusicObject
 {
     id: PlaylistId;
     name: string;
-    type: ShowerMusicObjectType.Playlist;
+    type: ShowerMusicObjectType.Playlist | ShowerMusicObjectType.Station;
 }
-
-export default interface Playlist extends MinimalPlaylist
+export interface PlaylistAndStationBaseInterface extends MinimalPlaylist
 {
     creator: SSUserId; // Only the creator (or an Admin) can delete the playlist from the DB
-    members: SSUserId[]; // Users who have access to the playlist
     tracks: PlaylistTrack[];
+}
+
+export default interface Playlist extends PlaylistAndStationBaseInterface
+{
+    members: SSUserId[]; // Users who have access to the playlist
 };
 
 export interface NewPlaylistInitialItem

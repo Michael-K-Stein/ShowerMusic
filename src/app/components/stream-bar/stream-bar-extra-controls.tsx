@@ -1,13 +1,10 @@
-import { removeFromFavoritesClickHandlerFactory, addToFavoritesClickHandlerFactory } from '@/app/client-api/favorites/favorites';
 import AddGlyph from '@/app/components/glyphs/add';
 import LoungeMusicPlaylistGlyph from '@/app/components/glyphs/lounge-music-playlist';
-import LoveCircledGlyph from '@/app/components/glyphs/love-circled';
 import MicroGlyph from '@/app/components/glyphs/micro';
 import RepeatGlyph from '@/app/components/glyphs/repeat';
 import { addTrackToArbitraryClickHandlerFactory } from '@/app/components/media-modals/song-modal/track-modal';
 import { useMediaControls } from '@/app/components/providers/media-controls';
 import { useSessionState, ViewportType } from '@/app/components/providers/session/session';
-import useUserSession from '@/app/components/providers/user-provider/user-session';
 import { TrackDict } from '@/app/shared-api/media-objects/tracks';
 import { ShowerMusicObjectType } from '@/app/showermusic-object-types';
 import './stream-bar.css';
@@ -18,8 +15,9 @@ import { commandQueryPlayerLoopState, commandSetPlayerLoopState } from '@/app/cl
 import { enqueueApiErrorSnackbar } from '@/app/components/providers/global-props/global-modals';
 import RepeatOneGlyph from '@/app/components/glyphs/repeat-one';
 import useSessionMuse from '@/app/components/providers/session-muse';
+import ItemFavoriteGlyph from '@/app/components/other/item-favorite-glyph';
 
-function LoopControl()
+function LoopControl({ userCanSeek }: { userCanSeek: boolean; })
 {
     const { enqueueSnackbar } = useSnackbar();
     const { Muse } = useSessionMuse();
@@ -39,6 +37,7 @@ function LoopControl()
 
     const repeatButtonClickHandler = useCallback(() =>
     {
+        if (!userCanSeek) { return; }
         setCurrentLoopState(state =>
         {
             const newState = (state + 1) % 3;
@@ -50,7 +49,7 @@ function LoopControl()
             return newState;
         }
         );
-    }, [ setCurrentLoopState, enqueueSnackbar ]);
+    }, [ userCanSeek, setCurrentLoopState, enqueueSnackbar ]);
 
     useEffect(() =>
     {
@@ -58,51 +57,32 @@ function LoopControl()
         Muse.loop = currentLoopState === LoopState.LoopOne;
     }, [ Muse, currentLoopState ]);
 
-    let loopGlyph = <RepeatGlyph glyphTitle={ 'Loop' } />;
+    let loopGlyph = <RepeatGlyph glyphTitle={ 'Loop' } aria-disabled={ !userCanSeek } />;
     if (currentLoopState === LoopState.Loop)
     {
-        loopGlyph = <RepeatGlyph glyphTitle={ 'Loop Single' } />;
+        loopGlyph = <RepeatGlyph glyphTitle={ 'Loop Single' } aria-disabled={ !userCanSeek } />;
     }
     else if (currentLoopState === LoopState.LoopOne)
     {
-        loopGlyph = <RepeatOneGlyph glyphTitle={ 'Stop Loop' } />;
+        loopGlyph = <RepeatOneGlyph glyphTitle={ 'Stop Loop' } aria-disabled={ !userCanSeek } />;
     }
 
     return (
-        <div className="loop-glyph w-7 h-7 m-1 clickable" onClick={ repeatButtonClickHandler } data-looped={ currentLoopState !== LoopState.None } >
+        <div
+            className={ "loop-glyph w-7 h-7 m-1 " + (userCanSeek ? 'clickable' : '') }
+            onClick={ repeatButtonClickHandler }
+            data-looped={ currentLoopState !== LoopState.None }
+            aria-disabled={ !userCanSeek }
+        >
             { loopGlyph }
         </div>
     );
 }
 
-export default function StreamBarExtraControls({ track }: { track?: TrackDict; })
+export default function StreamBarExtraControls({ track, userCanSeek }: { track?: TrackDict, userCanSeek: boolean; })
 {
-    const { enqueueSnackbar } = useSnackbar();
-    const { playingNextModalHiddenState, setPlayingNextModalHiddenState } = useMediaControls();
+    const { setPlayingNextModalHiddenState } = useMediaControls();
     const { setAddToArbitraryModalState, setView } = useSessionState();
-    const { isItemInUsersFavorites } = useUserSession();
-
-    const [ isTrackInUserFavorites, setIsTrackInUserFavorites ] = useState<boolean>(false);
-
-    useMemo(() =>
-    {
-        console.log(track);
-        if (!track) { return; }
-        setIsTrackInUserFavorites(isItemInUsersFavorites(track.id, ShowerMusicObjectType.Track));
-    }, [ track, isItemInUsersFavorites, setIsTrackInUserFavorites ]);
-
-    const favoritesButtonClickHandlerFactory = useCallback(() =>
-    {
-        if (!track) { return () => { }; }
-        if (isTrackInUserFavorites)
-        {
-            return removeFromFavoritesClickHandlerFactory(track, ShowerMusicObjectType.Track, enqueueSnackbar);
-        }
-        else
-        {
-            return addToFavoritesClickHandlerFactory(track, ShowerMusicObjectType.Track, enqueueSnackbar);
-        }
-    }, [ track, isTrackInUserFavorites, enqueueSnackbar ]);
 
     const togglePlayingNextVisiblity = useCallback(() =>
     {
@@ -117,10 +97,12 @@ export default function StreamBarExtraControls({ track }: { track?: TrackDict; }
             <div className="w-7 h-7 m-1 clickable" onClick={ () => setView(ViewportType.Lyrics) }>
                 <MicroGlyph glyphTitle={ "Lyrics" } />
             </div>
-            <LoopControl />
-            <div className="w-7 h-7 m-1 clickable" onClick={ favoritesButtonClickHandlerFactory() } style={ { color: isTrackInUserFavorites ? 'cyan' : 'inherit' } }>
-                <LoveCircledGlyph glyphTitle={ "Favorite" } />
-            </div>
+            <LoopControl userCanSeek={ userCanSeek } />
+            <ItemFavoriteGlyph
+                item={ track }
+                itemType={ ShowerMusicObjectType.Track }
+                className="w-7 h-7 m-1 clickable"
+            />
             <div className="w-7 h-7 m-1 clickable" onClick={ addTrackToArbitraryClickHandlerFactory(setAddToArbitraryModalState, track) }>
                 <AddGlyph glyphTitle={ "Add to" } />
             </div>

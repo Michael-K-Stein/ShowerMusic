@@ -34,5 +34,6 @@ export function catchHandler(e: any)
     {
         return ApiErrorMaker(e);
     }
+    console.log(e);
     return ApiError(e);
 }

@@ -39,6 +39,12 @@ export async function POST(req: NextRequest)
                     await DbObjects.Playlists.pushTracks(targetId, tracks);
                     break;
                 }
+            case ShowerMusicObjectType.Station:
+                {
+                    if (!targetId) { throw new InvalidTargetIdError(); }
+                    await DbObjects.Stations.pushTracks(targetId, tracks);
+                    break;
+                }
             default:
                 {
                     throw new InvalidTargetTypeError();

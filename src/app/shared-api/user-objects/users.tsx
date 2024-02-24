@@ -3,6 +3,7 @@ import { ArtistId, MinimalArtistDict } from "@/app/shared-api/media-objects/arti
 import { PlayingNextTracks, TrackId } from "@/app/shared-api/media-objects/tracks";
 import { ShowerMusicObject } from "@/app/shared-api/other/common";
 import { MinimalPlaylist, PlaylistId } from "@/app/shared-api/other/playlist";
+import { MinimalStation } from "@/app/shared-api/other/stations";
 import { ShowerMusicPlayableMediaType } from "@/app/showermusic-object-types";
 
 export type UserId = string;
@@ -20,17 +21,18 @@ export interface UserListenHistoryRecentsMediaItem extends ShowerMusicObject
 }
 export interface UserListenHistory 
 {
+    lastStations: MinimalStation[];
     lastPlaylists: MinimalPlaylist[];
     lastArtists: MinimalArtistDict[];
     lastAlbums: MinimalAlbumDict[];
     lastTracks: TrackId[]; // Usually tracks will be displayed with album and artist information, so there is no benifit to a minimal version here
     recents: UserListenHistoryRecentsMediaItem[];
 }
-export type UserListenHistoryMediaTypes = 'lastPlaylists' | 'lastArtists' | 'lastAlbums' | 'lastTracks';
+export type UserListenHistoryMediaTypes = 'lastPlaylists' | 'lastArtists' | 'lastAlbums' | 'lastTracks' | 'lastStations';
 // Type guard for UserListenHistoryMediaTypes
 export function isUserListenHistoryMediaType(mediaType: UserListenHistoryMediaTypes | any): mediaType is UserListenHistoryMediaTypes
 {
-    return [ 'lastPlaylists', 'lastArtists', 'lastAlbums', 'lastTracks' ].includes(mediaType);
+    return [ 'lastPlaylists', 'lastArtists', 'lastAlbums', 'lastTracks', 'lastStations' ].includes(mediaType);
 }
 export enum LoopState
 {

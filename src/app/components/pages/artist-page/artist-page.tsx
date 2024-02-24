@@ -31,7 +31,6 @@ function ArtistControlBar({ artistData }: { artistData: ArtistDict | undefined; 
             objectType={ ShowerMusicObjectType.Artist }
             playPrompt={ `Play all artist's tracks` }
             addToQueuePrompt={ `Add all artist's tracks to queue` }
-            favoritePrompt={ `Favorite Artist` }
         />
     );
 }

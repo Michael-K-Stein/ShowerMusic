@@ -23,6 +23,8 @@ import useUserSession from '@/app/components/providers/user-provider/user-sessio
 import { ShowerMusicPlayableMediaDict } from '@/app/shared-api/other/common';
 import { commandPlayerSkipCurrentTrack } from '@/app/client-api/player';
 import { commandQueueAddArbitraryTypeTracks, commandQueueSetArbitraryTracks } from '@/app/client-api/queue';
+import { gotoStationCallbackFactory } from '@/app/components/pages/stations/station-page/station-page';
+import { getStation } from '@/app/client-api/stations/get-station-specific';
 
 export function ArbitraryPlayableMediaImage({ data }: { data: undefined | ShowerMusicPlayableMediaDict; })
 {
@@ -39,6 +41,7 @@ export function ArbitraryPlayableMediaImage({ data }: { data: undefined | Shower
             imageSrc = (data as ArtistDict).images[ 0 ].url;
             break;
         case ShowerMusicObjectType.Playlist:
+        case ShowerMusicObjectType.Station:
             return (<PlaylistImage playlistInitData={ data as Playlist } />);
         default:
             break;
@@ -89,6 +92,14 @@ export async function resolveArbitraryPlayableMedia(
                     enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to load playlist data!`, error);
                 });
             break;
+        case ShowerMusicObjectType.Station:
+            getStation(mediaId)
+                .then(onResolveCallback)
+                .catch((error) =>
+                {
+                    enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to load station data!`, error);
+                });
+            break;
         default:
             break;
     }
@@ -109,6 +120,8 @@ export function gotoArbitraryPlayableMediaPageCallbackFactory(
             return gotoArtistCallbackFactory(setView, item.mediaId);
         case ShowerMusicObjectType.Playlist:
             return gotoPlaylistCallbackFactory(setView, item.mediaId);
+        case ShowerMusicObjectType.Station:
+            return gotoStationCallbackFactory(setView, item.mediaId);
         default:
             break;
     }
