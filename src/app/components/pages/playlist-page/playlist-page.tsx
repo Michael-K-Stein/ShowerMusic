@@ -180,7 +180,7 @@ function StationCoverImage({ station }: { station: MinimalStation | Station; })
     return (
         <div className='relative'>
             <Image src={ getStationCoverImage(station.id) } width={ 640 } height={ 640 } alt={ `${station.name} Cover Image` } />
-            <RadioTowerGlyph glyphTitle='' className='absolute bottom-1 right-1 w-7 h-7' />
+            <RadioTowerGlyph glyphTitle='' className='absolute bottom-1 right-1 w-1/4 h-1/4' />
         </div>
     );
 }
@@ -203,7 +203,7 @@ export function PlaylistImage({ playlistInitData }: { playlistInitData: Playlist
     {
         if (typeof playlistInitData === 'object' && playlistInitData.type === ShowerMusicObjectType.Station) { return; }
         loadPlaylistData();
-    }, [ loadPlaylistData ]);
+    }, [ playlistInitData, loadPlaylistData ]);
 
     useMemo(() =>
     {
@@ -213,7 +213,7 @@ export function PlaylistImage({ playlistInitData }: { playlistInitData: Playlist
         if (!addMessageHandler) { return; }
         const removeHandler = addMessageHandler(playlistUpdatedCallbackHandler);
         return removeHandler;
-    }, [ loadPlaylistData, addMessageHandler, playlistUpdatedCallbackHandler ]);
+    }, [ playlistInitData, loadPlaylistData, addMessageHandler, playlistUpdatedCallbackHandler ]);
 
     useMemo(() =>
     {
@@ -229,7 +229,6 @@ export function PlaylistImage({ playlistInitData }: { playlistInitData: Playlist
             tracksNeeded.push(playlistData.tracks[ i ]);
         }
 
-        console.log(tracksNeeded);
         setGridTrackCount(tracksNeeded.length);
         tracksNeeded.reduce(
             async (
@@ -247,7 +246,7 @@ export function PlaylistImage({ playlistInitData }: { playlistInitData: Playlist
                 return [ ...previousResults, trackData ];
             }, Promise.resolve([] as TrackDict[])
         ).then(setTracksData);
-    }, [ playlistData, enqueueSnackbar ]);
+    }, [ playlistInitData, playlistData, enqueueSnackbar ]);
 
     if (
         typeof playlistInitData === 'object' &&

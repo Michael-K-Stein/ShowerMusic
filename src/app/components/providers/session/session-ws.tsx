@@ -2,7 +2,7 @@ import { getClientSideObjectId } from "@/app/client-api/common-utils";
 import { getUserMe } from "@/app/components/auth-provider";
 import { MessageTypes, WEBSOCKET_SESSION_SERVER_CONN_STRING } from "@/app/settings";
 import { UserId } from "@/app/shared-api/user-objects/users";
-import { createContext, useCallback, useContext, useEffect, useRef } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef } from "react";
 
 export type MessageHandlerType = (messageType: MessageTypes, data: any) => void;
 const MessageHandlerContext = createContext<MessageHandlerType>(() => { });
@@ -10,7 +10,7 @@ export default function useSessionWebSocketContext(
     setUserId: React.Dispatch<React.SetStateAction<UserId>>
 )
 {
-    const ws = useRef(new WebSocket(WEBSOCKET_SESSION_SERVER_CONN_STRING));
+    const ws = useRef<WebSocket | null>(null);
     const messageHandlers = useRef<MessageHandlerType[]>([]);
 
     // Function for child components to register their own message handlers
@@ -55,14 +55,16 @@ export default function useSessionWebSocketContext(
             }, 5); // wait 5 milisecond for the connection...
     }, []);
 
-    const registerCurrentSession = async (uid: UserId) =>
+    const registerCurrentSession = useCallback(async (uid: UserId) =>
     {
+        if (!ws.current) { return; }
         ws.current.send(JSON.stringify({ 'type': MessageTypes.REGISTER_SESSION, 'userId': uid }));
-    };
+    }, []);
 
     // Register WebSocket functions
     useEffect(() =>
     {
+        if (!ws.current) { return; }
         ws.current.onopen = () => { };
         ws.current.onclose = () => console.log('ws closed');
 
@@ -72,13 +74,19 @@ export default function useSessionWebSocketContext(
         {
             const me = await getUserMe();
             setUserId(getClientSideObjectId(me));
-            console.log(me);
 
+            if (!ws.current) { return; }
             waitForSocketConnection(ws.current, () => { registerCurrentSession(me._id.toString()); });
         };
 
         loadUserData();
-    }, [ waitForSocketConnection, webSocketMessageHandler, setUserId ]);
+    }, [ registerCurrentSession, waitForSocketConnection, webSocketMessageHandler, setUserId ]);
+
+    useMemo(() =>
+    {
+        if (ws.current) { return; }
+        ws.current = new WebSocket(WEBSOCKET_SESSION_SERVER_CONN_STRING);
+    }, []);
 
     return { ws, addMessageHandler };
 }

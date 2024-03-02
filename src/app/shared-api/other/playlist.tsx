@@ -2,7 +2,7 @@ import { SSUserId } from "@/app/server-db-services/user-utils";
 import { MediaId } from "@/app/shared-api/media-objects/media-id";
 import { TrackId } from "@/app/shared-api/media-objects/tracks";
 import { ShowerMusicObject, ShowerMusicObjectType } from "@/app/shared-api/other/common";
-import { UserId } from "@/app/shared-api/user-objects/users";
+import { ShowerMusicResolveableItem, UserId } from "@/app/shared-api/user-objects/users";
 
 export type PlaylistId = MediaId;
 export interface PlaylistTrack extends ShowerMusicObject
@@ -27,10 +27,8 @@ export default interface Playlist extends PlaylistAndStationBaseInterface
     members: SSUserId[]; // Users who have access to the playlist
 };
 
-export interface NewPlaylistInitialItem
+export interface NewPlaylistInitialItem extends ShowerMusicResolveableItem
 {
-    mediaType: ShowerMusicObjectType;
-    mediaId: MediaId;
     mediaName?: string;
 }
 export interface NewPlaylistInitOptions

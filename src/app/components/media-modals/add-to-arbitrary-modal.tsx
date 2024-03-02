@@ -15,7 +15,7 @@ import useUserSession from "@/app/components/providers/user-provider/user-sessio
 import { MediaId } from "@/app/shared-api/media-objects/media-id";
 import { ShowerMusicObjectType, ShowerMusicPlayableMediaDict } from "@/app/shared-api/other/common";
 import { MinimalPlaylist } from "@/app/shared-api/other/playlist";
-import { UserDict } from "@/app/shared-api/user-objects/users";
+import { ShowerMusicNamedResolveableItem, UserDict } from "@/app/shared-api/user-objects/users";
 import { ShowerMusicPlayableMediaType } from "@/app/showermusic-object-types";
 import { Divider, ListItemIcon, ListItemText, Menu, MenuItem, MenuItemProps, Paper, PopperProps } from "@mui/material";
 import { useSnackbar } from "notistack";
@@ -26,7 +26,7 @@ export interface AddToArbitraryModalStateType
     posX: number;
     posY: number;
     event: React.MouseEvent<HTMLElement, MouseEvent>;
-    mediaData: ShowerMusicPlayableMediaDict;
+    mediaData: ShowerMusicPlayableMediaDict | ShowerMusicNamedResolveableItem;
     mediaType: ShowerMusicPlayableMediaType;
 };
 
@@ -109,8 +109,8 @@ export default function AddToArbitraryModal()
         return newPlaylistClickHandler({
             items: [
                 {
-                    mediaType: addToArbitraryModalState.mediaType,
-                    mediaId: addToArbitraryModalState.mediaData.id,
+                    type: addToArbitraryModalState.mediaType,
+                    id: addToArbitraryModalState.mediaData.id,
                     mediaName: addToArbitraryModalState.mediaData.name,
                 },
             ],

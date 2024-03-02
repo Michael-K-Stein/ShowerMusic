@@ -10,5 +10,6 @@ var ShowerMusicObjectType;
     ShowerMusicObjectType["Artist"] = "artist";
     ShowerMusicObjectType["User"] = "user";
     ShowerMusicObjectType["Station"] = "station";
+    ShowerMusicObjectType["StationsCategory"] = "stations-category";
     ShowerMusicObjectType["Playlist"] = "playlist";
 })(ShowerMusicObjectType = exports.ShowerMusicObjectType || (exports.ShowerMusicObjectType = {}));

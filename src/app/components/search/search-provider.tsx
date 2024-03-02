@@ -4,11 +4,11 @@ import { PoppedState, ViewportType, useSessionState } from '@/app/components/pro
 import { TrackDict } from '@/app/shared-api/media-objects/tracks';
 import ElasticApi from '@/app/client-api/search/elastic';
 import { ShowerMusicObjectType, ShowerMusicPlayableMediaType } from '@/app/showermusic-object-types';
-import { ShowerMusicPlayableMediaId } from '@/app/shared-api/user-objects/users';
+import { ShowerMusicNamedResolveableItem, ShowerMusicPlayableMediaId } from '@/app/shared-api/user-objects/users';
 import { randomBytes } from 'crypto';
 
 // A "token" representing a search item which MUST be in the results
-export interface SearchToken
+export interface SearchToken 
 {
     id: Buffer; // Random value assigned per search token so they can be "removed"
     displayName: string;
@@ -20,8 +20,9 @@ export interface SuggestionGenerationResponse
     trackNameTokens: SearchToken[],
     artistNameTokens: SearchToken[],
 }
-export interface ElasticTrackSearchResult
+export interface ElasticTrackSearchResult extends ShowerMusicNamedResolveableItem
 {
+    type: ShowerMusicObjectType.Track;
     id: string;
     name: string;
     album: {
@@ -29,7 +30,7 @@ export interface ElasticTrackSearchResult
         name: string;
         release_date: Date;
     };
-    artists: { id: string, name: string; }[];
+    artists: { id: string, name: string, type: ShowerMusicObjectType.Artist, _id: any; }[];
     explicit: boolean;
     isrc: string;
     popularity: number;
@@ -119,7 +120,6 @@ export function SearchProvider({ children }: { children: React.ReactNode; }): Re
 
     const statePopHandler = useCallback((state: SearchProviderPoppedState) =>
     {
-        console.log('state', state);
         if (state.viewportType !== ViewportType.SearchResults)
         {
             return;

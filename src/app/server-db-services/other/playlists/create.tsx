@@ -13,7 +13,7 @@ export async function createNewPlaylist(userId: SSUserId, playlistInitOptions?: 
     const newPlaylistTracks: PlaylistTrack[] = (playlistInitOptions !== undefined && playlistInitOptions.items) ? (
         (await Promise.all(playlistInitOptions.items.map(async (item) =>
         {
-            const itemTracks = await getTracksFromArbitrarySource(item.mediaType, item.mediaId);
+            const itemTracks = await getTracksFromArbitrarySource(item.type, item.id);
             return itemTracks.map((track) =>
             {
                 return {

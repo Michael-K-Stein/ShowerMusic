@@ -30,9 +30,9 @@ export async function GET(
 
 export interface UserFavoritesAddItemCommandData
 {
-    mediaType: ShowerMusicPlayableMediaType;
-    mediaId: ShowerMusicPlayableMediaId;
-    mediaName: string;
+    type: ShowerMusicPlayableMediaType;
+    id: ShowerMusicPlayableMediaId;
+    name: string;
 }
 export async function POST(
     req: Request,
@@ -47,10 +47,11 @@ export async function POST(
 
         await DbObjects.Users.Favorites.add(targetUserId,
             {
-                '_id': new ObjectId(),
-                'mediaId': commandData.mediaId,
-                'mediaType': commandData.mediaType,
-                'mediaName': commandData.mediaName,
+                _id: new ObjectId(),
+                id: commandData.id,
+                type: commandData.type,
+                name: commandData.name,
+                includesName: true,
             });
 
         return ApiSuccess();

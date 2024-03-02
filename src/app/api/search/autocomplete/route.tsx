@@ -7,7 +7,6 @@ export async function POST(req: NextRequest)
     try
     {
         const { config } = await req.json();
-        console.log(`Autocomplete config: `, config);
         const response = await ElasticSSApi.autocomplete(config);
         return NextResponse.json(response);
     }

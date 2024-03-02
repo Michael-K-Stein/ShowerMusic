@@ -1,8 +1,9 @@
 import { SSUserId } from "@/app/server-db-services/user-utils";
 import { MediaId } from "@/app/shared-api/media-objects/media-id";
 import { TrackId } from "@/app/shared-api/media-objects/tracks";
-import { ShowerMusicObject, ShowerMusicObjectType } from "@/app/shared-api/other/common";
+import { ShowerMusicObject, ShowerMusicObjectType, getKeysOfObject } from "@/app/shared-api/other/common";
 import Playlist, { MinimalPlaylist, PlaylistAndStationBaseInterface, PlaylistId, PlaylistTrack } from "@/app/shared-api/other/playlist";
+import { ObjectId } from "mongodb";
 
 export type StationId = PlaylistId;
 
@@ -40,11 +41,14 @@ export interface PrivateStation extends Station
 export type PrivateStationOnlyProperties = Pick<PrivateStation, Exclude<keyof PrivateStation, keyof Playlist>>;
 
 export type CategoryId = MediaId;
-export interface StationsCategory extends ShowerMusicObject
+export interface MinimalStationsCategory extends ShowerMusicObject
 {
     id: CategoryId;
     name: string;
     type: ShowerMusicObjectType.StationsCategory;
+}
+export interface StationsCategory extends MinimalStationsCategory
+{
     stations: MinimalStation[];
 }
 

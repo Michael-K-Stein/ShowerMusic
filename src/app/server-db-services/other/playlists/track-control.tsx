@@ -42,7 +42,6 @@ export async function pushTracksToPlaylist(playlistId: PlaylistId, tracks: Track
 
 export async function removeTrackFromPlaylist(playlistId: PlaylistId, trackRemovableId: RemovalId)
 {
-    console.log(trackRemovableId);
     await databaseController.playlists.updateOne(
         {
             id: playlistId,

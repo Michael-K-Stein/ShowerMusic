@@ -1,34 +1,31 @@
-import './home-page-playlists.css';
-import { ShowerMusicPlayableMediaId, UserListenHistoryRecentsMediaItem } from "@/app/shared-api/user-objects/users";
 import { getClientSideObjectId } from '@/app/client-api/common-utils';
-import { ShowerMusicObjectType, ShowerMusicPlayableMediaType } from '@/app/showermusic-object-types';
-import { Typography } from '@mui/material';
-import { MouseEventHandler, useCallback, useMemo, useState } from 'react';
-import { gotoAlbumCallbackFactory } from '@/app/components/pages/album-page/album-page';
-import { SetStream, SetView, StreamStateType, ViewportType, useSessionState } from '@/app/components/providers/session/session';
-import { gotoArtistCallbackFactory } from '@/app/components/pages/artist-page/artist-page';
-import { PlaylistImage, gotoPlaylistCallbackFactory } from '@/app/components/pages/playlist-page/playlist-page';
-import { getTrackInfo } from '@/app/client-api/get-track';
-import { enqueueApiErrorSnackbar } from '@/app/components/providers/global-props/global-modals';
-import { EnqueueSnackbar, useSnackbar } from 'notistack';
 import { getAlbumInfo } from '@/app/client-api/get-album';
 import { getArtistInfo } from '@/app/client-api/get-artist';
 import { getPlaylist } from '@/app/client-api/get-playlist';
-import { TrackDict } from '@/app/shared-api/media-objects/tracks';
+import { getTrackInfo } from '@/app/client-api/get-track';
+import { getStation } from '@/app/client-api/stations/get-station-specific';
+import { gotoArbitraryPlayableMediaPageCallbackFactory } from '@/app/components/media-modals/card-modal/card-modal';
+import { PlaylistImage } from '@/app/components/pages/playlist-page/playlist-page';
+import { enqueueApiErrorSnackbar } from '@/app/components/providers/global-props/global-modals';
+import { useSessionState } from '@/app/components/providers/session/session';
+import useUserSession from '@/app/components/providers/user-provider/user-session';
 import { AlbumDict } from '@/app/shared-api/media-objects/albums';
 import { ArtistDict } from '@/app/shared-api/media-objects/artists';
-import Playlist from '@/app/shared-api/other/playlist';
-import Image from 'next/image';
-import useUserSession from '@/app/components/providers/user-provider/user-session';
+import { TrackDict } from '@/app/shared-api/media-objects/tracks';
 import { ShowerMusicPlayableMediaDict } from '@/app/shared-api/other/common';
-import { commandPlayerSkipCurrentTrack } from '@/app/client-api/player';
-import { commandQueueAddArbitraryTypeTracks, commandQueueSetArbitraryTracks } from '@/app/client-api/queue';
-import { gotoStationCallbackFactory } from '@/app/components/pages/stations/station-page/station-page';
-import { getStation } from '@/app/client-api/stations/get-station-specific';
+import Playlist from '@/app/shared-api/other/playlist';
+import { ShowerMusicPlayableMediaId, UserListenHistoryRecentsMediaItem } from "@/app/shared-api/user-objects/users";
+import { ShowerMusicObjectType, ShowerMusicPlayableMediaType } from '@/app/showermusic-object-types';
+import { Typography } from '@mui/material';
+import Image from 'next/image';
+import { EnqueueSnackbar, useSnackbar } from 'notistack';
+import { MouseEventHandler, useCallback, useMemo, useState } from 'react';
+import './home-page-playlists.css';
+import { GenericCoverLoader } from '@/app/components/pages/artist-page/artist-page';
 
 export function ArbitraryPlayableMediaImage({ data }: { data: undefined | ShowerMusicPlayableMediaDict; })
 {
-    let imageSrc = 'https://w7.pngwing.com/pngs/805/75/png-transparent-computer-icons-apple-music-music-musical-theatre-musical-note-text-rectangle-monochrome-thumbnail.png';
+    let imageSrc: string | undefined = undefined;
     switch (data?.type)
     {
         case ShowerMusicObjectType.Track:
@@ -46,8 +43,13 @@ export function ArbitraryPlayableMediaImage({ data }: { data: undefined | Shower
         default:
             break;
     }
+
+    if (imageSrc)
+    {
+        return (<Image src={ imageSrc } width={ 640 } height={ 640 } alt={ '' } />);
+    }
     return (
-        <Image src={ imageSrc } alt={ '' } width={ 640 } height={ 640 } />
+        <GenericCoverLoader />
     );
 }
 
@@ -101,31 +103,12 @@ export async function resolveArbitraryPlayableMedia(
                 });
             break;
         default:
+            if (enqueueSnackbar)
+            {
+                enqueueSnackbar(`Media type '${mediaType}' is not recognized!`, { variant: 'error' });
+            }
             break;
     }
-}
-
-export function gotoArbitraryPlayableMediaPageCallbackFactory(
-    item: { mediaType: ShowerMusicPlayableMediaType, mediaId: ShowerMusicPlayableMediaId; },
-    itemData: ShowerMusicPlayableMediaDict | undefined,
-    setView: SetView)
-{
-    switch (item.mediaType)
-    {
-        case ShowerMusicObjectType.Track:
-            return itemData ? gotoAlbumCallbackFactory(setView, (itemData as TrackDict).album.id) : () => { };
-        case ShowerMusicObjectType.Album:
-            return gotoAlbumCallbackFactory(setView, item.mediaId);
-        case ShowerMusicObjectType.Artist:
-            return gotoArtistCallbackFactory(setView, item.mediaId);
-        case ShowerMusicObjectType.Playlist:
-            return gotoPlaylistCallbackFactory(setView, item.mediaId);
-        case ShowerMusicObjectType.Station:
-            return gotoStationCallbackFactory(setView, item.mediaId);
-        default:
-            break;
-    }
-    return (_event: React.MouseEvent<HTMLElement>) => { };
 }
 
 function RecentUserPlayedItem({ item }: { item: UserListenHistoryRecentsMediaItem; })
@@ -136,7 +119,7 @@ function RecentUserPlayedItem({ item }: { item: UserListenHistoryRecentsMediaIte
 
     useMemo(() =>
     {
-        resolveArbitraryPlayableMedia(item.mediaType, item.mediaId, setItemData, enqueueSnackbar);
+        resolveArbitraryPlayableMedia(item.type, item.id, setItemData, enqueueSnackbar);
     }, [ item, setItemData, enqueueSnackbar ]);
 
     const onClickHandlerFactory = useCallback((): MouseEventHandler<HTMLElement> =>
@@ -152,10 +135,10 @@ function RecentUserPlayedItem({ item }: { item: UserListenHistoryRecentsMediaIte
             {
                 itemData &&
                 <Typography fontSize={ '1em' }>{ itemData.name }</Typography> ||
-                <Typography fontSize={ '1em' }>{ item.mediaId }</Typography>
+                <Typography fontSize={ '1em' }>{ item.id }</Typography>
             }
             <div className='played-item-type'>
-                <Typography fontSize={ '0.6em' }>{ item.mediaType }</Typography>
+                <Typography fontSize={ '0.6em' }>{ item.type }</Typography>
             </div>
         </div>
     );

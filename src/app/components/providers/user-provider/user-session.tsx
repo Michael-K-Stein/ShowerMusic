@@ -57,6 +57,7 @@ export const UserSessionProvider = ({ children }: { children: React.JSX.Element[
 
     const sendMessage = useCallback((data: WebSocketSessionMessage) =>
     {
+        if (!ws.current) { return; }
         ws.current.send(JSON.stringify(data));
     }, [ ws ]);
 
@@ -111,7 +112,7 @@ export const UserSessionProvider = ({ children }: { children: React.JSX.Element[
         if (!userFavorites) { return false; }
         return userFavorites.items.find((item) =>
         {
-            return ((item.mediaId === itemId) && (item.mediaType === itemType));
+            return ((item.id === itemId) && (item.type === itemType));
         }) !== undefined;
     }, [ userFavorites ]);
 

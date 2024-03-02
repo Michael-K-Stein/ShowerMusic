@@ -4,9 +4,9 @@ import { pushTracksToPlaylist, removeTrackFromPlaylist } from "@/app/server-db-s
 import getUserStationAccess, { assertUserStationAccess } from "@/app/server-db-services/other/stations/access";
 import { createNewStation } from "@/app/server-db-services/other/stations/create";
 import { getStationInfo } from "@/app/server-db-services/other/stations/get";
-import { getCategories } from "@/app/server-db-services/other/stations/get-categories";
+import { getCategoriesFull, getCategoriesMinimal } from "@/app/server-db-services/other/stations/get-categories";
 import { getUserId } from "@/app/server-db-services/user-utils";
-import { UserStationDesiredAccess } from "@/app/shared-api/other/stations";
+import { CategoryId, StationsCategory, UserStationDesiredAccess } from "@/app/shared-api/other/stations";
 
 function accessWrapper<T extends (...args: any[]) => any>(playlistFunction: T, requiredAccess: UserStationDesiredAccess, playlistIdArgIndex: number): T 
 {
@@ -45,6 +45,6 @@ export namespace DbStation
 
 export namespace DbCategory
 {
-    export const getAll = () => getCategories();
-    export const get = getCategories;
+    export const getAll = () => getCategoriesMinimal();
+    export const get = (categoryId: CategoryId) => getCategoriesFull({ id: categoryId });
 }

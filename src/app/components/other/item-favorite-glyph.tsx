@@ -2,6 +2,7 @@ import { removeFromFavoritesClickHandlerFactory, addToFavoritesClickHandlerFacto
 import LoveCircledGlyph from "@/app/components/glyphs/love-circled";
 import useUserSession from "@/app/components/providers/user-provider/user-session";
 import { ShowerMusicPlayableMediaDict } from "@/app/shared-api/other/common";
+import { ShowerMusicNamedResolveableItem } from "@/app/shared-api/user-objects/users";
 import { ShowerMusicPlayableMediaType } from "@/app/showermusic-object-types";
 import { TooltipProps } from "@mui/material";
 import { useSnackbar } from "notistack";
@@ -10,7 +11,7 @@ import React, { useCallback, useMemo, useState } from "react";
 export default function ItemFavoriteGlyph(
     { item, itemType, glyphTitle, placement, ...props }:
         {
-            item?: ShowerMusicPlayableMediaDict,
+            item?: ShowerMusicPlayableMediaDict | ShowerMusicNamedResolveableItem,
             itemType: ShowerMusicPlayableMediaType,
             glyphTitle?: string,
             placement?: TooltipProps[ 'placement' ];

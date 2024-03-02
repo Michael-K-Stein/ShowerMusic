@@ -3,7 +3,7 @@ import { ArtistDict } from "@/app/shared-api/media-objects/artists";
 import Lyrics from "@/app/shared-api/media-objects/lyrics";
 import { TrackDict } from "@/app/shared-api/media-objects/tracks";
 import Playlist from "@/app/shared-api/other/playlist";
-import { Station, StationsCategory } from "@/app/shared-api/other/stations";
+import { MinimalStationsCategory, Station, StationsCategory } from "@/app/shared-api/other/stations";
 import { UserDict } from "@/app/shared-api/user-objects/users";
 import { Collection, Db, MongoClient } from "mongodb";
 const MONGO_CONNECTION_STRING = process.env.MONGO_CONNECTION_STRING ?? '';
@@ -46,7 +46,10 @@ class DatabaseController
     public getUsers<T extends UserDict = UserDict>(): Collection<T>
     {
         return this._users as unknown as Collection<T>;
-
+    }
+    public getCategories<T extends MinimalStationsCategory = MinimalStationsCategory>(): Collection<T>
+    {
+        return this._categories as unknown as Collection<T>;
     }
 
     public get artists(): Collection<ArtistDict>
@@ -79,3 +82,20 @@ class DatabaseController
 
 const databaseController = new DatabaseController();
 export default databaseController;
+
+
+export type ProjectionMap<T> = {
+    [ P in keyof T ]: 1;
+};
+
+export function createProjectionMap<T extends object>(keys: (keyof T)[]): ProjectionMap<T>
+{
+    const map: any = {};
+
+    keys.forEach((key) =>
+    {
+        map[ key ] = 1;
+    });
+
+    return map;
+}

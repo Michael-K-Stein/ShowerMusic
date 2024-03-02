@@ -19,10 +19,11 @@ export async function POST(
 
         await DbObjects.Users.Favorites.remove(targetUserId,
             {
-                '_id': new ObjectId(),
-                'mediaId': commandData.mediaId,
-                'mediaType': commandData.mediaType,
-                'mediaName': commandData.mediaName,
+                _id: new ObjectId(),
+                id: commandData.id,
+                type: commandData.type,
+                name: commandData.name,
+                includesName: true,
             });
 
         return ApiSuccess();

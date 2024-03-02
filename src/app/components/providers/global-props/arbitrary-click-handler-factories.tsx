@@ -3,12 +3,13 @@ import { commandQueueAddArbitraryTypeTracks, commandQueueSetArbitraryTracks, com
 import { enqueueApiErrorSnackbar } from "@/app/components/providers/global-props/global-modals";
 import { SetStream, StreamStateType } from "@/app/components/providers/session/session";
 import { ShowerMusicPlayableMediaDict } from "@/app/shared-api/other/common";
+import { ShowerMusicNamedResolveableItem } from "@/app/shared-api/user-objects/users";
 import { ShowerMusicPlayableMediaType, ShowerMusicObjectType } from "@/app/showermusic-object-types";
 import { EnqueueSnackbar } from "notistack";
 import { MouseEventHandler } from "react";
 
 export const addArbitraryToQueueClickHandler = (
-    mediaData: ShowerMusicPlayableMediaDict | undefined,
+    mediaData: ShowerMusicPlayableMediaDict | ShowerMusicNamedResolveableItem | undefined,
     mediaType: ShowerMusicPlayableMediaType,
     enqueueSnackbar?: EnqueueSnackbar
 ): MouseEventHandler =>
@@ -34,7 +35,7 @@ export const addArbitraryToQueueClickHandler = (
 };
 
 export const setPlayNextArbitraryClickHandler = (
-    mediaData: ShowerMusicPlayableMediaDict | undefined,
+    mediaData: ShowerMusicPlayableMediaDict | ShowerMusicNamedResolveableItem | undefined,
     mediaType: ShowerMusicPlayableMediaType,
     enqueueSnackbar?: EnqueueSnackbar
 ): MouseEventHandler =>
@@ -60,7 +61,7 @@ export const setPlayNextArbitraryClickHandler = (
 };
 
 export function playArbitraryClickHandlerFactory(
-    itemData: ShowerMusicPlayableMediaDict | undefined,
+    itemData: ShowerMusicPlayableMediaDict | ShowerMusicNamedResolveableItem | undefined,
     itemType: ShowerMusicPlayableMediaType,
     setStream: SetStream,
     enqueueSnackbar: EnqueueSnackbar) 

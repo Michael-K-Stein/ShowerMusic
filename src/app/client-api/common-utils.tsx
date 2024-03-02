@@ -4,6 +4,7 @@ import { MediaId } from "@/app/shared-api/media-objects/media-id";
 import { SetAddToArbitraryModalState } from "@/app/components/providers/session/session";
 import { MouseEventHandler } from "react";
 import { ShowerMusicPlayableMediaType } from "@/app/showermusic-object-types";
+import { ShowerMusicNamedResolveableItem } from "@/app/shared-api/user-objects/users";
 
 export function safeFetcher(input: RequestInfo, init?: RequestInit | undefined): Promise<Response | false>
 {
@@ -111,7 +112,7 @@ export function getClientSideObjectId(object: ShowerMusicObject)
     return object._id as unknown as string;
 }
 
-export function addAnyToArbitraryClickHandlerFactory<T extends ShowerMusicPlayableMediaDict>(
+export function addAnyToArbitraryClickHandlerFactory<T extends ShowerMusicPlayableMediaDict | ShowerMusicNamedResolveableItem>(
     object: T | undefined,
     objectType: ShowerMusicPlayableMediaType | undefined,
     setAddToArbitraryModalState: SetAddToArbitraryModalState,

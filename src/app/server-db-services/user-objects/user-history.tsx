@@ -98,8 +98,8 @@ export async function pushMediaToUserListenHistory(userId: SSUserId, playableMed
     const listenHistoryArrayKey = `listenHistory.${listenHistoryArrayName}`;
     const commonItem: UserListenHistoryRecentsMediaItem = {
         playedAt: new Date(),
-        mediaType: playableMediaType,
-        mediaId: playableMediaId,
+        type: playableMediaType,
+        id: playableMediaId,
         _id: new ObjectId(),
     };
 
@@ -110,7 +110,7 @@ export async function pushMediaToUserListenHistory(userId: SSUserId, playableMed
         oldData.listenHistory.recents.reduce(
             (previousValue: UserListenHistoryRecentsMediaItem[ '_id' ][], currentItem: UserListenHistoryRecentsMediaItem) =>
             {
-                if (currentItem.mediaId === commonItem.mediaId && currentItem.mediaType === commonItem.mediaType)
+                if (currentItem.id === commonItem.id && currentItem.type === commonItem.type)
                 {
                     previousValue.push(currentItem._id);
                 }

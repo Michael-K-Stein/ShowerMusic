@@ -18,12 +18,9 @@ export namespace ElasticSSApi
                     requestCert: false,
                 }
             });
-        console.log(page, queryData);
         const searchResults = await client.search({ query: queryData, index: 'search-tracks', size: PAGE_SIZE, from: (page * PAGE_SIZE) });
-        // console.log(searchResults);
         const refinedSearchResults = searchResults.hits.hits.map((value) =>
         {
-            // console.log(value);
             return value._source;
         });
         return refinedSearchResults;

@@ -2,7 +2,7 @@ import { UserFavoritesAddItemCommandData } from "@/app/api/users/[slug]/favorite
 import { safeApiFetcher } from "@/app/client-api/common-utils";
 import { enqueueApiErrorSnackbar } from "@/app/components/providers/global-props/global-modals";
 import { ShowerMusicPlayableMediaDict } from "@/app/shared-api/other/common";
-import { ShowerMusicPlayableMediaId, UserFavoritesData } from "@/app/shared-api/user-objects/users";
+import { ShowerMusicNamedResolveableItem, ShowerMusicPlayableMediaId, UserFavoritesData } from "@/app/shared-api/user-objects/users";
 import { ShowerMusicPlayableMediaType } from "@/app/showermusic-object-types";
 import { EnqueueSnackbar } from "notistack";
 import { MouseEventHandler } from "react";
@@ -20,9 +20,9 @@ export async function commandAddToFavorites(
 )
 {
     const newFavoritesItem: UserFavoritesAddItemCommandData = {
-        mediaType,
-        mediaId,
-        mediaName
+        type: mediaType,
+        id: mediaId,
+        name: mediaName
     };
     await safeApiFetcher(`/api/users/me/favorites`,
         {
@@ -38,9 +38,9 @@ export async function commandRemoveFromFavorites(
 )
 {
     const newFavoritesItem: UserFavoritesAddItemCommandData = {
-        mediaType,
-        mediaId,
-        mediaName
+        type: mediaType,
+        id: mediaId,
+        name: mediaName
     };
     await safeApiFetcher(`/api/users/me/favorites/remove`,
         {
@@ -50,7 +50,7 @@ export async function commandRemoveFromFavorites(
 }
 
 export function addToFavoritesClickHandlerFactory(
-    mediaData: ShowerMusicPlayableMediaDict,
+    mediaData: ShowerMusicPlayableMediaDict | ShowerMusicNamedResolveableItem,
     mediaType: ShowerMusicPlayableMediaType,
     enqueueSnackbar?: EnqueueSnackbar,
 ): MouseEventHandler<HTMLElement>
@@ -73,7 +73,7 @@ export function addToFavoritesClickHandlerFactory(
 }
 
 export function removeFromFavoritesClickHandlerFactory(
-    mediaData: ShowerMusicPlayableMediaDict,
+    mediaData: ShowerMusicPlayableMediaDict | ShowerMusicNamedResolveableItem,
     mediaType: ShowerMusicPlayableMediaType,
     enqueueSnackbar?: EnqueueSnackbar,
 ): MouseEventHandler<HTMLElement>

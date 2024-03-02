@@ -13,11 +13,20 @@ export interface MinimalUserDict extends ShowerMusicObject
     username: string;
 }
 export type ShowerMusicPlayableMediaId = TrackId | AlbumId | ArtistId | PlaylistId;
-export interface UserListenHistoryRecentsMediaItem extends ShowerMusicObject
+export interface ShowerMusicResolveableItem
+{
+    includesName?: boolean;
+    type: ShowerMusicPlayableMediaType;
+    id: ShowerMusicPlayableMediaId;
+}
+export interface ShowerMusicNamedResolveableItem extends ShowerMusicResolveableItem
+{
+    includesName: true;
+    name: string;
+}
+export interface UserListenHistoryRecentsMediaItem extends ShowerMusicObject, ShowerMusicResolveableItem
 {
     playedAt: Date;
-    mediaType: ShowerMusicPlayableMediaType;
-    mediaId: ShowerMusicPlayableMediaId;
 }
 export interface UserListenHistory 
 {
@@ -79,11 +88,8 @@ export interface UserRecommendationsData extends ShowerMusicObject
     recommendedPlaylists: PlaylistId[];
 }
 
-export interface FavoritesItem extends ShowerMusicObject
+export interface FavoritesItem extends ShowerMusicObject, ShowerMusicNamedResolveableItem
 {
-    mediaType: ShowerMusicPlayableMediaType;
-    mediaId: ShowerMusicPlayableMediaId;
-    mediaName: string;
 }
 
 export interface UserFavoritesData extends ShowerMusicObject

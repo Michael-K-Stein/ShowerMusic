@@ -184,8 +184,8 @@ export default function PlayingNext()
         const playlistItems = playingNextTracks.tracks.map((v) =>
         {
             return {
-                mediaId: v.trackId,
-                mediaType: ShowerMusicObjectType.Track,
+                id: v.trackId,
+                type: ShowerMusicObjectType.Track,
             } as NewPlaylistInitialItem;
         });
         commandCreateNewPlaylist({

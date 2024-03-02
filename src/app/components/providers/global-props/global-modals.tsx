@@ -102,7 +102,6 @@ export function enqueueSnackbarWithSubtext(
 
 export function enqueueApiErrorSnackbar(enqueueSnackbar: EnqueueSnackbar | undefined, mainText: string | React.ReactNode, error: any)
 {
-    console.log(error);
     if (!(error instanceof ClientApiError))
     {
         return enqueueSnackbarWithSubtext(
@@ -272,8 +271,11 @@ const ModalFlatTrackLoaderSkeleton = (props: React.JSX.IntrinsicAttributes & ICo
 );
 
 export function ArtistList(
-    { artists, classes, setView }:
-        { artists: MinimalArtistDict[], classes?: string, setView: SetView; }
+    {
+        artists, classes, setView
+    }: {
+        artists: MinimalArtistDict[], classes?: string, setView: SetView;
+    }
 )
 {
     const artistsList = artists.map((artist, index) =>

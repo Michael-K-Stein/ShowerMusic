@@ -56,7 +56,6 @@ const AlbumNameLoader = (props: React.JSX.IntrinsicAttributes & IContentLoaderPr
 export default function AlbumPage({ albumData }: { albumData: AlbumDict; })
 {
     assert(albumData.type === 'album', "Given album data is not of a valid album type!");
-    console.log(albumData);
     const { setView } = useSessionState();
 
     const fontSize = albumData.name.length > 10 ? '4em' : '5em';

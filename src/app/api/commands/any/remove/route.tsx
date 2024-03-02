@@ -40,7 +40,6 @@ export async function POST(req: NextRequest)
         }
         // We can now assume that the parameter types are valid
 
-        console.log(mediaToRemove);
         switch (targetType)
         {
             case ShowerMusicObjectType.Playlist:
@@ -57,14 +56,13 @@ export async function POST(req: NextRequest)
                 }
             case ShowerMusicObjectType.User:
                 {
-                    // Technically, the item need not be a track, sinec we only care about the queueId
+                    // Technically, the item need not be a track, since we only care about the queueId
                     await DbObjects.Users.Queue.removeItem(await filterTargetOrUserId(fromTargetId, userId), mediaToRemove as RemovalId);
                     break;
                 }
             default:
                 {
                     throw new InvalidTargetTypeError();
-                    break;
                 }
         }
 

@@ -65,3 +65,9 @@ export type ShowerMusicPlayableMediaDict =
     ArtistDict | MinimalArtistDict |
     Playlist | MinimalPlaylist |
     Station | MinimalStation | StationsCategory;
+
+export type Keys<T> = keyof T;
+export function getKeysOfObject<T extends object>(obj: T): Keys<T>[]
+{
+    return Object.keys(obj) as Keys<T>[];
+}

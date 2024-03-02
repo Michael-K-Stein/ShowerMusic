@@ -37,27 +37,9 @@
 {
     box-sizing: border-box;
     width: 100%;
-    padding: 0.3em;
-    background-color: rgba(10, 10, 10, 0.8);
-    border-radius: 0.8em;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-}
-
-.toolbar-user-favorites .toolbar-user-favorites-item
-{
-    box-sizing: border-box;
-    border-radius: 0.5em;
-    width: 100%;
-    background-color: rgba(50, 50, 50, 0.8);
-    margin-top: 0.2em;
-    margin-bottom: 0.2em;
-    padding: 0.3em;
-    text-overflow: ellipsis;
-    text-align: center;
-    align-items: center;
-    display: flex;
-    flex-direction: column;
+    font-size: 0.7em;
 }

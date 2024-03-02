@@ -40,15 +40,19 @@ async function addItemToUserFavorites(userId: SSUserId, item: FavoritesItem)
                 $not: {
                     $elemMatch:
                     {
-                        mediaId: item.mediaId,
-                        mediaType: item.mediaType
+                        id: item.id,
+                        type: item.type
                     },
                 },
             },
         },
         {
-            $addToSet: {
-                'favorites.items': item,
+            $push: {
+                'favorites.items': {
+                    $each: [ item ],
+                    $position: 0,
+                },
+
             },
         },
         { upsert: false }
@@ -75,8 +79,8 @@ async function removeItemFromUserFavorites(userId: SSUserId, item: FavoritesItem
         {
             $pull: {
                 'favorites.items': {
-                    'mediaId': item.mediaId,
-                    'mediaType': item.mediaType
+                    'id': item.id,
+                    'type': item.type
                 },
             },
         },
@@ -89,7 +93,7 @@ async function removeItemFromUserFavorites(userId: SSUserId, item: FavoritesItem
     }
     else if (updateResult.modifiedCount !== 1)
     {
-        throw new ItemAlreadyExistsError();
+        throw new ItemAlreadyExistsError(`The item was not found in your favorites!`);
     }
 
     SendServerRequestToSessionServerForUsers(MessageTypes.USER_FAVORITES_UPDATE, [ userId ]);

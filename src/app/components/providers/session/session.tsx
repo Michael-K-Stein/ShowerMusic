@@ -301,9 +301,7 @@ export const SessionStateProvider = ({ children }: { children: React.JSX.Element
 
     const windowPopStateCallback = useCallback((event: PopStateEvent) =>
     {
-        console.log(event.state);
         const poppedState: PoppedState = event.state;
-        console.log(`Popped state:`, poppedState);
         windowStateCallback(poppedState);
     }, [ windowStateCallback ]);
 

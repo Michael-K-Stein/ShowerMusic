@@ -222,3 +222,20 @@ export class LyricsNotFoundError extends ClientApiError
     }
 }
 
+export class CategoryApiError extends ClientApiError
+{
+    constructor(message?: string)
+    {
+        super(message);
+        this.name = 'CategoryApiError';
+    }
+}
+
+export class CategoryNotFoundError extends CategoryApiError
+{
+    constructor(message?: string)
+    {
+        super(message);
+        this.name = 'CategoryNotFoundError';
+    }
+}

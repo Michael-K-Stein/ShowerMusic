@@ -23,8 +23,6 @@ import { spotifileDownloadArtist } from '@/app/spotifile-utils/spotifile';
 
 function ArtistControlBar({ artistData }: { artistData: ArtistDict | undefined; })
 {
-    const { enqueueSnackbar } = useSnackbar();
-    const { setStream } = useSessionState();
     return (
         <GenericControlBar
             objectData={ artistData }
