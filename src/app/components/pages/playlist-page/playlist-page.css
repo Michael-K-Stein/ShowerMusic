@@ -1,35 +1,6 @@
 @import url('./../../modal-page.css');
 
-.playlist-page-container .playlist-page-info-container
-{
-    position: relative;
-    display: grid;
-    grid-template-columns: 16em calc(100% - 16em);
-    flex-shrink: 100;
-}
-
-.playlist-page-container .playlist-page-main-info-container
-{
-    position: absolute;
-    box-sizing: border-box;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    padding: 0.5em;
-}
-
-.playlist-page-container .playlist-page-sub-info-container
-{
-    position: relative;
-    left: 0;
-    top: 0;
-}
-
-.playlist-page-container .playlist-page-main-info-container .playlist-name
+.playlist-name
 {
     position: relative;
     display: flex;
@@ -37,10 +8,14 @@
     justify-content: center;
     text-align: center;
     font-size: 2.4em;
+}
+
+.playlist-name[data-user-can-rename=true]
+{
     cursor: pointer;
 }
 
-.playlist-page-container .playlist-page-main-info-container .artists-names
+.artists-names
 {
     display: flex;
     flex-direction: row;
@@ -140,7 +115,7 @@
     transition: all 0.2s cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
-.playlist-name:hover .rename-playlist-glyph
+.playlist-name[data-user-can-rename=true]:hover .rename-playlist-glyph
 {
     opacity: 1;
     transform: translateX(calc(-100%));
@@ -152,7 +127,7 @@
     transform: translateX(0);
 }
 
-.playlist-name:hover .playlist-name-text
+.playlist-name[data-user-can-rename=true]:hover .playlist-name-text
 {
     transform: translateX(0.3em);
 }

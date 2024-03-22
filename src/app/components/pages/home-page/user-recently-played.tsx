@@ -3,9 +3,8 @@ import { getAlbumInfo } from '@/app/client-api/get-album';
 import { getArtistInfo } from '@/app/client-api/get-artist';
 import { getPlaylist } from '@/app/client-api/get-playlist';
 import { getTrackInfo } from '@/app/client-api/get-track';
-import { getStation } from '@/app/client-api/stations/get-station-specific';
+import { commandGetStation } from '@/app/client-api/stations/get-station-specific';
 import { gotoArbitraryPlayableMediaPageCallbackFactory } from '@/app/components/media-modals/card-modal/card-modal';
-import { PlaylistImage } from '@/app/components/pages/playlist-page/playlist-page';
 import { enqueueApiErrorSnackbar } from '@/app/components/providers/global-props/global-modals';
 import { useSessionState } from '@/app/components/providers/session/session';
 import useUserSession from '@/app/components/providers/user-provider/user-session';
@@ -22,6 +21,8 @@ import { EnqueueSnackbar, useSnackbar } from 'notistack';
 import { MouseEventHandler, useCallback, useMemo, useState } from 'react';
 import './home-page-playlists.css';
 import { GenericCoverLoader } from '@/app/components/pages/artist-page/artist-page';
+import { PlaylistImage, StationCoverImage } from '@/app/components/pages/playlist-page/playlist-cover-image';
+import { Station } from '@/app/shared-api/other/stations';
 
 export function ArbitraryPlayableMediaImage({ data }: { data: undefined | ShowerMusicPlayableMediaDict; })
 {
@@ -38,8 +39,9 @@ export function ArbitraryPlayableMediaImage({ data }: { data: undefined | Shower
             imageSrc = (data as ArtistDict).images[ 0 ].url;
             break;
         case ShowerMusicObjectType.Playlist:
-        case ShowerMusicObjectType.Station:
             return (<PlaylistImage playlistInitData={ data as Playlist } />);
+        case ShowerMusicObjectType.Station:
+            return (<StationCoverImage station={ data as Station } />);
         default:
             break;
     }
@@ -95,7 +97,7 @@ export async function resolveArbitraryPlayableMedia(
                 });
             break;
         case ShowerMusicObjectType.Station:
-            getStation(mediaId)
+            commandGetStation(mediaId)
                 .then(onResolveCallback)
                 .catch((error) =>
                 {

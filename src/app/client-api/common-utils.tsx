@@ -1,10 +1,11 @@
 import { AlbumNotFoundError, ArtistNotFoundError, ClientApiError, ClientError, ServerNetworkError, TrackNotFoundError, constructErrorFromNetworkMessage } from "@/app/shared-api/other/errors";
-import { ApiResponseJson, ArbitraryTargetAndDataApiRequestBody, ArbitraryTargetAndDataApiRequestBodyWithComplexItem, ComplexItem, ComplexItemType, RemovalId, ShowerMusicObject, ShowerMusicObjectType, ShowerMusicPlayableMediaDict } from "@/app/shared-api/other/common";
+import { ApiResponseJson, ArbitraryDataApiRequestBody, ArbitraryTargetAndDataApiRequestBody, ArbitraryTargetAndDataApiRequestBodyWithComplexItem, ComplexItem, ComplexItemType, RemovalId, ShowerMusicObject, ShowerMusicObjectType, ShowerMusicPlayableMediaDict } from "@/app/shared-api/other/common";
 import { MediaId } from "@/app/shared-api/media-objects/media-id";
 import { SetAddToArbitraryModalState } from "@/app/components/providers/session/session";
 import { MouseEventHandler } from "react";
 import { ShowerMusicPlayableMediaType } from "@/app/showermusic-object-types";
 import { ShowerMusicNamedResolveableItem } from "@/app/shared-api/user-objects/users";
+import { TrackId } from "@/app/shared-api/media-objects/tracks";
 
 export function safeFetcher(input: RequestInfo, init?: RequestInit | undefined): Promise<Response | false>
 {
@@ -51,6 +52,21 @@ export function safeApiFetcher(input: RequestInfo, init?: RequestInit | undefine
             if (e instanceof ClientApiError) { throw e; }
             throw new ServerNetworkError(JSON.stringify(e));
         });
+}
+
+export async function commandQueryAnyTracks(
+    sourceType: ShowerMusicObjectType, sourceId: MediaId
+)
+{
+    const data: ArbitraryDataApiRequestBody = {
+        id: sourceId,
+        type: sourceType,
+    };
+
+    return await safeApiFetcher(`/api/commands/any/tracks`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    }) as TrackId[];
 }
 
 export async function commandAnyAddArbitrary(

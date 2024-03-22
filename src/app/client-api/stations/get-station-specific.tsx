@@ -9,7 +9,7 @@ export async function commandGetUserStations(userId?: UserId)
     return r as MinimalStation[];
 };
 
-export async function getStation(stationId: StationId)
+export async function commandGetStation(stationId: StationId)
 {
     const r = await safeApiFetcher(`/api/stations/${stationId}`);
     return r as Station;
@@ -45,4 +45,19 @@ export async function commandUserStationAccess(stationId: StationId)
 {
     const r = await safeApiFetcher(`/api/stations/${stationId}/access`);
     return r as UserStationAccess;
+}
+
+export async function commandGetStationSeekTime(stationId: StationId)
+{
+    const r = await safeApiFetcher(`/api/stations/${stationId}/sync/seek`);
+    return r as number;
+}
+
+export async function commandSetStationSeekTime(stationId: StationId, newTime: number)
+{
+    await safeApiFetcher(`/api/stations/${stationId}/sync/seek`, {
+        method: 'POST', body: JSON.stringify({
+            'time': newTime,
+        })
+    });
 }

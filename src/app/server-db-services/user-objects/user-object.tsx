@@ -109,7 +109,6 @@ export async function verifyAdminUser(userId: SSUserId)
 
 export async function getUserPublicInfo(userId: UserId): Promise<UserPublicInfo>
 {
-
     const user = await databaseController.users.findOne(
         { '_id': new ObjectId(userId) },
         {

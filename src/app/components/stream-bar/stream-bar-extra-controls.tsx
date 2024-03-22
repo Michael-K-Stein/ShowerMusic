@@ -57,26 +57,24 @@ function LoopControl({ userCanSeek }: { userCanSeek: boolean; })
         Muse.loop = currentLoopState === LoopState.LoopOne;
     }, [ Muse, currentLoopState ]);
 
-    let loopGlyph = <RepeatGlyph glyphTitle={ 'Loop' } aria-disabled={ !userCanSeek } />;
+    const glyphProps: { 'data-looped': boolean; } & React.HTMLAttributes<HTMLDivElement> = {
+        className: "loop-glyph w-7 h-7 m-1 " + (userCanSeek ? 'clickable' : ''),
+        onClick: repeatButtonClickHandler,
+        'data-looped': currentLoopState !== LoopState.None,
+        'aria-disabled': !userCanSeek,
+    };
+
+    let loopGlyph = <RepeatGlyph glyphTitle={ 'Loop' } { ...glyphProps } />;
     if (currentLoopState === LoopState.Loop)
     {
-        loopGlyph = <RepeatGlyph glyphTitle={ 'Loop Single' } aria-disabled={ !userCanSeek } />;
+        loopGlyph = <RepeatGlyph glyphTitle={ 'Loop Single' } { ...glyphProps } />;
     }
     else if (currentLoopState === LoopState.LoopOne)
     {
-        loopGlyph = <RepeatOneGlyph glyphTitle={ 'Stop Loop' } aria-disabled={ !userCanSeek } />;
+        loopGlyph = <RepeatOneGlyph glyphTitle={ 'Stop Loop' } { ...glyphProps } />;
     }
 
-    return (
-        <div
-            className={ "loop-glyph w-7 h-7 m-1 " + (userCanSeek ? 'clickable' : '') }
-            onClick={ repeatButtonClickHandler }
-            data-looped={ currentLoopState !== LoopState.None }
-            aria-disabled={ !userCanSeek }
-        >
-            { loopGlyph }
-        </div>
-    );
+    return loopGlyph;
 }
 
 export default function StreamBarExtraControls({ track, userCanSeek }: { track?: TrackDict, userCanSeek: boolean; })
@@ -90,22 +88,16 @@ export default function StreamBarExtraControls({ track, userCanSeek }: { track?:
     }, [ setPlayingNextModalHiddenState ]);
 
     return (
-        <div className="absolute top-0 flex flex-row-reverse items-center justify-center float-right right-3 mt-3">
-            <div className="w-7 h-7 m-1 clickable" onClick={ togglePlayingNextVisiblity }>
-                <LoungeMusicPlaylistGlyph glyphTitle={ "Playing Next" } />
-            </div>
-            <div className="w-7 h-7 m-1 clickable" onClick={ () => setView(ViewportType.Lyrics) }>
-                <MicroGlyph glyphTitle={ "Lyrics" } />
-            </div>
-            <LoopControl userCanSeek={ userCanSeek } />
+        <div className="absolute top-0 flex flex-row items-center justify-center float-right right-3 mt-3">
+            <AddGlyph glyphTitle={ "Add to" } className="w-7 h-7 m-1 clickable" onClick={ addTrackToArbitraryClickHandlerFactory(setAddToArbitraryModalState, track) } />
             <ItemFavoriteGlyph
                 item={ track }
                 itemType={ ShowerMusicObjectType.Track }
                 className="w-7 h-7 m-1 clickable"
             />
-            <div className="w-7 h-7 m-1 clickable" onClick={ addTrackToArbitraryClickHandlerFactory(setAddToArbitraryModalState, track) }>
-                <AddGlyph glyphTitle={ "Add to" } />
-            </div>
+            <LoopControl userCanSeek={ userCanSeek } />
+            <MicroGlyph glyphTitle={ "Lyrics" } className="w-7 h-7 m-1 clickable" onClick={ () => setView(ViewportType.Lyrics) } />
+            <LoungeMusicPlaylistGlyph glyphTitle={ "Playing Next" } className="w-7 h-7 m-1 clickable" onClick={ togglePlayingNextVisiblity } />
         </div>
     );
 };

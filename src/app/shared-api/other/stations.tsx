@@ -20,9 +20,11 @@ export interface Station extends StationBase
 {
     admins: SSUserId[];
     tracks: StationTrack[];
-    currentTrack: TrackId; // The ID of the currently playing track
+    currentTrack: StationTrack | undefined; // The currently playing track
     isPaused: boolean; // Whether the station is currently playing music
     isLooped: boolean; // Whether the current track is set to loop
+    currentTrackStartTime: number | undefined;
+    currentTrackDurationMs: number | undefined;
     activeListeners: SSUserId[];
 }
 export type StationOnlyProperties = Pick<Station, Exclude<keyof Station, keyof Playlist>>;

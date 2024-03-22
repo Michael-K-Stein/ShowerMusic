@@ -1,9 +1,9 @@
 import databaseController from "@/app/server-db-services/mongo-db-controller";
-import { TrackId } from "@/app/shared-api/media-objects/tracks";
+import { TrackDict, TrackId } from "@/app/shared-api/media-objects/tracks";
 import { TrackNotFoundError } from "@/app/shared-api/other/errors";
 import { FindOptions } from "mongodb";
 
-export async function getTrackInfo(trackId: TrackId, options?: FindOptions<Document>)
+export async function getTrackInfo(trackId: TrackId, options?: FindOptions<TrackDict>)
 {
     const data = await databaseController.tracks.findOne({ 'id': trackId }, options);
     if (data === null)

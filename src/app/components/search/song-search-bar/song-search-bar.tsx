@@ -1,9 +1,12 @@
 'use client';
 import './song-search-bar.css';
-import React, { useCallback, useRef, useState } from 'react';
-import { SearchToken, SuggestionGenerationResponse, useSearch } from '@/app/components/search/search-provider';
+import '@/app/globals.css';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { SuggestionGenerationResponse, useSearch } from '@/app/components/search/search-provider';
 import { ClickAwayListener, Typography } from '@mui/material';
 import assert from 'assert';
+import { SongSearchBarBubbles } from '@/app/components/search/song-search-bar/song-search-bubble';
+import { SongSearchBarInlineSuggestions, SongSearchBarSuggestions, chooseMostRelevantSuggestion } from './search-bar-suggestions';
 
 function SearchGlyph()
 {
@@ -14,92 +17,23 @@ function SearchGlyph()
     );
 };
 
-function SongSearchBarBubble({ searchToken }: { searchToken: SearchToken; })
-{
-    const { removeSearchToken } = useSearch();
-    const handleSuggestionClicked = useCallback((event: React.MouseEvent<HTMLElement>) =>
-    {
-        removeSearchToken(searchToken);
-    }, [ searchToken, removeSearchToken ]);
-
-    return (
-        <div className='song-search-bar-bubble' onClick={ handleSuggestionClicked }>
-            <Typography fontSize={ '0.6em' } fontWeight={ 700 }>{ searchToken.displayName }</Typography>
-        </div>
-    );
-}
-
-function SongSearchBarBubbles()
-{
-    const { searchTokens } = useSearch();
-    const searchTokenBubbles = searchTokens.map((token, index) => <SongSearchBarBubble key={ `token-${index}-${token.itemId}-${token.id}` } searchToken={ token } />);
-    return (
-        <div className='song-search-bar-bubbles'>
-            { searchTokenBubbles }
-        </div>
-    );
-}
-
-function SongSearchBarSuggestion({ token, onClickCallback, isSelected }: { token: SearchToken, onClickCallback: () => void, isSelected: boolean; })
-{
-    const { appendSearchToken } = useSearch();
-
-    const handleSuggestionClicked = useCallback((event: React.MouseEvent<HTMLElement>) =>
-    {
-        appendSearchToken(token);
-        onClickCallback();
-    }, [ token, appendSearchToken, onClickCallback ]);
-
-    return (
-        <div className='search-bar-suggestion' onClick={ handleSuggestionClicked } data-highlighted={ isSelected }>
-            <Typography fontSize={ '1em' } fontWeight={ 700 }>{ token.displayName }</Typography>
-            <div className='suggestion-item-type'>
-                <Typography fontSize={ '0.6em' }>{ token.itemType }</Typography>
-            </div>
-        </div>
-    );
-}
-
-function SongSearchBarSuggestions({ clearTextSearch, suggestions, suggestionSelectedIndex }: { clearTextSearch: () => void, suggestions: SuggestionGenerationResponse | undefined, suggestionSelectedIndex: { suggestionIndexX: number, suggestionIndexY: number; }; })
-{
-    const onClickHandler = useCallback(() =>
-    {
-        clearTextSearch();
-    }, [ clearTextSearch ]);
-
-    const trackNameCompletions = suggestions ?
-        suggestions.trackNameTokens.map(
-            (token: SearchToken, index: number) => <SongSearchBarSuggestion
-                isSelected={ suggestionSelectedIndex.suggestionIndexX === 1 && suggestionSelectedIndex.suggestionIndexY === index }
-                onClickCallback={ onClickHandler }
-                key={ `${token.itemType}-${token.itemId}` }
-                token={ token } />) : [];
-
-    const artistNameSuggestions = suggestions ?
-        suggestions.artistNameTokens.map(
-            (token: SearchToken, index: number) => <SongSearchBarSuggestion
-                isSelected={ suggestionSelectedIndex.suggestionIndexX === 0 && suggestionSelectedIndex.suggestionIndexY === index }
-                onClickCallback={ onClickHandler }
-                key={ `${token.itemType}-${token.itemId}` }
-                token={ token } />) : [];
-    return (
-        <div className='flex flex-row'>
-            <div className='search-bar-suggestions-container'>
-                { artistNameSuggestions }
-            </div>
-            <div className='search-bar-suggestions-container'>
-                { trackNameCompletions }
-            </div>
-        </div>
-    );
-}
 export default function SongSearchBar()
 {
-    const { performSearch, generateSearchSuggestions, removeTrailingSearchToken, appendSearchToken } = useSearch();
-    const [ autoCorrections, setAutoCorrections ] = useState<SuggestionGenerationResponse>();
+    const {
+        performSearch,
+        generateSearchSuggestions,
+        removeTrailingSearchToken,
+        appendSearchToken,
+        setMostRelevantSuggestion,
+        mostReleventSuggestion,
+        searchTokens,
+    } = useSearch();
+    const [ suggestedSearchTokens, setSuggestedSearchTokens ] = useState<SuggestionGenerationResponse>();
 
-    const [ suggestionIndexX, setSuggestionIndexX ] = useState<number>(0);
-    const [ suggestionIndexY, setSuggestionIndexY ] = useState<number>(0);
+    const [ lastQueryString, setLastQueryString ] = useState<string>('');
+    const [ textWidth, setTextWidth ] = useState<number>(0);
+    const inputField = useRef<HTMLInputElement>(null);
+    const spanElement = useRef<HTMLSpanElement>(null);
 
     let backSpaceConsecutiveCount = useRef<number>(0);
 
@@ -110,11 +44,18 @@ export default function SongSearchBar()
 
     const clearTextSearch = useCallback(() =>
     {
-        const searchField = document.getElementById('song-search-bar-text-input-field');
-        if (!searchField) { return; }
-        (searchField as HTMLInputElement).value = '';
+        if (!inputField.current) { return; }
+        inputField.current.value = '';
+        setSuggestedSearchTokens(undefined);
+        inputField.current.focus();
     }, []);
 
+    useMemo(() =>
+    {
+        setMostRelevantSuggestion(chooseMostRelevantSuggestion(searchTokens, suggestedSearchTokens));
+    }, [ searchTokens, suggestedSearchTokens, setMostRelevantSuggestion ]);
+
+    /* 
     const handleArrowEvent = useCallback(async (event: React.KeyboardEvent<HTMLInputElement>) =>
     {
         assert(event.key === 'ArrowUp' || event.key === 'ArrowDown' || event.key === 'ArrowLeft' || event.key === 'ArrowRight');
@@ -152,6 +93,7 @@ export default function SongSearchBar()
         }
     }, [ autoCorrections, setSuggestionIndexX, setSuggestionIndexY, suggestionIndexX ]);
 
+    Doesn't really look that good
     const attemptToAppendSearchTokenOnEnter = useCallback(async (event: React.KeyboardEvent<HTMLInputElement>) =>
     {
         // No suggestions to handle
@@ -163,52 +105,109 @@ export default function SongSearchBar()
         appendSearchToken(arr[ suggestionIndexY ]);
         clearTextSearch();
         setAutoCorrections(undefined);
+
+        event.preventDefault();
+        event.stopPropagation();
     }, [ autoCorrections, suggestionIndexX, suggestionIndexY, appendSearchToken, clearTextSearch, setAutoCorrections ]);
+    */
 
-    const handleSearchQueryChanged = useCallback(async (event: React.KeyboardEvent<HTMLInputElement>) =>
+    const attempToAppendSearchTokenOnTab = useCallback((_event: React.KeyboardEvent<HTMLInputElement>) =>
     {
-        if (event.key === 'Escape')
-        {
-            setAutoCorrections(undefined);
-            return;
-        }
-        else if (event.key.substring(0, 5) === 'Arrow')
-        {
-            return handleArrowEvent(event);
-        }
-        else if (event.key === 'Enter')
-        {
-            return attemptToAppendSearchTokenOnEnter(event);
-        }
+        const searchTokenToAdd = mostReleventSuggestion;
+        if (searchTokenToAdd === undefined) { return false; }
+        appendSearchToken(searchTokenToAdd);
+        clearTextSearch();
+        setSuggestedSearchTokens(undefined);
+        return true;
+    }, [ mostReleventSuggestion, clearTextSearch, appendSearchToken, setSuggestedSearchTokens ]);
 
-        const target = event.target as HTMLInputElement;
-        if (!target.value)
+    const handleInputKeyDown = useCallback(async (event: React.KeyboardEvent<HTMLInputElement>) =>
+    {
+        if (event.key === 'Tab')
         {
-            setAutoCorrections({ trackNameTokens: [], artistNameTokens: [] });
-            if (event.key === 'Backspace')
+            if (attempToAppendSearchTokenOnTab(event))
             {
-                backSpaceConsecutiveCount.current++;
-                if (backSpaceConsecutiveCount.current >= 2)
-                {
-                    handleBackspace();
-                }
-            }
-            else
-            {
-                backSpaceConsecutiveCount.current = 0;
+                event.preventDefault();
+                event.stopPropagation();
             }
             return;
         }
-        const suggestions = await generateSearchSuggestions(target.value);
-        console.log(`Suggestions: `, suggestions);
-        setAutoCorrections(suggestions);
-        backSpaceConsecutiveCount.current = 0;
-    }, [ handleBackspace, generateSearchSuggestions, setAutoCorrections, handleArrowEvent, attemptToAppendSearchTokenOnEnter ]);
+    }, [ attempToAppendSearchTokenOnTab ]);
+
+    const handleSearchQueryChanged = useCallback(
+        async (event: React.KeyboardEvent<HTMLInputElement>) =>
+        {
+            if (event.key === 'Escape')
+            {
+                setSuggestedSearchTokens(undefined);
+                return;
+            }
+            /*
+            else if (event.key.substring(0, 5) === 'Arrow')
+            {
+                return handleArrowEvent(event);
+            }
+            else if (event.key === 'Enter')
+            {
+                return attemptToAppendSearchTokenOnEnter(event);
+            }
+            */
+
+            const target = event.target as HTMLInputElement;
+            if (!target.value)
+            {
+                setSuggestedSearchTokens(undefined);
+                if (event.key === 'Backspace')
+                {
+                    backSpaceConsecutiveCount.current++;
+                    if (backSpaceConsecutiveCount.current >= 2)
+                    {
+                        handleBackspace();
+                    }
+                }
+                else
+                {
+                    backSpaceConsecutiveCount.current = 0;
+                }
+                return;
+            }
+
+            // Currently disabled since it doesn't really work that well
+            // performSearch(target.value);
+
+            setLastQueryString(target.value);
+            const suggestions = await generateSearchSuggestions(target.value);
+            setSuggestedSearchTokens(suggestions);
+            backSpaceConsecutiveCount.current = 0;
+        },
+        [
+            handleBackspace,
+            generateSearchSuggestions,
+            setSuggestedSearchTokens,
+            /* handleArrowEvent,
+            attemptToAppendSearchTokenOnEnter, */
+            setLastQueryString,
+            // performSearch
+        ]
+    );
+
+    useEffect(() =>
+    {
+        setTextWidth(spanElement.current?.offsetWidth ?? 0);
+    }, [ lastQueryString, setTextWidth ]);
 
     const handleClickAway = useCallback(() =>
     {
-        setAutoCorrections(undefined);
+        setSuggestedSearchTokens(undefined);
     }, []);
+
+    const searchBarNativeCompletionOptions = suggestedSearchTokens?.trackNameTokens
+        .filter(
+            (token) => token.displayName !== lastQueryString)
+        .map(
+            (token) =>
+                <option key={ token.id.toString() } value={ token.displayName } />
+        );
 
     return (
         <div className='w-full'>
@@ -220,18 +219,33 @@ export default function SongSearchBar()
                         <div className='song-search-bar-bubble-container'>
                             <SongSearchBarBubbles />
                         </div>
-                        <div className='w-full relative flex items-center'>
-                            <input
-                                id='song-search-bar-text-input-field'
-                                type="text"
-                                name='query'
-                                className='real-input min-w-full max-w-full w-full text-xlg font-bold'
-                                placeholder='song name...'
-                                onKeyUp={ handleSearchQueryChanged }
-                            />
-                            <div className='song-search-input-suggestions-container'>
-                                <SongSearchBarSuggestions suggestionSelectedIndex={ { suggestionIndexX, suggestionIndexY } } clearTextSearch={ clearTextSearch } suggestions={ autoCorrections } />
+                        <div className='w-full relative flex items-center' style={ { marginLeft: '0.8em' } }>
+                            <div className='real-input-size-wrapper'>
+                                <span className='real-input-size-span' ref={ spanElement }>{ lastQueryString }</span>
+                                <input
+                                    ref={ inputField }
+                                    id='song-search-bar-text-input-field'
+                                    type="text"
+                                    name='query'
+                                    className='real-input text-xlg font-bold'
+                                    placeholder='song name...'
+                                    onKeyUp={ handleSearchQueryChanged }
+                                    onKeyDown={ handleInputKeyDown }
+                                    autoComplete='off'
+                                    spellCheck={ true }
+                                    autoCorrect='on'
+                                    list='search-bar-completions'
+                                />
+                                <datalist id="search-bar-completions">
+                                    { searchBarNativeCompletionOptions }
+                                </datalist>
                             </div>
+                            <div className='absolute' style={ { marginLeft: `${textWidth}px` } }>
+                                <SongSearchBarInlineSuggestions clearTextSearch={ clearTextSearch } suggestions={ suggestedSearchTokens } />
+                            </div>
+                            {/* <div className='song-search-input-suggestions-container'>
+                                <SongSearchBarSuggestions suggestionSelectedIndex={ { suggestionIndexX, suggestionIndexY } } clearTextSearch={ clearTextSearch } suggestions={ autoCorrections } />
+                            </div> */}
                         </div>
                     </div>
                 </form>

@@ -6,6 +6,7 @@ import ElasticApi from '@/app/client-api/search/elastic';
 import { ShowerMusicObjectType, ShowerMusicPlayableMediaType } from '@/app/showermusic-object-types';
 import { ShowerMusicNamedResolveableItem, ShowerMusicPlayableMediaId } from '@/app/shared-api/user-objects/users';
 import { randomBytes } from 'crypto';
+import { MinimalArtistDict } from '@/app/shared-api/media-objects/artists';
 
 // A "token" representing a search item which MUST be in the results
 export interface SearchToken 
@@ -15,10 +16,16 @@ export interface SearchToken
     itemId: ShowerMusicPlayableMediaId;
     itemType: ShowerMusicPlayableMediaType;
 }
+export interface TrackSearchToken extends SearchToken
+{
+    itemType: ShowerMusicObjectType.Track;
+    artists: MinimalArtistDict[];
+}
 export interface SuggestionGenerationResponse
 {
-    trackNameTokens: SearchToken[],
+    trackNameTokens: TrackSearchToken[],
     artistNameTokens: SearchToken[],
+    albumNameTokens: SearchToken[],
 }
 export interface ElasticTrackSearchResult extends ShowerMusicNamedResolveableItem
 {
@@ -42,7 +49,8 @@ export interface ComplexQuery
 }
 export type SearchResults = ElasticTrackSearchResult[];
 export type SetSearchResults = Dispatch<SetStateAction<SearchResults>>;
-export type PerformSearch = any;
+export type SetMostRelevantSuggestion = Dispatch<SetStateAction<SearchToken | undefined>>;
+export type PerformSearch = (data: FormData | string) => void;
 export type GenerateSearchSuggestions = (value: string) => Promise<SuggestionGenerationResponse>;
 export type SearchQuery = (query: ComplexQuery) => Promise<SearchResults>;
 export type SearchContextType = {
@@ -52,10 +60,11 @@ export type SearchContextType = {
     searchQuery: SearchQuery;
     lastQuery: ComplexQuery | undefined;
     searchTokens: SearchToken[];
-    suggestedSearchTokens: SearchToken[];
     appendSearchToken: (token: SearchToken) => void;
     removeSearchToken: (token: SearchToken) => void;
     removeTrailingSearchToken: () => void;
+    setMostRelevantSuggestion: SetMostRelevantSuggestion;
+    mostReleventSuggestion: SearchToken | undefined;
 };
 
 interface SearchProviderPoppedState extends PoppedState
@@ -68,14 +77,15 @@ interface SearchProviderPoppedState extends PoppedState
 const SearchContext = createContext<SearchContextType>({
     isDefault: true,
     performSearch: () => { },
-    generateSearchSuggestions: async () => { return { 'trackNameTokens': [], 'artistNameTokens': [] }; },
+    generateSearchSuggestions: async () => { return { 'trackNameTokens': [], 'artistNameTokens': [], 'albumNameTokens': [] }; },
     searchQuery: async () => { return []; },
     lastQuery: undefined,
     searchTokens: [],
-    suggestedSearchTokens: [],
     appendSearchToken: () => { },
     removeSearchToken: () => { },
     removeTrailingSearchToken: () => { },
+    setMostRelevantSuggestion: () => { },
+    mostReleventSuggestion: undefined,
 });
 
 // Create a provider that exposes necessary API
@@ -85,7 +95,8 @@ export function SearchProvider({ children }: { children: React.ReactNode; }): Re
     const [ lastQuery, setLastQuery ] = useState<ComplexQuery>();
     const [ currentResultsPage, setCurrentResultsPage ] = useState<number>(0);
     const [ searchTokens, setSearchTokens ] = useState<SearchToken[]>([]); // These are autocomplete suggestions the user has manually approved
-    const [ suggestedSearchTokens, setSuggestedSearchTokens ] = useState<SearchToken[]>([]); // This is the autocomplete suggestions
+    const [ mostReleventSuggestion, setMostRelevantSuggestion ] = useState<SearchToken | undefined>(undefined);
+    const performingSearch = useRef<boolean>(false);
 
     const elasticApi = useRef(new ElasticApi());
 
@@ -111,10 +122,12 @@ export function SearchProvider({ children }: { children: React.ReactNode; }): Re
 
     const searchQuery = useCallback(async (query: ComplexQuery): Promise<SearchResults> =>
     {
+        performingSearch.current = true;
         const data: SearchResults = await elasticApi.current.onSearch(query, currentResultsPage);
         setLastQuery(query);
         setResolvedQueryState(query, data);
         setCurrentResultsPage(currentResultsPage + 1);
+        performingSearch.current = false;
         return data;
     }, [ setLastQuery, setResolvedQueryState, currentResultsPage ]);
 
@@ -168,9 +181,12 @@ export function SearchProvider({ children }: { children: React.ReactNode; }): Re
         window.history.pushState(state, '', `?query=${queryString}`);
     }, [ searchTokens, viewMediaId, viewportType, streamMediaId, streamType ]);
 
-    const performSearch = useCallback((formData: FormData) =>
+    const performSearch = useCallback((data: FormData | string) =>
     {
-        const queryString = formData.get('query')?.toString();
+        if (performingSearch.current) { return; }
+        performingSearch.current = true;
+
+        const queryString = typeof (data) === 'string' ? data : data.get('query')?.toString();
         if (queryString === undefined) { return; }
 
         const complexQuery = {
@@ -186,33 +202,52 @@ export function SearchProvider({ children }: { children: React.ReactNode; }): Re
 
     const generateSearchSuggestions = useCallback(async (newQuery: string): Promise<SuggestionGenerationResponse> =>
     {
-        if (!newQuery) { setSuggestedSearchTokens([]); }
+        if (!newQuery)
+        {
+            return {
+                'albumNameTokens': [],
+                'artistNameTokens': [],
+                'trackNameTokens': [],
+            };
+        }
         const complexQuery = {
             queryString: newQuery,
             searchTokens: searchTokens,
         };
 
         const result: any = await elasticApi.current.onAutocomplete(complexQuery);
-        const refineResults = (fieldName: string, itemType: ShowerMusicPlayableMediaType): SearchToken[] =>
+        const refineResults = <T extends SearchToken = SearchToken>(fieldName: string, itemType: ShowerMusicPlayableMediaType): T[] =>
         {
             return result[ fieldName ][ 0 ][ 'options' ].map(
                 (v: any): SearchToken =>
                 {
-                    return {
+                    const baseSearchTokenData: SearchToken = {
                         id: randomBytes(16),
                         displayName: v[ 'text' ],
                         itemId: v[ '_source' ][ 'id' ],
                         itemType: itemType,
                     };
+                    const searchTokenData: T = baseSearchTokenData as unknown as T;
+                    if (itemType === ShowerMusicObjectType.Track)
+                    {
+                        (searchTokenData as unknown as TrackSearchToken)[ 'artists' ] = v[ '_source' ][ 'artists' ];
+                    }
+                    else if (itemType === ShowerMusicObjectType.Album)
+                    {
+                        baseSearchTokenData.itemId = v[ '_source' ][ 'album' ][ 'id' ];
+                    }
+                    return searchTokenData;
                 });
         };
-        const trackNamesSearchTokens: SearchToken[] = refineResults('song-name-completions', ShowerMusicObjectType.Track);
+        const trackNamesSearchTokens: TrackSearchToken[] = refineResults<TrackSearchToken>('song-name-completions', ShowerMusicObjectType.Track);
         const artistNamesSearchTokens: SearchToken[] = refineResults('artist-name-suggestions', ShowerMusicObjectType.Artist);
+        const albumNamesSearchTokens: SearchToken[] = refineResults('album-name-suggestions', ShowerMusicObjectType.Album);
         return {
             trackNameTokens: trackNamesSearchTokens,
             artistNameTokens: artistNamesSearchTokens,
+            albumNameTokens: albumNamesSearchTokens,
         };
-    }, [ searchTokens, setSuggestedSearchTokens ]);
+    }, [ searchTokens ]);
 
     const appendSearchToken = useCallback((token: SearchToken) =>
     {
@@ -240,8 +275,9 @@ export function SearchProvider({ children }: { children: React.ReactNode; }): Re
         <SearchContext.Provider value={ {
             isDefault: false,
             performSearch, generateSearchSuggestions, searchQuery,
-            lastQuery, searchTokens, suggestedSearchTokens,
+            lastQuery, searchTokens,
             appendSearchToken, removeSearchToken, removeTrailingSearchToken,
+            setMostRelevantSuggestion, mostReleventSuggestion,
         } } >
             { children }
         </SearchContext.Provider>

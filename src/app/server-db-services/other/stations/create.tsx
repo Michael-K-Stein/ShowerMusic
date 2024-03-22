@@ -14,7 +14,9 @@ export async function createNewStation(userId: SSUserId, stationInitOptions: New
     {
         activeListeners: [],
         admins: [ userId ],
-        currentTrack: '',
+        currentTrack: undefined,
+        currentTrackDurationMs: undefined,
+        currentTrackStartTime: undefined,
         isLooped: false,
         isPaused: false,
         private: true,

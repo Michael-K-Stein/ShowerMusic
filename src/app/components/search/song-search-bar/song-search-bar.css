@@ -24,18 +24,51 @@
     height: auto;
 }
 
-.song-search-bar .song-search-bar-input .real-input
+.song-search-bar .song-search-bar-input .real-input-size-wrapper .real-input
 {
-    margin-left: 0.8em;
-    box-sizing: border-box;
+    display: flex;
     background-color: transparent;
-    height: auto;
+    width: 100%;
+    white-space: nowrap;
 }
 
-.song-search-bar .song-search-bar-input .real-input:focus-visible
+.song-search-bar .song-search-bar-input .real-input-size-wrapper .real-input:focus-visible
 {
     border: none;
     outline: none;
+}
+
+.real-input-size-wrapper .real-input-size-span
+{
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-family: inherit;
+    height: inherit;
+    font-size: 100%;
+    line-height: inherit;
+    box-sizing: border-box;
+    opacity: 0;
+    min-width: 1em;
+    user-select: none;
+    vertical-align: top;
+    display: inline-flex;
+    padding-left: 0.3em;
+    padding-right: 0.3em;
+    font-weight: 700;
+    z-index: -1000;
+}
+
+.real-input-size-wrapper
+{
+    position: relative;
+    box-sizing: border-box;
+    font-size: inherit;
+    padding: 0 0;
+    display: inline-block;
+    width: 100%;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 .song-search-bar .search-glyph
@@ -145,7 +178,7 @@
     backdrop-filter: blur(50px);
 }
 
-.search-bar-suggestion .suggestion-item-type
+.suggestion-item-type
 {
     width: 100%;
     display: flex;
@@ -153,7 +186,7 @@
     text-transform: uppercase;
 }
 
-.search-bar-suggestion .suggestion-item-type > *
+.suggestion-item-type > *
 {
     background-color: rgba(30, 30, 30, 0.25);
     padding: 0.2em;
@@ -166,4 +199,38 @@
 {
     position: absolute;
     transform: translateY(calc(50% + 0.8em));
+}
+
+.search-bar-inline-suggestions-container
+{
+    position: absolute;
+    transform: translateY(calc(-50%));
+    top: 0;
+    left: 0.3em;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: max-content;
+    height: 100%;
+}
+
+.search-bar-inline-suggestions-container .search-bar-inline-suggestion
+{
+    position: relative;
+    box-sizing: border-box;
+    text-align: center;
+    padding: 0.3em;
+    font-size: 0.6em;
+    background-color: rgba(240, 240, 240, 0.09);
+    backdrop-filter: blur(30px);
+    z-index: 2;
+    margin: 0.1em;
+    border-radius: 0.4em;
+    cursor: pointer;
+}
+
+.search-bar-inline-suggestions-container .search-bar-inline-suggestion:hover
+{
+    background-color: rgba(240, 240, 240, 0.19);
+    transition: all 0.15s cubic-bezier(0.165, 0.84, 0.44, 1);
 }

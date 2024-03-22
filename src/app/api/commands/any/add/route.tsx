@@ -29,7 +29,6 @@ export async function POST(req: NextRequest)
         {
             case ShowerMusicObjectType.User:
                 {
-
                     await DbObjects.Users.Queue.pushTracks(await filterTargetOrUserId(targetId, userId), tracks);
                     break;
                 }

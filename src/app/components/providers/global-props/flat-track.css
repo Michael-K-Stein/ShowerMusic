@@ -60,18 +60,22 @@
     transform: scale(1);
 }
 
-.modal-flat-track .modal-flat-track-controls
+.modal-flat-track-controls-parent .modal-flat-track-controls
 {
     width: 0;
+    min-width: 0em;
     max-width: 0em;
     padding-right: 0em;
     overflow: hidden;
     transition: all 0.6s cubic-bezier(0.075, 0.82, 0.165, 1);
+    align-items: center;
+    display: flex;
 }
 
-.modal-flat-track:hover .modal-flat-track-controls
+.modal-flat-track-controls-parent:hover .modal-flat-track-controls
 {
-    width: auto;
+    width: 6em;
+    min-width: 6em;
     max-width: 6em;
     padding-right: 0.3em;
 }

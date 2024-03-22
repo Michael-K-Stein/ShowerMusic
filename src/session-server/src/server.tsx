@@ -2,10 +2,12 @@ import
 {
     ServerRequestTargets,
     MessageTypes,
-    WEBSOCKET_SESSION_SERVER_PORT
+    WEBSOCKET_SESSION_SERVER_PORT,
+    COMBO_DATA_KEY
 } from './common';
 import { ShowerMusicObjectType } from '../../app/showermusic-object-types';
 import WebSocket from 'ws';
+import assert from 'assert';
 
 
 const connectedUsers: { [ x: string ]: WebSocket; } = {};
@@ -49,39 +51,52 @@ const registerSyncObjectConnection = (ws: WebSocket, syncObjectId: string) =>
     registeredSyncObjectConnections[ syncObjectId ].push(ws);
 };
 
-const dispatchMessageToUser = (messageType: MessageTypes, userId: string) =>
+const buildMessage = (messageType: MessageTypes, data?: { [ x: string ]: any; }) =>
+{
+    const result: any = { 'type': messageType };
+    if (messageType === MessageTypes.COMBO)
+    {
+        assert(data !== undefined);
+        result[ COMBO_DATA_KEY ] = data[ COMBO_DATA_KEY ];
+        return JSON.stringify(result);
+    }
+    return JSON.stringify(result);
+};
+
+const dispatchMessageToUser = (messageType: MessageTypes, userId: string, data?: { [ x: string ]: any; }) =>
 {
     if (connectedUsers[ userId ] != null)
     {
-        connectedUsers[ userId ].send(JSON.stringify({ 'type': messageType }));
+        connectedUsers[ userId ].send(buildMessage(messageType, data));
     }
 };
 
-const dispatchToSyncObjectListeners = (messageType: MessageTypes, syncObjectId: string) =>
+const dispatchToSyncObjectListeners = (messageType: MessageTypes, syncObjectId: string, data?: { [ x: string ]: any; }) =>
 {
     if (!registeredSyncObjectConnections[ syncObjectId ])
     {
         console.log(`Dispatch was requested on an object with no listeners!`);
         return;
     }
+    const message = buildMessage(messageType, data);
     registeredSyncObjectConnections[ syncObjectId ].map((listenerWS: WebSocket) =>
     {
-        listenerWS.send(JSON.stringify({ 'type': messageType }));
+        listenerWS.send(message);
     });
 };
 
-const dispatchMessageToTargets = (message: MessageTypes, targets: ServerRequestTargets) =>
+const dispatchMessageToTargets = (message: MessageTypes, targets: ServerRequestTargets, data?: { [ x: string ]: any; }) =>
 {
     targets.targets.map((target) =>
     {
         switch (target.type)
         {
             case ShowerMusicObjectType.User:
-                dispatchMessageToUser(message, target.id as string);
+                dispatchMessageToUser(message, target.id as string, data);
                 break;
             case ShowerMusicObjectType.Playlist:
             case ShowerMusicObjectType.Station:
-                dispatchToSyncObjectListeners(message, target.id as string);
+                dispatchToSyncObjectListeners(message, target.id as string, data);
                 break;
             default:
                 console.log(`Unknown target type: ${target.type}`);
@@ -93,7 +108,7 @@ const dispatchMessageToTargets = (message: MessageTypes, targets: ServerRequestT
 const handleServerMessage = (data: { [ x: string ]: any; }) =>
 {
     console.log(`Server message ${data[ 'type' ]}`);
-    dispatchMessageToTargets(data[ 'type' ], data[ 'targets' ]);
+    dispatchMessageToTargets(data[ 'type' ], data[ 'targets' ], data);
 };
 
 wss.on('connection', (ws) =>

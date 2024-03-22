@@ -37,7 +37,6 @@
 {
     position: absolute;
     top: 0;
-    bottom: 14.2em;
     left: 0;
     right: 0;
     backdrop-filter: blur(30px);
@@ -52,12 +51,20 @@
     flex-direction: column;
     z-index: 90;
     transition: all 0.2s cubic-bezier(0.47, 0, 0.745, 0.715);
+    bottom: 14.2em;
+}
+
+/* Either data-hovered is true, or the element is actually hovered */
+.modal-page-container[data-hovered=true]
+{
+    bottom: 4.4em;
 }
 
 .modal-page-container:hover
 {
     bottom: 4.4em;
 }
+
 
 .modal-cover-art
 {
@@ -87,4 +94,105 @@
 .modal-page-control-bar[data-controls-enabled=false] *
 {
     pointer-events: none;
+}
+
+
+.modal-page-container .modal-page-info-container
+{
+    position: relative;
+    display: grid;
+    grid-template-columns: 16em calc(100% - 16em);
+    flex-shrink: 100;
+}
+
+.modal-page-container .modal-page-main-info-container
+{
+    position: absolute;
+    box-sizing: border-box;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 0.5em;
+}
+
+.modal-page-container .modal-page-sub-info-container
+{
+    position: relative;
+    left: 0;
+    top: 0;
+}
+
+.modal-page-container .modal-page-main-info-container .modal-name
+{
+    text-align: center;
+}
+
+.modal-page-container .modal-page-main-info-container .artists-names
+{
+    display: flex;
+    flex-direction: row;
+    font-size: 2.4em;
+}
+
+.modal-track
+{
+    display: grid;
+    box-sizing: border-box;
+    grid-template-columns: 2em calc(100% - 2em);
+    position: relative;
+    width: 100%;
+    padding: 0.8em;
+    margin: 0.3em;
+    background-color: rgba(70, 70, 90, 0.10);
+    border-radius: 0.5em;
+
+}
+
+.modal-track[not-found]
+{
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+.modal-track .modal-track-number
+{
+    transform: scale(1);
+    transition: all 0.15s cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.modal-track:hover .modal-track-number
+{
+    transform: scale(0);
+}
+
+.modal-track .modal-track-play
+{
+    position: absolute;
+    left: 0;
+    transform: scale(0);
+    transition: all 0.15s cubic-bezier(0.075, 0.82, 0.165, 1);
+    display: flex;
+    width: 1.2em;
+    height: 1.2em;
+}
+
+.modal-track:hover .modal-track-play
+{
+    transform: scale(1);
+}
+
+.modal-track .modal-track-controls
+{
+    width: 0;
+    overflow: hidden;
+    transition: all 0.6s cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.modal-track:hover .modal-track-controls
+{
+    width: 4em;
 }

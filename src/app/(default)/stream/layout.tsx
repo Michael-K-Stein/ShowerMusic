@@ -12,6 +12,7 @@ import { QueueProvider } from '@/app/components/providers/queue-provider';
 import { MediaControlsProvider } from '@/app/components/providers/media-controls';
 import { SearchProvider } from '@/app/components/search/search-provider';
 import LyricsPage from '@/app/components/pages/lyrics-page/lyrics-page';
+import ModalProvider from '@/app/components/providers/modal-provider';
 
 export default function StreamRootLayout({
     children,
@@ -29,7 +30,9 @@ export default function StreamRootLayout({
                             <div className='absolute inset-x-0 top-0' style={ { zIndex: 100 } }>
                                 <SongSearchBar />
                             </div>
-                            { children }
+                            <ModalProvider>
+                                { children }
+                            </ModalProvider>
                         </SearchProvider>
                         <MediaControlsProvider>
                             <SessionMuseProvider>

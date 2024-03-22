@@ -1,6 +1,7 @@
 import { ApiSuccess, catchHandler } from "@/app/api/common";
-import getEffectiveUserId from "@/app/api/users/[slug]/get-effective-user-id";
 import { DbObjects } from "@/app/server-db-services/db-objects";
+import { ClientApiError } from "@/app/shared-api/other/errors";
+import { BSONError } from 'bson';
 
 // Returns the public info of a user
 export async function GET(
@@ -11,8 +12,18 @@ export async function GET(
     try
     {
         const targetUserId = params.slug;
-        const publicUserInfo = await DbObjects.Users.getPublicInfo(targetUserId);
-        return ApiSuccess(publicUserInfo);
+        try
+        {
+            const publicUserInfo = await DbObjects.Users.getPublicInfo(targetUserId);
+            return ApiSuccess(publicUserInfo);
+        } catch (e)
+        {
+            if (e instanceof BSONError)
+            {
+                throw new ClientApiError(`"${targetUserId}" is not a valid user id!`);
+            }
+            throw e;
+        }
     }
     catch (e)
     {

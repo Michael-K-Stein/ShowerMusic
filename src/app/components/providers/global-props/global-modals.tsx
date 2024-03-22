@@ -9,7 +9,7 @@ import CancelGlyph from "@/app/components/glyphs/cancel";
 import PlayGlyph from "@/app/components/glyphs/play";
 import ShareGlyph from '@/app/components/glyphs/share';
 import ItemFavoriteGlyph from '@/app/components/other/item-favorite-glyph';
-import { gotoArtistCallbackFactory } from "@/app/components/pages/artist-page/artist-page";
+import { gotoArtistCallbackFactory } from '../../pages/goto-callback-factory';
 import SuperMiniTrackControls, { SuperMiniTrackEndControls } from "@/app/components/pages/super-mini-track-controls";
 import { addArbitraryToQueueClickHandler, playArbitraryClickHandlerFactory } from '@/app/components/providers/global-props/arbitrary-click-handler-factories';
 import { SetStream, SetView, ViewportType, useSessionState } from "@/app/components/providers/session/session";
@@ -28,6 +28,7 @@ import { EnqueueSnackbar, OptionsObject, VariantType, useSnackbar } from "notist
 import { MouseEventHandler, useCallback, useEffect, useState } from "react";
 import ContentLoader, { IContentLoaderProps } from "react-content-loader";
 import './flat-track.css';
+import { StationTrack } from '@/app/shared-api/other/stations';
 
 
 export function GenericGlobalModal(
@@ -311,13 +312,13 @@ export function ModalFlatTrack(
     {
         trackId,
         noPropIndex,
-        removalId,
+        removable,
         fromId,
         fromType
     }: {
         trackId?: TrackId,
         noPropIndex?: boolean,
-        removalId?: RemovalId,
+        removable?: boolean,
         fromId?: MediaId,
         fromType?: ShowerMusicObjectType;
     })
@@ -340,10 +341,17 @@ export function ModalFlatTrack(
             });
     }, [ trackId, setTrackNotFound ]);
 
+    const removalId = (track !== undefined) ? (
+        (removable === true) ?
+            getClientSideObjectId(track as ShowerMusicObject)
+            : undefined
+    ) : undefined;
+
+
     if (trackNotFound)
     {
         return (
-            <div className='modal-flat-track' not-found="true" aria-disabled>
+            <div className='modal-flat-track modal-flat-track-controls-parent' not-found="true" aria-disabled>
                 <div>!</div>
                 <div>Track { trackId } was not found on the server</div>
             </div>
@@ -353,7 +361,7 @@ export function ModalFlatTrack(
     if (!track)
     {
         return (
-            <div className='modal-flat-track' style={ { display: 'flex' } }>
+            <div className='modal-flat-track modal-flat-track-controls-parent' style={ { display: 'flex' } }>
                 <ModalFlatTrackLoaderSkeleton />
             </div>
         );
@@ -367,7 +375,7 @@ export function ModalFlatTrack(
     };
 
     return (
-        <div className='modal-flat-track'>
+        <div className='modal-flat-track modal-flat-track-controls-parent'>
             <div className='flex flex-row items-center relative'>
                 <div className='modal-flat-track-number'>
                     {
@@ -399,7 +407,7 @@ export function ModalFlatTrack(
     );
 }
 
-export type TrackList = TrackId[] | PlaylistTrack[];
+export type TrackList = TrackId[] | PlaylistTrack[] | StationTrack[];
 export function ModalFlatTracks({ tracks, noPropIndex, containerType, containerId, removable }: { tracks?: TrackList, noPropIndex?: boolean, containerType: ShowerMusicObjectType, containerId: string | undefined, removable?: boolean; })
 {
     const mappingTracks = tracks ?? [ undefined, undefined, undefined, undefined ];
@@ -422,13 +430,7 @@ export function ModalFlatTracks({ tracks, noPropIndex, containerType, containerI
                 noPropIndex={ noPropIndex }
                 fromId={ containerId }
                 fromType={ containerType }
-                removalId={
-                    (track !== undefined) ? (
-                        (removable === true) ?
-                            getClientSideObjectId(track as ShowerMusicObject)
-                            : undefined
-                    ) : undefined
-                }
+                removable={ removable }
             />;
         });
     return (

@@ -123,12 +123,39 @@ export class PlaylistApiError extends ClientApiError
     }
 }
 
+export class InvalidPlaylistNameError extends PlaylistApiError
+{
+    constructor(message?: string)
+    {
+        super(message);
+        this.name = 'InvalidPlaylistNameError';
+    }
+}
+
 export class StationApiError extends PlaylistApiError
 {
     constructor(message?: string)
     {
         super(message);
         this.name = 'StationApiError';
+    }
+}
+
+export class StationTrackSwitchRequestTooEarlyError extends StationApiError
+{
+    constructor(message?: string)
+    {
+        super(message);
+        this.name = 'StationTrackSwitchRequestTooEarlyError';
+    }
+}
+
+export class StationQueueIsEmptyError extends StationApiError
+{
+    constructor(message?: string)
+    {
+        super(message);
+        this.name = 'StationQueueIsEmptyError';
     }
 }
 

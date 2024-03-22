@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var common_1 = require("./common");
 var showermusic_object_types_1 = require("../../app/showermusic-object-types");
 var ws_1 = __importDefault(require("ws"));
+var assert_1 = __importDefault(require("assert"));
 var connectedUsers = {};
 var registeredSyncObjectConnections = {};
 var wss = new ws_1.default.Server({
@@ -39,29 +40,39 @@ var registerSyncObjectConnection = function (ws, syncObjectId) {
     }
     registeredSyncObjectConnections[syncObjectId].push(ws);
 };
-var dispatchMessageToUser = function (messageType, userId) {
+var buildMessage = function (messageType, data) {
+    var result = { 'type': messageType };
+    if (messageType === common_1.MessageTypes.COMBO) {
+        (0, assert_1.default)(data !== undefined);
+        result[common_1.COMBO_DATA_KEY] = data[common_1.COMBO_DATA_KEY];
+        return JSON.stringify(result);
+    }
+    return JSON.stringify(result);
+};
+var dispatchMessageToUser = function (messageType, userId, data) {
     if (connectedUsers[userId] != null) {
-        connectedUsers[userId].send(JSON.stringify({ 'type': messageType }));
+        connectedUsers[userId].send(buildMessage(messageType, data));
     }
 };
-var dispatchToSyncObjectListeners = function (messageType, syncObjectId) {
+var dispatchToSyncObjectListeners = function (messageType, syncObjectId, data) {
     if (!registeredSyncObjectConnections[syncObjectId]) {
         console.log("Dispatch was requested on an object with no listeners!");
         return;
     }
+    var message = buildMessage(messageType, data);
     registeredSyncObjectConnections[syncObjectId].map(function (listenerWS) {
-        listenerWS.send(JSON.stringify({ 'type': messageType }));
+        listenerWS.send(message);
     });
 };
-var dispatchMessageToTargets = function (message, targets) {
+var dispatchMessageToTargets = function (message, targets, data) {
     targets.targets.map(function (target) {
         switch (target.type) {
             case showermusic_object_types_1.ShowerMusicObjectType.User:
-                dispatchMessageToUser(message, target.id);
+                dispatchMessageToUser(message, target.id, data);
                 break;
             case showermusic_object_types_1.ShowerMusicObjectType.Playlist:
             case showermusic_object_types_1.ShowerMusicObjectType.Station:
-                dispatchToSyncObjectListeners(message, target.id);
+                dispatchToSyncObjectListeners(message, target.id, data);
                 break;
             default:
                 console.log("Unknown target type: ".concat(target.type));
@@ -71,7 +82,7 @@ var dispatchMessageToTargets = function (message, targets) {
 };
 var handleServerMessage = function (data) {
     console.log("Server message ".concat(data['type']));
-    dispatchMessageToTargets(data['type'], data['targets']);
+    dispatchMessageToTargets(data['type'], data['targets'], data);
 };
 wss.on('connection', function (ws) {
     ws.on('error', function () { return console.error('[WebSocket] : connection error!'); });

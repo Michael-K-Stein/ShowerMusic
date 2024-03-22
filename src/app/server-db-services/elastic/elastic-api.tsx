@@ -43,7 +43,6 @@ export namespace ElasticSSApi
             });
         const searchResults = await client.search({ suggest: configData[ 'suggest' ], index: 'search-tracks' });
         if (!searchResults || !searchResults.suggest) { return {}; }
-        console.log(`Autocomplete results: `, searchResults.suggest);
         return searchResults.suggest;
     };
 };

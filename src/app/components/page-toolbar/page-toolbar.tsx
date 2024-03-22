@@ -78,52 +78,8 @@ const TOOLBAR_MENU_ITEMS: ToolbarItemProps[] = [
 
 export default function PageToolbar()
 {
-    const PAGE_TOOLBAR_STATE_STORAGE_KEY = 'page-toolbar-open';
     let pageToolbarState = useRef(true);
     const { setView } = useSessionState();
-
-    const togglePageToolbar = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) =>
-    {
-        if (open)
-        {
-            document.getElementById('page-toolbar-open-burger')?.setAttribute('hidden', 'true');
-            document.getElementById('stream-layout')?.setAttribute('toolbar', 'Openned');
-        } else
-        {
-            document.getElementById('page-toolbar-open-burger')?.removeAttribute('hidden');
-            document.getElementById('stream-layout')?.setAttribute('toolbar', 'Closed');
-        }
-        pageToolbarState.current = open;
-        sessionStorage.setItem(PAGE_TOOLBAR_STATE_STORAGE_KEY, open.toString());
-    };
-
-    // Render the last state of the session
-    // Open the toolbar if it was openned, otherwise keep it closed
-    // Use Memo with '[]' as the dependency will render only ONCE before the page has finished rendering
-    useMemo(() =>
-    {
-        if (typeof sessionStorage === 'undefined')
-        {
-            return;
-        }
-
-        let initialPageToolbarState = sessionStorage.getItem(PAGE_TOOLBAR_STATE_STORAGE_KEY);
-        if (null === initialPageToolbarState)
-        {
-            initialPageToolbarState = 'true';
-            sessionStorage.setItem(PAGE_TOOLBAR_STATE_STORAGE_KEY, initialPageToolbarState);
-        }
-        pageToolbarState.current = (initialPageToolbarState === 'true');
-    }, []);
-
-    // UseEffect so this happens AFTER rendering has finished
-    useEffect(() =>
-    {
-        if (!pageToolbarState)
-        {
-            document.getElementById('stream-layout')?.setAttribute('toolbar', 'Closed');
-        }
-    }, []);
 
     const toolbarMenuItems = TOOLBAR_MENU_ITEMS.map((item) =>
     {

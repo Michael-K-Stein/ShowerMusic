@@ -1,7 +1,7 @@
 'use client';
 import './artist-page.css';
 import { ArtistAlbumsSearchOptions, ArtistDict, ArtistId } from '@/app/shared-api/media-objects/artists';
-import { SetView, StreamStateType, ViewportType, useSessionState } from '@/app/components/providers/session/session';
+import { StreamStateType, useSessionState } from '@/app/components/providers/session/session';
 import { useSnackbar } from 'notistack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArtistList, GenericControlBar, ModalPageToolbar, enqueueApiErrorSnackbar, enqueueSnackbarWithSubtext } from '@/app/components/providers/global-props/global-modals';
@@ -14,12 +14,13 @@ import React from 'react';
 import ContentLoader, { IContentLoaderProps } from 'react-content-loader';
 import Image from 'next/image';
 import { AlbumDict, MinimalAlbumDict } from '@/app/shared-api/media-objects/albums';
-import { gotoAlbumCallbackFactory } from '@/app/components/pages/album-page/album-page';
+import { gotoAlbumCallbackFactory } from '../goto-callback-factory';
 import { getAlbumInfo } from '@/app/client-api/get-album';
 import SuperMiniTrackControls from '@/app/components/pages/super-mini-track-controls';
 import { commandAnyAddArbitrary, commandAnySetArbitrary } from '@/app/client-api/common-utils';
 import { ShowerMusicObjectType } from '@/app/settings';
 import { spotifileDownloadArtist } from '@/app/spotifile-utils/spotifile';
+import { ModalPageBase } from '@/app/components/pages/modal-page/modal-page';
 
 function ArtistControlBar({ artistData }: { artistData: ArtistDict | undefined; })
 {
@@ -100,12 +101,12 @@ function ArtistSingle({ singleAlbumDict }: { singleAlbumDict: MinimalAlbumDict |
     }, [ fullAlbumData ]);
 
     return (
-        <div className='artist-single' style={ { order: singleAlbumDict ? (-(singleAlbumDict.release_date.getTime() / (/** Seconds in a day */ 3600 * 24))) : 1 } }>
+        <div className='artist-single modal-flat-track-controls-parent' style={ { order: singleAlbumDict ? (-(singleAlbumDict.release_date.getTime() / (/** Seconds in a day */ 3600 * 24))) : 1 } }>
             <div className='flex flex-row items-center relative'>
                 <div className='artist-single-play' onClick={ playTrackClickHandler }>
                     <PlayGlyph glyphTitle='Play Single' />
                 </div>
-                <div className='artist-single-mini-controls'>
+                <div className='modal-flat-track-controls'>
                     <SuperMiniTrackControls track={ fullAlbumData?.tracks[ 0 ] } />
                 </div>
             </div>
@@ -239,7 +240,7 @@ function ArtistAlbums({ artistData, albumTypeOptions }: { artistData: ArtistDict
             // Actual album data
             albums.filter(
                 (albumData: MinimalAlbumDict) => { return albumData.total_tracks > 1; } // Only albums with more than 1 track
-            ).toSorted((a, b) => { return a.release_date.getTime() - b.release_date.getTime(); }).map(
+            ).toSorted((a, b) => { return -(a.release_date.getTime() - b.release_date.getTime()); }).map(
                 (albumData: MinimalAlbumDict) =>
                 {
                     return <ArtistAlbum key={ albumData.id } albumData={ albumData } />;
@@ -289,51 +290,48 @@ export default function ArtistPage({ artistData }: { artistData?: ArtistDict; })
     }, [ artistData ]);
 
     return (
-        <div className='relative h-full'>
-            <div className='modal-page-container artist-page-container'>
-                <ModalPageToolbar />
-                <div className='artist-page-info-container'>
-                    <div className='artist-page-actual-info-container'>
-                        <div className='artist-name' style={ { overflowWrap: 'break-word' } }>
-                            <Typography fontSize={ fontSize }>
-                                { artistData ? artistData.name : <ArtistNameLoader /> }
-                            </Typography>
-                        </div>
-                        <div className='modal-cover-art artist-image'>
-                            {
-                                (artistData && artistData.images[ 0 ]) &&
-                                <Image src={ artistData.images[ 0 ].url } width={ artistData.images[ 0 ].width } height={ artistData.images[ 0 ].height } alt={ '' } />
-                                || <ArtistCoverArtLoader />
-                            }
-                        </div>
-                        <div className='w-full' /* w-full so that it will align to the left */>
-                            <ArtistControlBar key={ artistData ? artistData.id : undefined } artistData={ artistData } />
-                        </div>
+        <ModalPageBase className="artist-page-container">
+            <div className='artist-page-info-container'>
+                <div className='artist-page-actual-info-container'>
+                    <div className='artist-name' style={ { overflowWrap: 'break-word' } }>
+                        <Typography fontSize={ fontSize }>
+                            { artistData ? artistData.name : <ArtistNameLoader /> }
+                        </Typography>
                     </div>
-                    <div className=''>
-                        <div className='singles-container-parent'>
-                            <ArtistSingles artistData={ artistData } />
-                        </div>
+                    <div className='modal-cover-art artist-image'>
+                        {
+                            (artistData && artistData.images[ 0 ]) &&
+                            <Image src={ artistData.images[ 0 ].url } width={ artistData.images[ 0 ].width } height={ artistData.images[ 0 ].height } alt={ '' } />
+                            || <ArtistCoverArtLoader />
+                        }
+                    </div>
+                    <div className='w-full' /* w-full so that it will align to the left */>
+                        <ArtistControlBar key={ artistData ? artistData.id : undefined } artistData={ artistData } />
                     </div>
                 </div>
-                <div style={ { overflow: 'scroll' } }>
+                <div className='h-full'>
+                    <div className='singles-container-parent'>
+                        <ArtistSingles artistData={ artistData } />
+                    </div>
+                </div>
+            </div>
+            <div style={ { overflow: 'scroll' } }>
+                <div>
+                    <div className='artist-page-tracks-container'>
+                        <ArtistAlbums artistData={ artistData } />
+                    </div>
+                    <Box sx={ { position: 'relative', marginTop: '1em', marginBottom: '1em', left: '50%', transform: 'translateX(-50%)', width: '88%', height: '0.15em', backgroundColor: 'rgba(240,240,240,0.15)' } } />
                     <div>
-                        <div className='artist-page-tracks-container'>
-                            <ArtistAlbums artistData={ artistData } />
+                        <div className='ml-4'>
+                            <Typography variant={ 'h4' }>Appears on</Typography>
                         </div>
-                        <Box sx={ { position: 'relative', marginTop: '1em', marginBottom: '1em', left: '50%', transform: 'translateX(-50%)', width: '88%', height: '0.15em', backgroundColor: 'rgba(240,240,240,0.15)' } } />
-                        <div>
-                            <div className='ml-4'>
-                                <Typography variant={ 'h4' }>Appears on</Typography>
-                            </div>
-                            <div className='artist-page-tracks-container'>
-                                <ArtistAlbums artistData={ artistData } albumTypeOptions={ { 'albumTypes': [ 'appears_on' ] } } />
-                            </div>
+                        <div className='artist-page-tracks-container'>
+                            <ArtistAlbums artistData={ artistData } albumTypeOptions={ { 'albumTypes': [ 'appears_on' ] } } />
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </ModalPageBase>
     );
 }
 
@@ -361,10 +359,4 @@ export function ArtistPageLoader({ artistId }: { artistId: ArtistId; })
     );
 };
 
-export function gotoArtistCallbackFactory(setView: SetView, artistId: ArtistId)
-{
-    return () =>
-    {
-        setView(ViewportType.Artist, artistId);
-    };
-};
+

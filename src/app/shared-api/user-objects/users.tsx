@@ -13,6 +13,7 @@ export interface MinimalUserDict extends ShowerMusicObject
     username: string;
 }
 export type ShowerMusicPlayableMediaId = TrackId | AlbumId | ArtistId | PlaylistId;
+export type ShowerMusicPlayableMediaContainerId = AlbumId | ArtistId | PlaylistId;
 export interface ShowerMusicResolveableItem
 {
     includesName?: boolean;

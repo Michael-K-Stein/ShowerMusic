@@ -29,11 +29,13 @@ export interface ApiResponseJson
     error?: any;
 }
 
-export interface ArbitraryTargetAndDataApiRequestBody
+export interface ArbitraryDataApiRequestBody
 {
-
     type: ShowerMusicObjectType;
     id: MediaId;
+}
+export interface ArbitraryTargetAndDataApiRequestBody extends ArbitraryDataApiRequestBody
+{
     targetId?: string;
     targetType: ShowerMusicObjectType;
 
@@ -65,6 +67,10 @@ export type ShowerMusicPlayableMediaDict =
     ArtistDict | MinimalArtistDict |
     Playlist | MinimalPlaylist |
     Station | MinimalStation | StationsCategory;
+export type ShowerMusicPlayableMediaMinimalDict = MinimalAlbumDict | MinimalArtistDict | MinimalPlaylist | MinimalStation;
+export type ShowerMusicPlayableMediaFullDict = TrackDict | AlbumDict | ArtistDict | Playlist | Station | StationsCategory;
+export type ShowerMusicPlayableMediaContainerDict = Exclude<ShowerMusicPlayableMediaFullDict | ShowerMusicPlayableMediaMinimalDict, TrackDict>;
+export type ShowerMusicPlayableMediaContainerFullDict = Exclude<ShowerMusicPlayableMediaFullDict, TrackDict>;
 
 export type Keys<T> = keyof T;
 export function getKeysOfObject<T extends object>(obj: T): Keys<T>[]

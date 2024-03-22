@@ -6,7 +6,7 @@ import CreateGlyph from "@/app/components/glyphs/create";
 import PlayPropertyGlyph from "@/app/components/glyphs/play-property";
 import PlaylistGlyph from "@/app/components/glyphs/playlist";
 import ItemFavoriteGlyph from "@/app/components/other/item-favorite-glyph";
-import { PlaylistImage } from "@/app/components/pages/playlist-page/playlist-page";
+import { PlaylistImage } from "@/app/components/pages/playlist-page/playlist-cover-image";
 import { addArbitraryToQueueClickHandler, setPlayNextArbitraryClickHandler } from "@/app/components/providers/global-props/arbitrary-click-handler-factories";
 import { enqueueApiErrorSnackbar } from "@/app/components/providers/global-props/global-modals";
 import { newPlaylistClickHandler } from "@/app/components/providers/global-props/global-props";
@@ -156,7 +156,7 @@ export default function AddToArbitraryModal()
                     }
                 }>
                     <ListItemIcon className="w-6 pr-1">
-                        <PlaylistImage playlistInitData={ playlist } />
+                        <PlaylistImage playlistInitData={ playlist } /> { /* TODO: Add stations as well */ }
                     </ListItemIcon>
                     <ListItemText>{ playlist.name }</ListItemText>
                 </MenuItem>

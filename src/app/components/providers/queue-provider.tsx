@@ -1,6 +1,8 @@
 import { queryQueue } from '@/app/client-api/queue';
+import { commandGetStation } from '@/app/client-api/stations/get-station-specific';
 import { enqueueApiErrorSnackbar, enqueueSnackbarWithSubtext } from '@/app/components/providers/global-props/global-modals';
 import useGlobalProps from '@/app/components/providers/global-props/global-props';
+import { useSessionState } from '@/app/components/providers/session/session';
 import useUserSession from '@/app/components/providers/user-provider/user-session';
 import { MessageTypes } from '@/app/settings';
 import { PlayingNextTracks } from '@/app/shared-api/media-objects/tracks';
@@ -24,20 +26,36 @@ export const QueueProvider = ({ children }: { children: React.JSX.Element[] | Re
 {
     const { enqueueSnackbar } = useSnackbar();
     const { addMessageHandler } = useUserSession();
+    const { requiresSyncOperations, streamMediaId } = useSessionState();
     const [ playingNextTracks, setPlayingNextTracks ] = useState<PlayingNextTracks>();
 
     const reloadQueue = useCallback(() =>
     {
-        queryQueue()
-            .then((playingNextTracks) =>
-            {
-                setPlayingNextTracks(playingNextTracks);
-            })
-            .catch((e) =>
-            {
-                enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to reload queue!`, e);
-            });
-    }, [ enqueueSnackbar ]);
+        if (requiresSyncOperations())
+        {
+            commandGetStation(streamMediaId)
+                .then((station) =>
+                {
+                    setPlayingNextTracks({ tracks: station.tracks, _id: streamMediaId } as unknown as PlayingNextTracks);
+                })
+                .catch((e) =>
+                {
+                    enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to reload queue!`, e);
+                });
+        }
+        else
+        {
+            queryQueue()
+                .then((playingNextTracks) =>
+                {
+                    setPlayingNextTracks(playingNextTracks);
+                })
+                .catch((e) =>
+                {
+                    enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to reload queue!`, e);
+                });
+        }
+    }, [ streamMediaId, requiresSyncOperations, enqueueSnackbar ]);
 
     const messageHandler = useCallback((messageType: string, data: any) =>
     {

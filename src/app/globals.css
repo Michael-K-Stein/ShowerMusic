@@ -57,6 +57,9 @@ body
     width: 1.5em;
     height: 1.5em;
     padding-right: 0.3em;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }
 
 .user-playlist
@@ -144,4 +147,11 @@ body
     pointer-events: none;
     cursor: default;
     opacity: 0.7;
+}
+
+/* Hide the dropdown triangle */
+*::-webkit-calendar-picker-indicator
+{
+    display: none !important;
+    opacity: 0;
 }

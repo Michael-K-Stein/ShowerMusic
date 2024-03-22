@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }: { children: React.JSX.Element[] | Rea
     const [ userData, setUserData ] = useState<UserDict>();
 
     // Check if the user is logged in when the component mounts
-    useMemo(() =>
+    useEffect(() =>
     {
         if (typeof window === 'undefined') { return; }
         async function checkIfUserIsLoggedIn()

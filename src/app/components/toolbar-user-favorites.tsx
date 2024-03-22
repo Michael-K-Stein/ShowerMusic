@@ -6,12 +6,14 @@ import { FavoritesItem } from "@/app/shared-api/user-objects/users";
 function ToolbarUserFavoriteItem({ item }: { item: FavoritesItem; })
 {
     return (
-        <CardModal
-            item={ item }
-            containsFullData={ false }
-            cardModalHtmlAttributes={ { 'data-static-card': true } }
-            withTypeName={ true }
-        />
+        <div style={ { fontSize: '90%' } }>
+            <CardModal
+                item={ item }
+                containsFullData={ false }
+                cardModalHtmlAttributes={ { 'data-static-card': true } }
+                withTypeName={ true }
+            />
+        </div>
     );
 }
 

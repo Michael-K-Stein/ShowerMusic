@@ -7,7 +7,7 @@ import RewindGlyph from "@/components/glyphs/rewind";
 import FastForwardGlyph from "@/glyphs/fast-forward";
 import { Box, CircularProgress, Slide, SlideProps, Snackbar, Typography } from "@mui/material";
 import { StreamStateType, useSessionState } from "@/app/components/providers/session/session";
-import { gotoAlbumCallbackFactory as gotoAlbumCallbackFactory } from "@/app/components/pages/album-page/album-page";
+import { gotoAlbumCallbackFactory as gotoAlbumCallbackFactory } from '@/app/components/pages/goto-callback-factory';
 import useSessionMuse from "@/app/components/providers/session-muse";
 import { useMediaControls } from "@/app/components/providers/media-controls";
 import { TrackDict } from "@/app/shared-api/media-objects/tracks";
@@ -39,14 +39,12 @@ function StreamBarSongControls({ userCanSeek }: { userCanSeek: boolean; })
 
     return (
         <div className="absolute top-0 flex flex-row min-w-full max-w-full items-center justify-center mt-3">
-            { userCanSeek && <div className="w-10 m-1 clickable">
-                <RewindGlyph glyphTitle={ "Rewind" } />
-            </div> }
+            { userCanSeek &&
+                <RewindGlyph glyphTitle={ "Rewind" } className="w-10 m-1 clickable" />
+            }
             {
                 museLoadingState &&
-                <div className="w-10 m-1">
-                    <CircularProgress color="inherit" />
-                </div>
+                <CircularProgress color="inherit" className="w-10 m-1" />
                 || (
                     musePausedState &&
 
@@ -67,9 +65,9 @@ function StreamBarSongControls({ userCanSeek }: { userCanSeek: boolean; })
 
                 )
             }
-            { userCanSeek && <div className="w-10 m-1 clickable" onClick={ skipTrackHandler }>
-                <FastForwardGlyph glyphTitle={ "Skip" } />
-            </div> }
+            { userCanSeek &&
+                <FastForwardGlyph glyphTitle={ "Skip" } className="w-10 m-1 clickable" onClick={ skipTrackHandler } />
+            }
         </div>
     );
 };
@@ -113,7 +111,7 @@ export default function StreamBar()
 {
     const { streamMediaId, streamType, setView } = useSessionState();
     const { playingNextModalHiddenState } = useMediaControls();
-    const { Muse, currentlyPlayingTrack, seek } = useSessionMuse();
+    const { Muse, currentlyPlayingTrack, trackDurationFillBar, seek } = useSessionMuse();
 
     const [ userCanSeek, setUserCanSeek ] = useState<boolean>(true);
 
@@ -135,12 +133,12 @@ export default function StreamBar()
 
     const handleSeek: React.MouseEventHandler<HTMLDivElement> = useCallback((ev) =>
     {
-        if (!Muse) { return; }
+        if (!Muse || !userCanSeek) { return; }
         const relativeX = ev.clientX - ev.currentTarget.getBoundingClientRect().x;
         const quotient = relativeX / ev.currentTarget.getBoundingClientRect().width;
         const newTrackTime = Muse.duration * quotient;
-        seek(newTrackTime);
-    }, [ Muse, seek ]);
+        seek(newTrackTime, true);
+    }, [ userCanSeek, Muse, seek ]);
 
     const TrackGenericInfo = useCallback(({ track }: { track: TrackDict; }) =>
     {
@@ -152,6 +150,8 @@ export default function StreamBar()
             </div>
         );
     }, [ setView ]);
+
+    if (!trackDurationFillBar) { return; }
 
     if (!currentlyPlayingTrack)
     {
@@ -168,7 +168,12 @@ export default function StreamBar()
 
 
                             <div className="duration-fill-bar-container">
-                                <div id="stream-bar-track-duration-fill-bar" className="duration-fill-bar" style={ { width: `0%` } }>
+                                <div
+                                    id="stream-bar-track-duration-fill-bar"
+                                    ref={ trackDurationFillBar }
+                                    className="duration-fill-bar"
+                                    style={ { width: `0%` } }
+                                >
                                 </div>
                             </div>
                         </>
@@ -197,7 +202,13 @@ export default function StreamBar()
                         <TrackGenericInfo track={ currentlyPlayingTrack } />
 
                         <div className="duration-fill-bar-container" onClick={ handleSeek }>
-                            <div key={ currentlyPlayingTrack.id } id="stream-bar-track-duration-fill-bar" className="duration-fill-bar" style={ { width: `0%` } }>
+                            <div
+                                ref={ trackDurationFillBar }
+                                key={ currentlyPlayingTrack.id }
+                                id="stream-bar-track-duration-fill-bar"
+                                className="duration-fill-bar"
+                                style={ { width: `0%` } }
+                            >
                             </div>
                         </div>
                     </>

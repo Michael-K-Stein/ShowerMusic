@@ -11,3 +11,4 @@ export enum ShowerMusicObjectType
     Playlist = 'playlist'
 }
 export type ShowerMusicPlayableMediaType = Exclude<ShowerMusicObjectType, ShowerMusicObjectType.Unknown | ShowerMusicObjectType.User>;
+export type ShowerMusicPlayableMediaContainerType = Exclude<ShowerMusicPlayableMediaType, ShowerMusicObjectType.Track>;

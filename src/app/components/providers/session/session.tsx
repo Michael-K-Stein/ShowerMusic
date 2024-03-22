@@ -1,9 +1,11 @@
 'use client';
 import AddToArbitraryModal, { AddToArbitraryModalStateType } from "@/app/components/media-modals/add-to-arbitrary-modal";
+import { registerSyncProvider } from "@/app/components/providers/shared-sync-object-provides";
+import useUserSession from "@/app/components/providers/user-provider/user-session";
 import { MediaId } from "@/app/shared-api/media-objects/media-id";
 import { ShowerMusicPlayableMediaId } from "@/app/shared-api/user-objects/users";
 import { ShowerMusicPlayableMediaType } from "@/app/showermusic-object-types";
-import React, { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { URLSearchParams } from "url";
 
 export enum ViewportType
@@ -116,6 +118,7 @@ export const SessionStateContext = createContext<SessionStateType>({
 export const SessionStateProvider = ({ children }: { children: React.JSX.Element[] | React.JSX.Element; }) =>
 {
     // Context of the page being previewed
+    const { sendMessage } = useUserSession();
     const [ viewMediaId, setViewMediaId ] = React.useState<MediaId>('');
     const [ viewportType, setViewportType ] = React.useState<ViewportType>(ViewportType.Home);
 
@@ -254,6 +257,14 @@ export const SessionStateProvider = ({ children }: { children: React.JSX.Element
             streamType === StreamStateType.PrivateStation
         );
     }, [ streamType ]);
+
+    useMemo(() =>
+    {
+        if (requiresSyncOperations())
+        {
+            return registerSyncProvider(sendMessage, streamMediaId);
+        }
+    }, [ streamMediaId, requiresSyncOperations, sendMessage ]);
 
     const registerPopStateHandler = useCallback((handler: PopStateHandler) =>
     {

@@ -2,7 +2,6 @@ import databaseController from "@/app/server-db-services/mongo-db-controller";
 import { PlaylistNotFoundError } from "@/app/shared-api/other/errors";
 import { PlaylistId } from "@/app/shared-api/other/playlist";
 import { ShowerMusicObjectType } from "@/app/showermusic-object-types";
-import { ObjectId } from "mongodb";
 
 export async function getPlaylistInfo(playlistId: PlaylistId)
 {

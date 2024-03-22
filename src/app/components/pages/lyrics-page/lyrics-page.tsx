@@ -7,7 +7,7 @@ import { ViewportType, useSessionState } from "@/app/components/providers/sessio
 import Lyrics, { LyricsLine, LyricsSyncType } from "@/app/shared-api/media-objects/lyrics";
 import { Typography } from '@mui/material';
 import { useSnackbar } from "notistack";
-import { useCallback, useLayoutEffect, useMemo, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 interface LyricsLineProps extends React.HTMLAttributes<HTMLDivElement>
 {
@@ -19,7 +19,7 @@ function LyricsLineElement({ line, highlighted, ...props }: LyricsLineProps)
     const { seek } = useSessionMuse();
     const handleOnClick = useCallback(() =>
     {
-        seek(parseInt(line.startTimeMs) / 1000);
+        seek(parseInt(line.startTimeMs) / 1000, true);
     }, [ line.startTimeMs, seek ]);
 
     return (
@@ -41,6 +41,8 @@ export default function LyricsPage()
     const [ syncedLinesIndexTimeMap, setSyncedLinesIndexTimeMap ] = useState<number[]>();
     const [ highlightedLineIndex, setHighlightedLineIndex ] = useState<number>(-1);
 
+    const lyricsPageContainer = useRef<HTMLDivElement>(null);
+
     const museTimeUpdateCallback = useCallback((event: Event) =>
     {
         if (!event.target) { return; }
@@ -61,7 +63,7 @@ export default function LyricsPage()
         const highlightedLineElement = document.getElementById(newHighlightedLineId);
         console.log('Scrolling into view: ', highlightedLineElement);
         if (!highlightedLineElement) { return; }
-        const syncedLinesContainer = document.getElementById('lyrics-page-container');
+        const syncedLinesContainer = lyricsPageContainer.current;
         if (!syncedLinesContainer) { return; }
 
         const containerRect = syncedLinesContainer.getBoundingClientRect();
@@ -117,7 +119,7 @@ export default function LyricsPage()
     {
         if (!Muse) { return; }
         Muse.addEventListener('timeupdate', museTimeUpdateCallback);
-        // return () => Muse.removeEventListener('timeupdate', museTimeUpdateCallback);
+        return () => Muse.removeEventListener('timeupdate', museTimeUpdateCallback);
     }, [ Muse, museTimeUpdateCallback ]);
 
     if (viewportType !== ViewportType.Lyrics || !trackLyrics || !currentlyPlayingTrack)
@@ -131,7 +133,13 @@ export default function LyricsPage()
     );
 
     return (
-        <div id="lyrics-page-container" className="lyrics-page-container" key={ currentlyPlayingTrack.id } style={ { backgroundColor: backgroundColor } }>
+        <div
+            ref={ lyricsPageContainer }
+            id="lyrics-page-container"
+            className="lyrics-page-container"
+            key={ currentlyPlayingTrack.id }
+            style={ { backgroundColor: backgroundColor } }
+        >
             <div className='lyrics-words-container' data-line-synced={ trackLyrics.lyrics.syncType === LyricsSyncType.LineSynced }>
                 { lyricsLines }
             </div>

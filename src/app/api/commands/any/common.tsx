@@ -2,7 +2,7 @@ import { DbObjects } from "@/app/server-db-services/db-objects";
 import { SSUserId } from "@/app/server-db-services/user-utils";
 import { ShowerMusicObjectType } from "@/app/settings";
 import { TrackId } from "@/app/shared-api/media-objects/tracks";
-import { ApiNotImplementedError, InvalidSourceTypeError } from "@/app/shared-api/other/errors";
+import { InvalidSourceTypeError } from "@/app/shared-api/other/errors";
 import { PlaylistTrack } from "@/app/shared-api/other/playlist";
 import { StationTrack } from "@/app/shared-api/other/stations";
 import { ObjectId } from "mongodb";
@@ -21,7 +21,7 @@ export async function getTracksFromArbitrarySource(
     sourceType: ShowerMusicObjectType,
     sourceId: string,
     logActionOptions: LogUserActionOptions | LogUserActionOptionsStub = { logAction: false }
-)
+): Promise<TrackId[]>
 {
     let tracks: TrackId[] = [];
     if (sourceType === ShowerMusicObjectType.Track)

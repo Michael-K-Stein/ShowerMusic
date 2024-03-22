@@ -1,9 +1,11 @@
 import databaseController from "@/app/server-db-services/mongo-db-controller";
+import { handleUserRequestedPopOnStation } from "@/app/server-db-services/other/stations/db-station";
 import { UserNotFoundError } from "@/app/server-db-services/user-objects/user-object";
 import { SSUserId } from "@/app/server-db-services/user-utils";
 import { MessageTypes } from "@/app/settings";
 import { QueuedTrackDict, TrackId } from "@/app/shared-api/media-objects/tracks";
 import { TrackNotFoundError } from "@/app/shared-api/other/errors";
+import { StationId } from "@/app/shared-api/other/stations";
 import { SendServerRequestToSessionServerForUsers } from "@/app/web-socket-utils";
 import { ObjectId } from "mongodb";
 
@@ -90,7 +92,7 @@ async function addTrackToUserPlayingNextQueue(userId: SSUserId, trackId: string)
     SendServerRequestToSessionServerForUsers(MessageTypes.QUEUE_UPDATE, [ userId ]);
 }
 
-export async function popUserPlayingNextQueue(userId: SSUserId)
+export async function popUserPlayingNextQueue(userId: SSUserId, tunedIntoStationId: StationId | null = null)
 {
     const oldData = await databaseController.users.findOneAndUpdate(
         { '_id': userId },
@@ -109,6 +111,12 @@ export async function popUserPlayingNextQueue(userId: SSUserId)
             }
         }
     );
+    if (tunedIntoStationId !== null)
+    {
+        handleUserRequestedPopOnStation(tunedIntoStationId, userId,
+            oldData ? (oldData.playingNextTracks.tracks[ 0 ] as QueuedTrackDict) : null
+        );
+    }
 
     SendServerRequestToSessionServerForUsers(MessageTypes.QUEUE_UPDATE, [ userId ]);
 

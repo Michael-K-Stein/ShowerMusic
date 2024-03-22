@@ -1,6 +1,6 @@
 import TrashCanGlyph from '@/app/components/glyphs/trash-can';
 import CardModal from '@/app/components/media-modals/card-modal/card-modal';
-import { deletePlaylistClickHandlerFactory } from '@/app/components/pages/playlist-page/playlist-page';
+import { deletePlaylistClickHandlerFactory } from '../playlist-page/playlist-callback-factories';
 import useUserSession from '@/app/components/providers/user-provider/user-session';
 import { MinimalPlaylist } from '@/app/shared-api/other/playlist';
 import { Typography } from '@mui/material';

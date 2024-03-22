@@ -8,6 +8,7 @@ import { PlayingNextTracks, QueuedTrackDict, TrackId } from "@/app/shared-api/me
 import { ComplexItemType, ShowerMusicObjectType } from "@/app/shared-api/other/common";
 import { ApiNotImplementedError } from "@/app/shared-api/other/errors";
 import { PlaylistId } from "@/app/shared-api/other/playlist";
+import { StationId } from "@/app/shared-api/other/stations";
 import { ShowerMusicPlayableMediaId } from "@/app/shared-api/user-objects/users";
 import { ShowerMusicPlayableMediaType } from "@/app/showermusic-object-types";
 
@@ -28,9 +29,16 @@ export async function queryQueue()
     return r as PlayingNextTracks;
 }
 
-export async function popTrackFromQueue()
+export async function commandPopTrackFromQueue(tunedIntoStationId: StationId | null = null)
 {
-    const r = await safeApiFetcher(`/api/commands/queue/pop`, { method: 'GET' });
+    const url = new URL(`${window.location.origin}/api/commands/queue/pop`);
+
+    if (tunedIntoStationId !== null)
+    {
+        url.searchParams.set('tunedIntoStationId', tunedIntoStationId);
+    }
+
+    const r = await safeApiFetcher(url.toString(), { method: 'GET' });
     return r as QueuedTrackDict | null;
 }
 

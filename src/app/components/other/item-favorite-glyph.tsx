@@ -9,12 +9,13 @@ import { useSnackbar } from "notistack";
 import React, { useCallback, useMemo, useState } from "react";
 
 export default function ItemFavoriteGlyph(
-    { item, itemType, glyphTitle, placement, ...props }:
+    { item, itemType, glyphTitle, placement, passThroughHtmlProps, tabIndex, ...props }:
         {
             item?: ShowerMusicPlayableMediaDict | ShowerMusicNamedResolveableItem,
             itemType: ShowerMusicPlayableMediaType,
             glyphTitle?: string,
-            placement?: TooltipProps[ 'placement' ];
+            placement?: TooltipProps[ 'placement' ],
+            passThroughHtmlProps?: React.HTMLAttributes<HTMLDivElement>,
         } &
         React.HTMLAttributes<HTMLDivElement>)
 {
@@ -45,10 +46,15 @@ export default function ItemFavoriteGlyph(
     return (
         <div
             { ...props }
-            onClick={ favoritesButtonClickHandlerFactory() }
             style={ { color: itemInUserFavorites ? 'cyan' : 'inherit' } }
         >
-            <LoveCircledGlyph glyphTitle={ glyphTitle !== undefined ? glyphTitle : (itemInUserFavorites ? "Unfavorite" : "Favorite") } placement={ placement } />
+            <LoveCircledGlyph
+                tabIndex={ tabIndex !== undefined ? tabIndex : 0 }
+                glyphTitle={ glyphTitle !== undefined ? glyphTitle : (itemInUserFavorites ? "Unfavorite" : "Favorite") }
+                placement={ placement }
+                { ...passThroughHtmlProps }
+                onClick={ favoritesButtonClickHandlerFactory() }
+            />
         </div>
     );
 }

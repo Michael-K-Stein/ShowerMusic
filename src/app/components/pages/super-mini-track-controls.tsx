@@ -1,14 +1,17 @@
 import { getTrackInfo } from "@/app/client-api/get-track";
 import AddGlyph from "@/app/components/glyphs/add";
 import AddSongGlyph from "@/app/components/glyphs/add-song";
+import LoveCircledGlyph from "@/app/components/glyphs/love-circled";
 import PlayPropertyGlyph from "@/app/components/glyphs/play-property";
 import RemoveGlyph from "@/app/components/glyphs/remove";
+import ItemFavoriteGlyph from "@/app/components/other/item-favorite-glyph";
 import { enqueueApiErrorSnackbar } from "@/app/components/providers/global-props/global-modals";
 import { addTrackToQueueClickHandler, removeTrackClickHandler, setPlayNextTrackClickHandler } from "@/app/components/providers/global-props/global-props";
 import { useSessionState } from "@/app/components/providers/session/session";
 import { ShowerMusicObjectType } from "@/app/settings";
 import { TrackDict, TrackId } from "@/app/shared-api/media-objects/tracks";
-import { RemovalId } from "@/app/shared-api/other/common";
+import { RemovalId, ShowerMusicPlayableMediaDict } from "@/app/shared-api/other/common";
+import { ShowerMusicNamedResolveableItem } from "@/app/shared-api/user-objects/users";
 import { useSnackbar } from "notistack";
 import { useCallback, useMemo, useState } from "react";
 
@@ -59,16 +62,16 @@ export default function SuperMiniTrackControls({ track }: { track: TrackDict | T
     };
 
     return (
-        <div className="flex flex-row items-center">
-            <div className='super-mini-track-control' onClick={ clickDispatcher(addTrackToQueueClickHandler) }>
-                <AddSongGlyph glyphTitle='Add to queue' />
-            </div>
-            <div className='super-mini-track-control' onClick={ clickDispatcher(setPlayNextTrackClickHandler) }>
-                <PlayPropertyGlyph glyphTitle='Play next' />
-            </div >
-            <div className='super-mini-track-control' onClick={ addToArbitraryClickHandler }>
-                <AddGlyph glyphTitle='Add to' />
-            </div>
+        <div className="flex flex-row items-center w-full">
+            <AddSongGlyph glyphTitle='Add to queue' className='super-mini-track-control' onClick={ clickDispatcher(addTrackToQueueClickHandler) } />
+            <PlayPropertyGlyph glyphTitle='Play next' className='super-mini-track-control' onClick={ clickDispatcher(setPlayNextTrackClickHandler) } />
+            <AddGlyph glyphTitle='Add to' className='super-mini-track-control' onClick={ addToArbitraryClickHandler } />
+            <ItemFavoriteGlyph
+                item={ trackData as (ShowerMusicPlayableMediaDict | ShowerMusicNamedResolveableItem) }
+                itemType={ ShowerMusicObjectType.Track }
+                className='super-mini-track-control'
+                passThroughHtmlProps={ { className: 'flex flex-row items-center' } }
+            />
         </div >
     );
 }

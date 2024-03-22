@@ -12,7 +12,7 @@ import { useSnackbar } from "notistack";
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 
 
-interface WebSocketSessionMessage
+export interface WebSocketSessionMessage
 {
     type: MessageTypes,
     [ key: string ]: any,

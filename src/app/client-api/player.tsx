@@ -1,7 +1,7 @@
 'use client';
 
 import { safeApiFetcher } from "@/app/client-api/common-utils";
-import { popTrackFromQueue } from "@/app/client-api/queue";
+import { commandPopTrackFromQueue } from "@/app/client-api/queue";
 import { TrackId } from "@/app/shared-api/media-objects/tracks";
 import { LoopState } from "@/app/shared-api/user-objects/users";
 
@@ -25,7 +25,7 @@ export async function queryCurrentlyPlayingTrack()
 
 export async function commandPlayerSkipCurrentTrack()
 {
-    return popTrackFromQueue()
+    return commandPopTrackFromQueue()
         .then((nextTrack) =>
         {
             if (!nextTrack)

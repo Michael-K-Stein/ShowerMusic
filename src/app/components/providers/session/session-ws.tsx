@@ -1,7 +1,8 @@
 import { getClientSideObjectId } from "@/app/client-api/common-utils";
 import { getUserMe } from "@/app/components/auth-provider";
-import { MessageTypes, WEBSOCKET_SESSION_SERVER_CONN_STRING } from "@/app/settings";
+import { COMBO_DATA_KEY, MessageTypes, WEBSOCKET_SESSION_SERVER_CONN_STRING } from "@/app/settings";
 import { UserId } from "@/app/shared-api/user-objects/users";
+import assert from "assert";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef } from "react";
 
 export type MessageHandlerType = (messageType: MessageTypes, data: any) => void;
@@ -27,11 +28,27 @@ export default function useSessionWebSocketContext(
     const webSocketMessageHandler = useCallback((ev: MessageEvent<any>) =>
     {
         const data = JSON.parse(ev.data);
-        const messageType = data[ 'type' ];
+        const messageType: MessageTypes = data[ 'type' ];
         console.log(`[WS] Message type: ${messageType}`);
 
-        // Call all registered message handlers
-        messageHandlers.current.forEach(handler => handler(messageType, data));
+        if (messageType === MessageTypes.COMBO)
+        {
+            console.log(data);
+            const comboData: MessageTypes[] = data[ COMBO_DATA_KEY ];
+            assert(comboData !== undefined);
+            messageHandlers.current.forEach(
+                handler =>
+                    comboData.forEach(
+                        comboDataMessageType =>
+                            handler(comboDataMessageType, data)
+                    )
+            );
+        }
+        else
+        {
+            // Call all registered message handlers
+            messageHandlers.current.forEach(handler => handler(messageType, data));
+        }
     }, []);
 
     const waitForSocketConnection = useCallback((socket: WebSocket, callback: (() => void) | null) =>

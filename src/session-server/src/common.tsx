@@ -13,11 +13,14 @@ export enum MessageTypes
     CURRENTLY_PLAYING_UPDATE = 'currently-playing-update',
     REGISTER_SESSION = 'register-session',
     REGISTER_SYNC_PROVIDER = 'register-sync-provider',
+    DEREGISTER_SYNC_PROVIDER = 'deregister-sync-provider',
     USER_FAVORITES_UPDATE = 'user-favorites-update',
     USER_PLAYLISTS_UPDATE = 'user-playlists-update',
     USER_RECENTS_UPDATE = 'user-recents-update',
     // PLAYING_SONG_ENDED: 'playing-song-ended',
+    COMBO = 'combo',
 };
+export const COMBO_DATA_KEY = 'combo-data';
 
 export interface ServerRequestTarget
 {

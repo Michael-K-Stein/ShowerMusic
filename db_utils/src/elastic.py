@@ -1,3 +1,4 @@
+from typing import Any
 import pymongo
 import tqdm
 from elasticsearch import Elasticsearch
@@ -6,7 +7,7 @@ import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-mongodb = pymongo.MongoClient(
+mongodb: pymongo.MongoClient = pymongo.MongoClient(
     "mongodb://admin:Pa%24%24word2024@localhost:27017/?authSource=showermusic"
 )
 tracksdb = mongodb.showermusic.tracks
@@ -18,9 +19,9 @@ es = client = Elasticsearch(
     verify_certs=False,
 )
 
-mongo_query = {}
+mongo_query: Any = {}
 # Chunk size
-chunk_size = 10000  # Adjust as needed
+chunk_size = 100  # Adjust as needed
 
 # Fetch data from MongoDB and index in chunks
 cursor = tracksdb.find(mongo_query).sort(
@@ -81,6 +82,9 @@ def preprocess_track_for_elastic(track):
     for field in UNINTERSETING_ARTIST_FIELDS:
         for artist in track["artists"]:
             artist.pop(field, None)
+
+    track["artists_ids"] = list(str(x["id"]) for x in track["artists"])
+
     return track
 
 
@@ -88,10 +92,50 @@ def create_index_mapping():
     index_name = "search-tracks"
     mappings = {
         "properties": {
+            "isrc": {"type": "keyword"},
+            "explicit": {"type": "boolean"},
+            "id": {"type": "keyword"},
+            "popularity": {"type": "long"},
+            "artists_ids": {"type": "keyword"},
             # Map the name of the track as both a 'text' field and a 'completion' field
             "name": {
                 "type": "text",
                 "fields": {
+                    "raw_with_full_context": {
+                        "type": "completion",
+                        "contexts": [
+                            {
+                                "name": "artist_id",
+                                "type": "category",
+                                "path": "artists_ids",
+                            },
+                            {
+                                "name": "album_id",
+                                "type": "category",
+                                "path": "album.id",
+                            },
+                        ],
+                    },
+                    "raw_with_artist_context": {
+                        "type": "completion",
+                        "contexts": [
+                            {
+                                "name": "artist_id",
+                                "type": "category",
+                                "path": "artists_ids",
+                            },
+                        ],
+                    },
+                    "raw_with_album_context": {
+                        "type": "completion",
+                        "contexts": [
+                            {
+                                "name": "album_id",
+                                "type": "category",
+                                "path": "album.id",
+                            },
+                        ],
+                    },
                     "raw": {
                         "type": "completion",
                     },
@@ -110,11 +154,11 @@ def create_index_mapping():
                             },
                         },
                     },
+                    "id": {"type": "keyword"},
                 },
             },
             # Map the album
             "album": {
-                "type": "object",
                 "properties": {
                     # Map the name of the album as both 'text' and 'completion'
                     "name": {
@@ -123,8 +167,21 @@ def create_index_mapping():
                             "raw": {
                                 "type": "completion",
                             },
+                            "raw_with_artist_context": {
+                                "type": "completion",
+                                "contexts": [
+                                    {
+                                        "name": "artist_id",
+                                        "type": "category",
+                                        "path": "artists_ids",
+                                    },
+                                ],
+                            },
                         },
                     },
+                    "id": {"type": "keyword"},
+                    "album_type": {"type": "keyword"},
+                    "release_date": {"type": "date"},
                 },
             },
         },
@@ -165,6 +222,8 @@ for chunk in tqdm.tqdm(
             raise_on_error=False,
             raise_on_exception=False,
         ):  # Adjust thread_count as needed
+            if not "result" in info["index"]:
+                raise Exception(f'{info["index"]}')
             if info["index"]["result"] == "created":
                 success += 1
             elif info["index"]["result"] == "updated":
