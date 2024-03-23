@@ -11,9 +11,8 @@ import { ShowerMusicObjectType, ShowerMusicPlayableMediaContainerType } from "@/
 import { Typography } from "@mui/material";
 import assert from "assert";
 import { useSnackbar } from "notistack";
-import React, { HTMLAttributes, SetStateAction, useEffect, useMemo, useRef, useState } from "react";
+import React, { HTMLAttributes, SetStateAction, useMemo, useState } from "react";
 import ContentLoader, { IContentLoaderProps } from "react-content-loader";
-import ReactDOM from "react-dom";
 
 
 export const TextLoader = (props: React.JSX.IntrinsicAttributes & IContentLoaderProps) => (
@@ -106,7 +105,7 @@ function ModalPage(
             < div className='modal-page-info-container' >
                 <div className='modal-page-sub-info-container' >
                     <div className='modal-cover-art' >
-                        <ArbitraryPlayableMediaImage data={ itemData } />
+                        <ArbitraryPlayableMediaImage data={ itemData } quality={ 100 } />
                     </div>
                     <GenericControlBar
                         objectData={ itemData }

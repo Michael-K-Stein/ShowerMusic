@@ -48,3 +48,9 @@ export async function getArtistAlbums(artistId: ArtistId, options?: ArtistAlbums
     });
     return albums;
 }
+
+export async function commandGetTopArtists(n: number)
+{
+    const r = await safeApiFetcher(`/api/artists/top?n=${n}`);
+    return r as ArtistDict[];
+}

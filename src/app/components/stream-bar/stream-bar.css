@@ -108,6 +108,7 @@
     height: 0.4em;
     border-radius: 10em;
     cursor: pointer;
+    overflow: hidden;
 }
 
 .stream-bar .duration-fill-bar-container .duration-fill-bar

@@ -29,6 +29,7 @@ import { MouseEventHandler, useCallback, useEffect, useState } from "react";
 import ContentLoader, { IContentLoaderProps } from "react-content-loader";
 import './flat-track.css';
 import { StationTrack } from '@/app/shared-api/other/stations';
+import { ShowerMusicImage } from '@/app/components/pages/home-page/user-recently-played';
 
 
 export function GenericGlobalModal(
@@ -296,13 +297,19 @@ export function ArtistList(
     );
 }
 
-export function TrackCoverImage({ track }: { track: TrackDict; })
+export function TrackCoverImage({ track, ...props }: ShowerMusicImage & { track: TrackDict; })
 {
     return (
         <>
             {
                 track.album &&
-                <Image key={ track.album.id } src={ track.album.images[ 0 ].url } alt={ '' } width={ track.album.images[ 0 ].width } height={ track.album.images[ 0 ].height } />
+                <Image
+                    key={ track.album.id }
+                    src={ track.album.images[ 0 ].url }
+                    alt={ props.alt ?? '' }
+                    width={ props.width ?? track.album.images[ 0 ].width }
+                    height={ props.height ?? track.album.images[ 0 ].height }
+                    { ...props } />
             }
         </>
     );
@@ -381,7 +388,7 @@ export function ModalFlatTrack(
                     {
                         noPropIndex ?
                             <div className='mr-2' style={ { borderRadius: '0.3em', overflow: 'hidden' } }>
-                                <TrackCoverImage track={ track } />
+                                <TrackCoverImage track={ track } width={ 64 } height={ 64 } quality={ 50 } />
                             </div>
                             : track.track_number
                     }

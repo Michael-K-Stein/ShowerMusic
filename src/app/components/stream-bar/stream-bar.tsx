@@ -196,7 +196,7 @@ export default function StreamBar()
                     // If there is a track playing, we know that the stream state is "playing"
                     <>
                         <div className="album-cover">
-                            <TrackCoverImage track={ currentlyPlayingTrack } />
+                            <TrackCoverImage track={ currentlyPlayingTrack } quality={ 100 } />
                         </div>
 
                         <TrackGenericInfo track={ currentlyPlayingTrack } />

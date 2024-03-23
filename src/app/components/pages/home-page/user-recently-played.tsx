@@ -24,7 +24,13 @@ import { GenericCoverLoader } from '@/app/components/pages/artist-page/artist-pa
 import { PlaylistImage, StationCoverImage } from '@/app/components/pages/playlist-page/playlist-cover-image';
 import { Station } from '@/app/shared-api/other/stations';
 
-export function ArbitraryPlayableMediaImage({ data }: { data: undefined | ShowerMusicPlayableMediaDict; })
+type ImageType = (typeof Image)[ 'defaultProps' ];
+export type ShowerMusicImage = Partial<ImageType>;
+export type ArbitraryPlayableMediaImageProps = { data: undefined | ShowerMusicPlayableMediaDict; } & ShowerMusicImage;
+
+export function ArbitraryPlayableMediaImage(
+    { data, ...props }: ArbitraryPlayableMediaImageProps
+)
 {
     let imageSrc: string | undefined = undefined;
     switch (data?.type)
@@ -48,7 +54,7 @@ export function ArbitraryPlayableMediaImage({ data }: { data: undefined | Shower
 
     if (imageSrc)
     {
-        return (<Image src={ imageSrc } width={ 640 } height={ 640 } alt={ '' } />);
+        return (<Image src={ imageSrc } width={ props.width ?? 640 } height={ props.height ?? 640 } alt={ props.alt ?? '' }  { ...props } />);
     }
     return (
         <GenericCoverLoader />
@@ -132,7 +138,7 @@ function RecentUserPlayedItem({ item }: { item: UserListenHistoryRecentsMediaIte
     return (
         <div className='played-item' onClick={ onClickHandlerFactory() }>
             <div className='played-item-image'>
-                <ArbitraryPlayableMediaImage data={ itemData } />
+                <ArbitraryPlayableMediaImage data={ itemData } quality={ 40 } width={ 64 } height={ 64 } />
             </div>
             {
                 itemData &&

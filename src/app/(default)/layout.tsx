@@ -1,7 +1,7 @@
 'use client';
 import React, { useMemo, useState } from 'react';
 import { AuthProvider } from '@/app/components/auth-provider';
-import { Snackbar, Theme, ThemeProvider, createTheme } from '@mui/material';
+import { Theme, ThemeProvider, createTheme } from '@mui/material';
 import { SnackbarProvider } from 'notistack';
 import { GlobalPropsProvider } from '@/app/components/providers/global-props/global-props';
 

@@ -20,7 +20,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={ `${inter.className} max-h-screen max-w-screen min-w-screen min-h-screen w-full h-full` } style={ { overflow: 'hidden' } }>
         <div className='absolute min-w-full min-h-screen top-0 left-0 flex content-center justify-center align-center'>
-          <Image src={ 'https://th.bing.com/th/id/OIG.F7sXM_YCdrQug9_M0chn?w=1024&h=1024&rs=1&pid=ImgDetMain' } width={ 1024 } height={ 1024 } alt={ '' } className='min-w-full min-h-full' />
+          <Image src={ '/stream-bg.png' } width={ 1920 } height={ 1080 } alt={ '' } className='min-w-full min-h-full' quality={ 100 } />
         </div>
         <div className='max-h-screen min-h-screen h-screen min-w-screen max-w-screen w-screen relative overflow-hidden flex' style={ { backgroundColor: 'var(--global-background-color)', backdropFilter: 'blur(0px)' } }>
           { children }

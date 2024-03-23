@@ -18,3 +18,9 @@ export async function getAlbumInfo(albumId: AlbumId)
     }
     return clientSideAlbumDataCache[ albumId ];
 };
+
+export async function commandGetTopAlbums(n: number)
+{
+    const r = await safeApiFetcher(`/api/albums/top?n=${n}`);
+    return r as AlbumDict[];
+}
