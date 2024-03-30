@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { DbObjects } from '@/app/server-db-services/db-objects';
+import { getJwtSecret, USER_AUTH_COOKIE_NAME } from '@/app/settings';
 import { JWTUserData } from '@/app/shared-api/user-objects/users';
 import jwt from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
@@ -8,13 +9,9 @@ import { cookies } from 'next/headers';
 export type SSUserId = ObjectId;
 export async function getUser()
 {
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret)
-    {
-        throw new Error("JWT_SECRET environment variable has not been set!");
-    }
+    const jwtSecret = getJwtSecret();
 
-    const authToken = cookies().get('auth');
+    const authToken = cookies().get(USER_AUTH_COOKIE_NAME);
     if (!authToken)
     {
         throw new Error('User must be logged in to use this api!');
@@ -45,13 +42,9 @@ export async function getUser()
 
 export async function getUserId(): Promise<SSUserId>
 {
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret)
-    {
-        throw new Error("JWT_SECRET environment variable has not been set!");
-    }
+    const jwtSecret = getJwtSecret();
 
-    const authToken = cookies().get('auth');
+    const authToken = cookies().get(USER_AUTH_COOKIE_NAME);
     if (!authToken)
     {
         throw new Error('User must be logged in to use this api!');

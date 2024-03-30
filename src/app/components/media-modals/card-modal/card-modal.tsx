@@ -16,6 +16,8 @@ import { useSnackbar } from "notistack";
 import { HtmlHTMLAttributes, KeyboardEvent, MouseEventHandler, useCallback, useMemo, useState } from "react";
 import { gotoAlbumCallbackFactory, gotoArtistCallbackFactory, gotoPlaylistCallbackFactory, gotoStationCallbackFactory } from '../../pages/goto-callback-factory';
 import './card-modal.css';
+import '@/app/globals.css';
+import '@/app/fonts.css';
 import KeyboardNavigation from "@/app/components/keyboard-navigation";
 
 interface CardModalInternalPassthroughProps
@@ -95,7 +97,7 @@ export function CardModalControls(
 
     return (
         <div
-            className='card-modal-controls-parent absolute w-6 h-6 top-2 right-2 flex flex-col'
+            className='card-modal-controls-parent absolute top-2 right-2 flex flex-col'
             onClick={
                 (event) =>
                 {
@@ -243,14 +245,14 @@ export default function CardModal(
         <Tooltip
             title={
                 <div className='flex flex-col items-center justify-center text-ellipsis text-center'>
-                    <Typography>{ ('name' in item) ? item.name : (itemData?.name) }</Typography>
-                    <ArtistList setView={ setView } artists={ (itemData && 'artists' in itemData) ? itemData.artists : [] } classes='flex flex-wrap' />
+                    <Typography fontWeight={ 700 }>{ ('name' in item) ? item.name : (itemData?.name) }</Typography>
+                    <ArtistList setView={ setView } artists={ (itemData && 'artists' in itemData) ? itemData.artists : [] } className='flex flex-wrap' />
                 </div>
             }
             placement='top'>
             <Box>
-                <Typography fontSize={ '1em' }>{ ('name' in item) ? item.name : (itemData?.name) }</Typography>
-                <Typography fontSize={ '0.7em' }>{ (itemData && 'artists' in itemData) ? itemData.artists[ 0 ].name : '' }</Typography>
+                <Typography fontSize={ '1em' } fontWeight={ 700 }>{ ('name' in item) ? item.name : (itemData?.name) }</Typography>
+                <Typography fontSize={ '0.7em' } fontWeight={ 500 }>{ (itemData && 'artists' in itemData) ? itemData.artists[ 0 ].name : '' }</Typography>
             </Box>
         </Tooltip>
     );

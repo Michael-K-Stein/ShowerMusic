@@ -7,7 +7,7 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    font-size: 2.4em;
+    font-size: 3.4em;
 }
 
 .playlist-name[data-user-can-rename=true]

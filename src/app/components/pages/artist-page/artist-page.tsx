@@ -111,7 +111,7 @@ function ArtistSingle({ singleAlbumDict }: { singleAlbumDict: MinimalAlbumDict |
                 </div>
             </div>
             <div className='flex flex-row items-center relative'>
-                <Typography fontWeight={ 700 }>{ singleAlbumDict ? singleAlbumDict.name : <ArtistNameLoader /> }</Typography>
+                <Typography fontWeight={ 800 }>{ singleAlbumDict ? singleAlbumDict.name : <ArtistNameLoader /> }</Typography>
                 <Box sx={ { marginLeft: '1em' } } />
                 <div style={ { fontSize: '0.9em ' } }>
                     <ArtistList artists={ singleAlbumDict ? singleAlbumDict.artists : [] } setView={ setView } />
@@ -163,7 +163,7 @@ function ArtistSingles({ artistData }: { artistData?: ArtistDict; })
 
     return (
         <div className='w-full h-full relative'>
-            <Typography variant={ 'h6' }>Singles</Typography>
+            <Typography variant={ 'h6' } fontWeight={ 800 }>Singles</Typography>
             <div className='artist-singles-container'>
                 <div className='w-full h-full flex flex-col'>
                     { albumItems }
@@ -177,7 +177,7 @@ function ArtistAlbumCoverLoader()
 {
     return (
         <ContentLoader
-            speed={ 1.8 }
+            speed={ 2 }
             height={ '100%' }
             width={ '100%' }
             viewBox="0 0 512 512"
@@ -206,7 +206,7 @@ function ArtistAlbum({ albumData }: { albumData: MinimalAlbumDict | undefined; }
                 { albumImage }
             </div>
             <div style={ { maxHeight: '3em' } }>
-                <Typography variant='h6'>{ albumName }</Typography>
+                <Typography variant='h6' fontWeight={ 800 }>{ albumName }</Typography>
             </div>
         </div>
     );
@@ -294,7 +294,7 @@ export default function ArtistPage({ artistData }: { artistData?: ArtistDict; })
             <div className='artist-page-info-container'>
                 <div className='artist-page-actual-info-container'>
                     <div className='artist-name' style={ { overflowWrap: 'break-word' } }>
-                        <Typography fontSize={ fontSize }>
+                        <Typography fontSize={ fontSize } fontWeight={ 800 }>
                             { artistData ? artistData.name : <ArtistNameLoader /> }
                         </Typography>
                     </div>
@@ -323,7 +323,7 @@ export default function ArtistPage({ artistData }: { artistData?: ArtistDict; })
                     <Box sx={ { position: 'relative', marginTop: '1em', marginBottom: '1em', left: '50%', transform: 'translateX(-50%)', width: '88%', height: '0.15em', backgroundColor: 'rgba(240,240,240,0.15)' } } />
                     <div>
                         <div className='ml-4'>
-                            <Typography variant={ 'h4' }>Appears on</Typography>
+                            <Typography variant={ 'h4' } fontWeight={ 700 }>Appears on</Typography>
                         </div>
                         <div className='artist-page-tracks-container'>
                             <ArtistAlbums artistData={ artistData } albumTypeOptions={ { 'albumTypes': [ 'appears_on' ] } } />

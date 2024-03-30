@@ -118,7 +118,7 @@ function ModalPage(
                     {
                         customTitle ||
                         <div className='modal-name' style={ { overflowWrap: 'break-word' } }>
-                            <Typography fontSize={ fontSize }>
+                            <Typography fontSize={ fontSize } fontWeight={ 900 }>
                                 { itemData.name }
                             </Typography>
                         </div>
@@ -129,7 +129,7 @@ function ModalPage(
                         </div>
                     }
                     { 'release_date' in itemData && <div>
-                        <Typography> Released: { itemData.release_date.toLocaleDateString() } </Typography>
+                        <Typography fontWeight={ 400 }> Released: { itemData.release_date.toLocaleDateString() } </Typography>
                     </div> }
                     { children }
                 </div>

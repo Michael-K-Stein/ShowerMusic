@@ -1,6 +1,7 @@
 /**
  * Return the most popular artists
  */
+export const dynamic = "force-dynamic";
 
 import { ApiSuccess, catchHandler } from "@/app/api/common";
 import databaseController from "@/app/server-db-services/mongo-db-controller";

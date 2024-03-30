@@ -1,5 +1,5 @@
 
-export default function StreamRootLayout({
+export default function LoginRootLayout({
     children,
 }: {
     children: React.ReactNode;

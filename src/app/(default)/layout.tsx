@@ -1,22 +1,37 @@
 'use client';
 import React, { useMemo, useState } from 'react';
-import { AuthProvider } from '@/app/components/auth-provider';
 import { Theme, ThemeProvider, createTheme } from '@mui/material';
 import { SnackbarProvider } from 'notistack';
 import { GlobalPropsProvider } from '@/app/components/providers/global-props/global-props';
+import '@/app/globals.css';
+import '@/app/fonts.css';
 
-export default function StreamRootLayout({
+
+const sfFonts = [
+    "SFPro",
+    "SFProItalic",
+    "SFHebrew",
+    "SFHebrewRounded",
+];
+
+const theme = createTheme({
+    typography: {
+        fontFamily: sfFonts.join(','),
+    },
+});
+
+export default function GlobalProvidersRootLayout({
     children,
 }: {
-    children: React.JSX.Element[] | React.JSX.Element | React.ReactNode | React.ReactNode[];
+    children: React.ReactNode;
 })
 {
     const darkMode = true;
-    const [ currentTheme, setCurrentTheme ] = useState<Theme>();
+    const [ currentTheme, setCurrentTheme ] = useState<Theme>(theme);
     useMemo(() =>
     {
         if (typeof window === 'undefined') { return; }
-        setCurrentTheme(createTheme({
+        setCurrentTheme(createTheme(theme, {
             palette: {
                 mode: darkMode ? 'dark' : 'light',
             },
@@ -26,11 +41,9 @@ export default function StreamRootLayout({
     return (
         <ThemeProvider theme={ currentTheme ?? {} }>
             <GlobalPropsProvider>
-                <AuthProvider>
-                    <SnackbarProvider>
-                        { children }
-                    </SnackbarProvider>
-                </AuthProvider>
+                <SnackbarProvider>
+                    { children }
+                </SnackbarProvider>
             </GlobalPropsProvider>
         </ThemeProvider>
     );

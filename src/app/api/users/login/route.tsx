@@ -7,15 +7,13 @@ import { catchHandler } from '@/app/api/common';
 import { cookies, headers } from 'next/headers';
 import { JWTUserData } from '@/app/shared-api/user-objects/users';
 import { DbObjects } from '@/app/server-db-services/db-objects';
+import { getJwtSecret, USER_AUTH_COOKIE_NAME } from '@/app/settings';
 
-export async function POST(req: NextRequest)
+export async function POST(
+    req: NextRequest
+)
 {
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret)
-    {
-        // Do not throw this error inside the try-catch ! This is a Server-Side only error!
-        throw new Error("JWT_SECRET environment variable has not been set!");
-    }
+    const jwtSecret = getJwtSecret();
 
     try
     {
@@ -34,8 +32,7 @@ export async function POST(req: NextRequest)
         }
 
         const user = await DbObjects.Users.login(username, password);
-        const url = new URL('http://' + headers().get('Host') ?? 'localhost');
-        url.pathname = '/stream';
+        const url = new URL(req.nextUrl.searchParams.get('from') ?? '/stream', req.url);
         let res = NextResponse.redirect(url, 303);
 
         const userJWTData: JWTUserData = {
@@ -50,13 +47,15 @@ export async function POST(req: NextRequest)
         );
 
         // Set the JWT as a cookie
-        cookies().set('auth', token, {
+        cookies().set(USER_AUTH_COOKIE_NAME, token, {
             httpOnly: true,
             secure: process.env.NODE_ENV !== 'development', // Use HTTPS in production
             sameSite: 'strict',
             maxAge: 3600 * 24 * 7, // Change this to the desired session duration in seconds
             path: '/',
         });
+
+        console.log('Login success!');
 
         return res;
     } catch (e)

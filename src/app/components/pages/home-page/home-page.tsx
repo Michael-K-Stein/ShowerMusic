@@ -9,9 +9,9 @@ import UserFavorites from '@/app/components/pages/home-page/user-favorites';
 function HomePageHeader({ userData }: { userData: UserDict | undefined; })
 {
     return (
-        <div className='mt-16 w-full h-full box-border'>
-            <Typography variant='h3'>
-                Welcome back, { userData?.username }
+        <div className='mt-16 ml-4 max-w-full h-full box-border'>
+            <Typography variant='h3' fontWeight={ 700 }>
+                Welcome back{ userData?.username ? `, ${userData?.username}` : '' }
             </Typography>
         </div>
     );

@@ -75,7 +75,12 @@ export function PlaylistImage({ playlistInitData }: { playlistInitData: Playlist
     }, [ playlistData, enqueueSnackbar ]);
 
     let playlistImageContent: React.JSX.Element[] = [ (
-        <Image key={ `playlist-empty-image` } src={ 'https://static.thenounproject.com/png/258896-200.png' } width={ 200 } height={ 200 } alt='' />
+        <Image
+            key={ `playlist-empty-image` }
+            src={ 'https://static.thenounproject.com/png/258896-200.png' }
+            width={ 200 }
+            height={ 200 }
+            alt='' />
     ) ];
 
     if (playlistData && tracksData)
@@ -86,7 +91,15 @@ export function PlaylistImage({ playlistInitData }: { playlistInitData: Playlist
                 // Notice that the tracks may be duplicates
                 // TODO: Filter duplicates!
                 <div className='playlist-image-tile' key={ `div-${index}-${track.id}` }>
-                    <Image key={ `${index}-${track.id}` } src={ track.album.images[ 0 ].url } alt={ '' } width={ track.album.images[ 0 ].width } height={ track.album.images[ 0 ].height } loading='lazy' />
+                    <Image
+                        key={ `${index}-${track.id}` }
+                        src={ track.album.images[ 0 ].url }
+                        alt={ '' }
+                        width={ track.album.images[ 0 ].width * Math.sqrt(1 / tracksData.length) }
+                        height={ track.album.images[ 0 ].height * Math.sqrt(1 / tracksData.length) }
+                        loading='lazy'
+                        quality={ 100 * (Math.sqrt(1 / tracksData.length)) }
+                    />
                 </div>
             );
         });

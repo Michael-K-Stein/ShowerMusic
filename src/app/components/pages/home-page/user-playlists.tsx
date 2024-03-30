@@ -44,9 +44,9 @@ export default function UserPlaylists()
 
     return (
         <div>
-            <Typography variant='h4'>Your playlists</Typography>
+            <Typography variant='h4' fontWeight={ 700 }>Your playlists</Typography>
             { playlistElementItems.length === 0 &&
-                <Typography className='ml-4'>You have yet to create a playlist</Typography> }
+                <Typography fontWeight={ 500 }>You have yet to create a playlist</Typography> }
             <div className="home-page-playlists-container playlists-container">
                 { playlistElementItems }
             </div>

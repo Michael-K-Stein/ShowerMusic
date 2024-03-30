@@ -34,7 +34,7 @@ function UserFavoritesInternal()
 
     return (
         <div>
-            <Typography variant='h4'>Your favorites</Typography>
+            <Typography variant='h4' fontWeight={ 700 }>Your favorites</Typography>
             <div className='flex flex-row items-center flex-wrap'>
                 { items }
             </div>

@@ -1,11 +1,13 @@
 .home-page-scroll-container
 {
+    box-sizing: border-box;
     overflow-y: scroll;
     height: 100%;
 }
 
 .home-page-container
 {
+    box-sizing: border-box;
     padding-top: 3em;
     padding-bottom: 30vh;
 }
@@ -63,9 +65,9 @@
 
 .home-page-recents-container .played-item .played-item-image
 {
-    width: 1.4em;
-    height: 1.4em;
-    margin-right: 0.3em;
+    width: 3em;
+    height: 3em;
+    margin: 0;
     overflow: hidden;
     border-radius: 0.1em;
 }

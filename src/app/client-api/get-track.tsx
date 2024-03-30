@@ -36,3 +36,9 @@ export async function commandGetTrackLyrics(trackId: TrackId)
     const r = await safeApiFetcher(`/api/tracks/${trackId}/lyrics`);
     return r as Lyrics;
 }
+
+export async function commandDoesTrackHaveLyrics(trackId: TrackId)
+{
+    const r = await safeApiFetcher(`/api/tracks/${trackId}/lyrics`, { method: 'OPTIONS' });
+    return r as boolean;
+}

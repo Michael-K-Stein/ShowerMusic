@@ -48,7 +48,7 @@ function Category({ category }: { category: MinimalStationsCategory; })
 
     return (
         <div className='stations-category' ref={ componentRef }>
-            <Typography className='rtl' variant='h4'>{ category.name }</Typography>
+            <Typography className='rtl' variant='h4' fontWeight={ 700 }>{ category.name }</Typography>
             <div className='stations-container'>
                 <div className='w-full max-w-full flex flex-row'>
                     { stations }

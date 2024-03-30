@@ -16,6 +16,7 @@ import { enqueueApiErrorSnackbar } from '@/app/components/providers/global-props
 import RepeatOneGlyph from '@/app/components/glyphs/repeat-one';
 import useSessionMuse from '@/app/components/providers/session-muse';
 import ItemFavoriteGlyph from '@/app/components/other/item-favorite-glyph';
+import { commandDoesTrackHaveLyrics } from '@/app/client-api/get-track';
 
 function LoopControl({ userCanSeek }: { userCanSeek: boolean; })
 {
@@ -81,11 +82,24 @@ export default function StreamBarExtraControls({ track, userCanSeek }: { track?:
 {
     const { setPlayingNextModalHiddenState } = useMediaControls();
     const { setAddToArbitraryModalState, setView } = useSessionState();
+    const [ lyricsAvailable, setLyricsAvailable ] = useState<boolean>(false);
 
     const togglePlayingNextVisiblity = useCallback(() =>
     {
         setPlayingNextModalHiddenState(playingNextModalHiddenState => !playingNextModalHiddenState);
     }, [ setPlayingNextModalHiddenState ]);
+
+    useMemo(() =>
+    {
+        if (!track) { return; }
+        commandDoesTrackHaveLyrics(track.id).then(setLyricsAvailable);
+    }, [ track, setLyricsAvailable ]);
+
+    const gotoLyrics = useCallback(() =>
+    {
+        if (!lyricsAvailable) { return; }
+        setView(ViewportType.Lyrics);
+    }, [ lyricsAvailable, setView ]);
 
     return (
         <div className="absolute top-0 flex flex-row items-center justify-center float-right right-3 mt-3">
@@ -96,7 +110,12 @@ export default function StreamBarExtraControls({ track, userCanSeek }: { track?:
                 className="w-7 h-7 m-1 clickable"
             />
             <LoopControl userCanSeek={ userCanSeek } />
-            <MicroGlyph glyphTitle={ "Lyrics" } className="w-7 h-7 m-1 clickable" onClick={ () => setView(ViewportType.Lyrics) } />
+            <MicroGlyph
+                glyphTitle={ lyricsAvailable ? "Lyrics" : "Lyrics Unavailable" }
+                className="w-7 h-7 m-1 clickable"
+                aria-disabled={ !lyricsAvailable }
+                onClick={ gotoLyrics }
+            />
             <LoungeMusicPlaylistGlyph glyphTitle={ "Playing Next" } className="w-7 h-7 m-1 clickable" onClick={ togglePlayingNextVisiblity } />
         </div>
     );

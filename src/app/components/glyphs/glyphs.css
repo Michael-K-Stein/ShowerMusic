@@ -1,17 +1,23 @@
-.svg-glyph {
-    cursor: pointer;
+.svg-glyph
+{
     width: 100%;
     height: 100%;
     display: inline-block;
     transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
-
 }
 
-.svg-glyph svg {
+:not([aria-disabled=true]) > .svg-glyph
+{
+    cursor: pointer;
+}
+
+.svg-glyph svg
+{
     box-sizing: border-box;
     pointer-events: bounding-box;
 }
 
-.svg-glyph:hover {
+:not([aria-disabled=true]) > .svg-glyph:hover
+{
     transform: scale(1.1);
 }

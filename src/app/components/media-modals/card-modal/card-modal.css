@@ -12,6 +12,10 @@
     overflow: hidden;
     transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
     cursor: pointer;
+}
+
+.card-modal:not(.card-modal[data-static-card=true])
+{
     box-shadow: -1px 1px 4px 1px rgba(27, 30, 41, 0.18);
 }
 

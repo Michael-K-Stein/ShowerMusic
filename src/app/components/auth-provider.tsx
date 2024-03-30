@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 import { UserDict } from '@/app/shared-api/user-objects/users';
 import { safeApiFetcher } from '@/app/client-api/common-utils';
 
-type AuthContextState = {
+export type AuthContextState = {
     userData?: UserDict;
 };
 
@@ -17,7 +17,7 @@ export async function getUserMe()
 };
 
 // Create a provider component for the authentication state
-export const AuthProvider = ({ children }: { children: React.JSX.Element[] | React.JSX.Element | React.ReactNode | React.ReactNode[]; }) =>
+export const AuthProvider = ({ children }: { children: React.ReactNode; }) =>
 {
     const [ isLoggedIn, setIsLoggedIn ] = useState(true);
     const [ userData, setUserData ] = useState<UserDict>();
@@ -40,7 +40,6 @@ export const AuthProvider = ({ children }: { children: React.JSX.Element[] | Rea
             }
         }
 
-        // Replace this with your actual login check
         const checkLogin = async () =>
         {
             const loggedIn = await checkIfUserIsLoggedIn();

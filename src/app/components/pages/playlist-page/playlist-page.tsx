@@ -67,11 +67,12 @@ export function PlaylistTitleContainer(
         if (!userCanRename) { return; }
         setGenericModalData(
             <>
-                <Typography>Renaming { '"' }{ playlistName }{ '"' }</Typography>
+                <Typography fontWeight={ 700 }>Renaming { '"' }{ playlistName }{ '"' }</Typography>
                 <form className='w-full' onSubmit={ playlistRenameSubmitHandler }>
                     <FormControl className='w-full'>
                         <FormGroup row={ true }>
                             <TextField
+                                inputProps={ { className: 'text-white' } }
                                 inputRef={ playlistRenameInputTextField }
                                 id='playlist-rename-input-text-field'
                                 placeholder='New playlist name...'
@@ -111,13 +112,13 @@ export function PlaylistTitleContainer(
     return (
         <>
             <div className='playlist-name' style={ { overflowWrap: 'break-word' } } onClick={ playlistNameClickHandler } data-user-can-rename={ userCanRename }>
-                <Typography fontSize={ 'inherit' } className='playlist-name-text'>{ playlistName }</Typography>
+                <Typography fontSize={ 'inherit' } className='playlist-name-text' fontWeight={ 900 }>{ playlistName }</Typography>
                 { userCanRename && <div className='rename-playlist-glyph'>
                     <RenameGlyph glyphTitle='Rename' />
                 </div> }
             </div>
             <div className='playlist-creator-name'>
-                <Typography>{ playlistCreatorName ?? <ModalNameRectangleLoaderSkeleton /> }</Typography>
+                <Typography fontWeight={ 600 }>{ playlistCreatorName ?? <ModalNameRectangleLoaderSkeleton /> }</Typography>
             </div>
         </>
     );

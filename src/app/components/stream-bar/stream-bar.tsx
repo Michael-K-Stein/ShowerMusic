@@ -1,5 +1,6 @@
 'use client';
 import './stream-bar.css';
+import '@/app/globals.css';
 import React, { useCallback, useMemo, useState } from "react";
 import PauseGlyph from "@/components/glyphs/pause";
 import PlayGlyph from "@/components/glyphs/play";
@@ -144,10 +145,10 @@ export default function StreamBar()
     {
         return (
             <div className="song-info" key={ track.id }>
-                <div className="song-title">{ track.name }</div>
+                <Typography fontSize='xx-large' fontWeight={ 900 }>{ track.name }</Typography>
                 <div className="song-artists"><ArtistList artists={ track.artists } setView={ setView } /></div>
-                <div className="song-album" onClick={ gotoAlbumCallbackFactory(setView, track.album.id) } >{ track.album.name }</div>
-            </div>
+                <Typography fontSize={ 'larger' } fontWeight={ 700 } className='clickable' onClick={ gotoAlbumCallbackFactory(setView, track.album.id) }>{ track.album.name }</Typography>
+            </div >
         );
     }, [ setView ]);
 
@@ -162,11 +163,6 @@ export default function StreamBar()
                         // If there is a track playing, we know that the stream state is "playing"
 
                         <>
-                            <div className="album-cover">
-                                {/* <Image src={currentlyPlayingTrack.album.images[0].url} alt={''} width={2048} height={2048} /> */ }
-                            </div>
-
-
                             <div className="duration-fill-bar-container">
                                 <div
                                     id="stream-bar-track-duration-fill-bar"

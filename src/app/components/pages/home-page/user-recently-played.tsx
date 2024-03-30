@@ -5,11 +5,11 @@ import { getPlaylist } from '@/app/client-api/get-playlist';
 import { getTrackInfo } from '@/app/client-api/get-track';
 import { commandGetStation } from '@/app/client-api/stations/get-station-specific';
 import { gotoArbitraryPlayableMediaPageCallbackFactory } from '@/app/components/media-modals/card-modal/card-modal';
-import { enqueueApiErrorSnackbar } from '@/app/components/providers/global-props/global-modals';
+import { ArtistList, enqueueApiErrorSnackbar } from '@/app/components/providers/global-props/global-modals';
 import { useSessionState } from '@/app/components/providers/session/session';
 import useUserSession from '@/app/components/providers/user-provider/user-session';
 import { AlbumDict } from '@/app/shared-api/media-objects/albums';
-import { ArtistDict } from '@/app/shared-api/media-objects/artists';
+import { ArtistDict, MinimalArtistDict } from '@/app/shared-api/media-objects/artists';
 import { TrackDict } from '@/app/shared-api/media-objects/tracks';
 import { ShowerMusicPlayableMediaDict } from '@/app/shared-api/other/common';
 import Playlist from '@/app/shared-api/other/playlist';
@@ -18,11 +18,13 @@ import { ShowerMusicObjectType, ShowerMusicPlayableMediaType } from '@/app/showe
 import { Typography } from '@mui/material';
 import Image from 'next/image';
 import { EnqueueSnackbar, useSnackbar } from 'notistack';
-import { MouseEventHandler, useCallback, useMemo, useState } from 'react';
+import { MouseEventHandler, Suspense, useCallback, useMemo, useState } from 'react';
 import './home-page-playlists.css';
 import { GenericCoverLoader } from '@/app/components/pages/artist-page/artist-page';
 import { PlaylistImage, StationCoverImage } from '@/app/components/pages/playlist-page/playlist-cover-image';
 import { Station } from '@/app/shared-api/other/stations';
+import PlayGlyph from '@/app/components/glyphs/play';
+import { playArbitraryClickHandlerFactory } from '@/app/components/providers/global-props/arbitrary-click-handler-factories';
 
 type ImageType = (typeof Image)[ 'defaultProps' ];
 export type ShowerMusicImage = Partial<ImageType>;
@@ -32,6 +34,7 @@ export function ArbitraryPlayableMediaImage(
     { data, ...props }: ArbitraryPlayableMediaImageProps
 )
 {
+    const [ loadingComplete, setLoadingComplete ] = useState<boolean>(false);
     let imageSrc: string | undefined = undefined;
     switch (data?.type)
     {
@@ -54,7 +57,20 @@ export function ArbitraryPlayableMediaImage(
 
     if (imageSrc)
     {
-        return (<Image src={ imageSrc } width={ props.width ?? 640 } height={ props.height ?? 640 } alt={ props.alt ?? '' }  { ...props } />);
+        return (
+            <Suspense fallback={ <GenericCoverLoader /> }>
+                <Image
+                    src={ imageSrc }
+                    width={ props.width ?? 640 }
+                    height={ props.height ?? 640 }
+                    alt={ props.alt ?? '' }
+                    onLoadingComplete={ () => setLoadingComplete(true) }
+                    style={ { opacity: loadingComplete ? 1 : 0, position: loadingComplete ? undefined : 'absolute' } }
+                    { ...props }
+                />
+                { loadingComplete || <GenericCoverLoader /> }
+            </Suspense>
+        );
     }
     return (
         <GenericCoverLoader />
@@ -122,7 +138,7 @@ export async function resolveArbitraryPlayableMedia(
 function RecentUserPlayedItem({ item }: { item: UserListenHistoryRecentsMediaItem; })
 {
     const { enqueueSnackbar } = useSnackbar();
-    const { setView } = useSessionState();
+    const { setView, setStream } = useSessionState();
     const [ itemData, setItemData ] = useState<undefined | ShowerMusicPlayableMediaDict>();
 
     useMemo(() =>
@@ -136,17 +152,27 @@ function RecentUserPlayedItem({ item }: { item: UserListenHistoryRecentsMediaIte
     }, [ item, itemData, setView ]);
 
     return (
-        <div className='played-item' onClick={ onClickHandlerFactory() }>
-            <div className='played-item-image'>
-                <ArbitraryPlayableMediaImage data={ itemData } quality={ 40 } width={ 64 } height={ 64 } />
+        <div className='group played-item relative overflow-hidden' onClick={ onClickHandlerFactory() }>
+            <div className='played-item-image absolute top-0 left-0'>
+                <PlayGlyph
+                    onClick={ (e) => { e.stopPropagation(); e.preventDefault(); playArbitraryClickHandlerFactory(itemData as ShowerMusicPlayableMediaDict, item.type, setStream, enqueueSnackbar)(); } }
+                    glyphTitle='Play'
+                    className='absolute box-border p-4 opacity-45 group-hover:opacity-95' />
+                <ArbitraryPlayableMediaImage data={ itemData } quality={ 40 } width={ 128 } height={ 128 } className='w-full h-full' />
             </div>
-            {
-                itemData &&
-                <Typography fontSize={ '1em' }>{ itemData.name }</Typography> ||
-                <Typography fontSize={ '1em' }>{ item.id }</Typography>
-            }
+            <div className='m-0 ml-[3em] p-0'>
+                {
+                    itemData &&
+                    <Typography fontSize={ '1em' } fontWeight={ 700 }>{ itemData.name }</Typography> ||
+                    <Typography fontSize={ '1em' }>{ item.id }</Typography>
+                }
+                {
+                    (itemData && 'artists' in itemData) &&
+                    <ArtistList artists={ (itemData as { artists: MinimalArtistDict[]; }).artists } setView={ setView } className='text-sm p-0 m-1 mx-0 pb-1 -mt-1' />
+                }
+            </div>
             <div className='played-item-type'>
-                <Typography fontSize={ '0.6em' }>{ item.type }</Typography>
+                <Typography fontSize={ '0.6em' } fontWeight={ 300 }>{ item.type }</Typography>
             </div>
         </div>
     );

@@ -25,7 +25,16 @@ export enum ViewportType
 function isModalView(view: ViewportType | undefined): boolean
 {
     if (view === undefined) { return false; }
-    return view in [ ViewportType.Album, ViewportType.Artist, ViewportType.Station, ViewportType.Playlist ];
+    switch (view)
+    {
+        case ViewportType.Album:
+        case ViewportType.Artist:
+        case ViewportType.Station:
+        case ViewportType.Playlist:
+            return true;
+        default:
+            return false;
+    }
 }
 
 export enum StreamStateType
@@ -114,6 +123,44 @@ export const SessionStateContext = createContext<SessionStateType>({
     requiresSyncOperations: () => false,
 });
 
+export function buildUrlForState({
+    newViewMediaId,
+    newViewportType,
+    newStreamMediaId,
+    newStreamStateType,
+}: {
+    newViewMediaId?: MediaId,
+    newViewportType?: ViewportType,
+    newStreamMediaId?: MediaId,
+    newStreamStateType?: StreamStateType;
+})
+{
+    if (typeof (window) === 'undefined') { return; }
+
+    const url = new URL(window.location.toString());
+
+    if (newViewMediaId !== undefined)
+    {
+        url.searchParams.set('viewMediaId', JSON.stringify(newViewMediaId));
+    }
+
+    if (newViewportType !== undefined)
+    {
+        url.searchParams.set('viewportType', JSON.stringify(newViewportType));
+    }
+
+    if (newStreamMediaId !== undefined)
+    {
+        url.searchParams.set('streamMediaId', JSON.stringify(newStreamMediaId));
+    }
+
+    if (newStreamStateType !== undefined)
+    {
+        url.searchParams.set('streamStateType', JSON.stringify(newStreamStateType));
+    }
+    return url;
+}
+
 // Create a provider component for the stream state
 export const SessionStateProvider = ({ children }: { children: React.JSX.Element[] | React.JSX.Element; }) =>
 {
@@ -152,34 +199,14 @@ export const SessionStateProvider = ({ children }: { children: React.JSX.Element
         }
     ) =>
     {
-        if (typeof (window) === 'undefined') { return; }
-
-        const url = new URL(window.location.toString());
-        // url.searchParams.forEach((v, k, p) =>
-        // {
-        //     p.delete(k, v);
-        // });
-
-        if (newViewMediaId !== undefined)
-        {
-            url.searchParams.set('viewMediaId', JSON.stringify(newViewMediaId));
-        }
-
-        if (newViewportType !== undefined)
-        {
-            url.searchParams.set('viewportType', JSON.stringify(newViewportType));
-        }
-
-        if (newStreamMediaId !== undefined)
-        {
-            url.searchParams.set('streamMediaId', JSON.stringify(newStreamMediaId));
-        }
-
-        if (newStreamStateType !== undefined)
-        {
-            url.searchParams.set('streamStateType', JSON.stringify(newStreamStateType));
-        }
-
+        const url = buildUrlForState(
+            {
+                newViewMediaId,
+                newViewportType,
+                newStreamMediaId,
+                newStreamStateType,
+            }
+        );
         const state: PoppedState = {
             viewMediaId: newViewMediaId,
             viewportType: newViewportType,
@@ -227,7 +254,6 @@ export const SessionStateProvider = ({ children }: { children: React.JSX.Element
         while (poppedView === undefined)
         {
             const view = viewStack.current.pop();
-            console.log(`Popped: `, view);
             if (view === undefined) { break; }
             if (isModalView(view.viewportType)) { continue; }
             poppedView = view;
@@ -271,7 +297,8 @@ export const SessionStateProvider = ({ children }: { children: React.JSX.Element
         if (typeof (window) === 'undefined') { return () => { }; }
         popStateHandlers.current.push(handler);
         return () =>
-        { // Return a cleanup function to remove the handler
+        {
+            // Return a cleanup function to remove the handler
             popStateHandlers.current = popStateHandlers.current.filter(h => h !== handler);
         };
     }, []);

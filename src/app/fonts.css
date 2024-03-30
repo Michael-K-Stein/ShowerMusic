@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base
+{
+    @font-face
+    {
+        font-family: 'SFHebrewRounded';
+        src: url('/fonts/SF-Hebrew-Rounded.ttf');
+    }
+
+    @font-face
+    {
+        font-family: 'SFHebrew';
+        src: url('/fonts/SF-Hebrew.ttf');
+    }
+
+    @font-face
+    {
+        font-family: 'SFProItalic';
+        src: url('/fonts/SF-Pro-Italic.ttf');
+    }
+
+    @font-face
+    {
+        font-family: 'SFPro';
+        src: url('/fonts/SF-Pro.ttf');
+    }
+}

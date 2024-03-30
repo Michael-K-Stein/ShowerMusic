@@ -1,0 +1,11 @@
+/**
+ * CSS for the layout of all pages under the "stream" URI forest
+*/
+
+.stream-layout
+{
+    box-sizing: border-box;
+    width: 100%;
+    display: grid;
+    grid-template-columns: var(--page-toolbar-width) calc(100% - var(--page-toolbar-width));
+}

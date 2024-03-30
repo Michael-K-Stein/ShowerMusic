@@ -125,7 +125,7 @@ function PlayingNextTrack({ queuedTrack, trackData, userCanSeek, userCanRemove }
                     <Typography fontSize={ '1.1em' } fontWeight={ 700 }>{ track.name }</Typography>
                     <Box sx={ { width: '0.3em' } } /> ─ <Box sx={ { width: '0.3em' } } />
                     <div className='clickable' onClick={ gotoAlbumCallbackFactory(setView, track.album.id) }>
-                        <Typography fontSize={ '1em' } fontWeight={ 400 }>{ track.album.name }</Typography>
+                        <Typography fontSize={ '1em' } fontWeight={ 500 }>{ track.album.name }</Typography>
                     </div>
                 </div>
                 <div style={ { fontSize: '0.9em ' } } className='max-w-full'>
@@ -326,7 +326,7 @@ export default function PlayingNext()
             id="playing-next-parent-container">
             <div className='flex flex-col items-center justify-center w-full pt-2'>
                 <div className='relative w-full flex flex-row items-center justify-center'>
-                    <Typography fontSize={ 'x-large' }>{ playingNextTitle }</Typography>
+                    <Typography fontSize={ 'x-large' } fontWeight={ 800 }>{ playingNextTitle }</Typography>
                     <div className='absolute right-2 flex flex-row'>
                         <SaveAsGlyph glyphTitle='Save as playlist' className='w-5 h-5 m-1' onClick={ saveQueueAsPlaylist } />
                         <EraseGlyph glyphTitle='Clear queue' className='w-5 h-5 m-1' onClick={ clearQueue } />

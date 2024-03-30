@@ -38,19 +38,6 @@
     cursor: default;
 }
 
-.stream-bar .song-info .song-title
-{
-    font-size: xx-large;
-    font-weight: 900;
-}
-
-.stream-bar .song-info .song-album
-{
-    font-size: larger;
-    cursor: pointer;
-    font-weight: 700;
-}
-
 .stream-bar .song-info .song-artists
 {
     display: flex;

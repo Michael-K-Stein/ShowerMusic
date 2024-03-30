@@ -25,11 +25,12 @@ import { Box, Modal, Typography } from "@mui/material";
 import assert from "assert";
 import Image from 'next/image';
 import { EnqueueSnackbar, OptionsObject, VariantType, useSnackbar } from "notistack";
-import { MouseEventHandler, useCallback, useEffect, useState } from "react";
+import React, { MouseEventHandler, useCallback, useEffect, useState } from "react";
 import ContentLoader, { IContentLoaderProps } from "react-content-loader";
 import './flat-track.css';
 import { StationTrack } from '@/app/shared-api/other/stations';
 import { ShowerMusicImage } from '@/app/components/pages/home-page/user-recently-played';
+import { shareItemClickHandlerFactory } from '@/app/components/other/share';
 
 
 export function GenericGlobalModal(
@@ -117,10 +118,10 @@ export function enqueueApiErrorSnackbar(enqueueSnackbar: EnqueueSnackbar | undef
         return enqueueSnackbarWithSubtext(
             enqueueSnackbar, mainText,
             <>
-                <Typography fontSize={ 'inherit' }>{ error.name }{ error.message ? ': ' : '' }</Typography><Typography fontSize={ 'inherit' }>{ error.message }</Typography>
+                <Typography fontSize={ 'inherit' } fontWeight={ 500 }>{ error.name }{ error.message ? ': ' : '' }</Typography><Typography fontSize={ 'inherit' } fontWeight={ 400 }>{ error.message }</Typography>
                 {
                     error.status &&
-                    <Typography fontSize={ 'inherit' }>{ error.status }</Typography>
+                    <Typography fontSize={ 'inherit' } fontWeight={ 400 }>{ error.status }</Typography>
                 }
             </>,
             { variant: 'error' }
@@ -252,7 +253,7 @@ export function GenericControlBar({ ...props }: GenericControlBarProps)
                 itemType={ props.objectType }
                 glyphTitle={ props.favoritePrompt }
                 className='w-10 h-10 m-1 clickable' />
-            <ShareGlyph glyphTitle={ 'Share' } className='w-10 h-10 m-1' />
+            <ShareGlyph glyphTitle={ 'Share' } className='w-10 h-10 m-1' onClick={ props.objectData ? shareItemClickHandlerFactory(props.objectData, props.objectType) : () => { } } />
         </div>
     );
 }
@@ -274,17 +275,17 @@ const ModalFlatTrackLoaderSkeleton = (props: React.JSX.IntrinsicAttributes & ICo
 
 export function ArtistList(
     {
-        artists, classes, setView
-    }: {
-        artists: MinimalArtistDict[], classes?: string, setView: SetView;
+        artists, setView, ...props
+    }: React.HTMLAttributes<HTMLDivElement> & {
+        artists: MinimalArtistDict[], setView: SetView;
     }
 )
 {
     const artistsList = artists.map((artist, index) =>
     {
         return (
-            <div key={ artist.id } onClick={ gotoArtistCallbackFactory(setView, artist.id) } className={ `${classes ?? ''} song-artist-name${((index != artists.length - 1) ? ' mr-2' : '')}` }>
-                <Typography variant={ 'inherit' } style={ { whiteSpace: 'nowrap' } }>{ artist.name }{ (index != artists.length - 1) ? ', ' : '' }</Typography>
+            <div key={ artist.id } onClick={ gotoArtistCallbackFactory(setView, artist.id) } className={ `${props.className ?? ''} song-artist-name${((index != artists.length - 1) ? ' mr-[0.5em]' : '')}` }>
+                <Typography variant={ 'inherit' } fontWeight={ 700 } style={ { whiteSpace: 'nowrap' } }>{ artist.name }{ (index != artists.length - 1) ? ', ' : '' }</Typography>
             </div>
         );
     });
@@ -401,7 +402,7 @@ export function ModalFlatTrack(
                 <div className='modal-flat-track-controls'>
                     <SuperMiniTrackControls track={ track } />
                 </div>
-                <Typography fontSize={ '1.1em' } fontWeight={ 700 }>{ track.name }</Typography>
+                <Typography fontSize={ '1.1em' } fontWeight={ 800 }>{ track.name }</Typography>
                 <Box sx={ { width: '0.3em' } } /> ─ <Box sx={ { width: '0.3em' } } />
                 <div style={ { fontSize: '0.9em ' } }>
                     <ArtistList artists={ track.artists } setView={ setView } />
