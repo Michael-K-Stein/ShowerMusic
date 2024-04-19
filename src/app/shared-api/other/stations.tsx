@@ -41,7 +41,12 @@ export interface PrivateStation extends Station
     // Properties specific to Private Stations...
 }
 export type PrivateStationOnlyProperties = Pick<PrivateStation, Exclude<keyof PrivateStation, keyof Playlist>>;
-
+export interface StationParticipant
+{
+    userId: SSUserId;
+    isAdmin: boolean;
+    isCreator: boolean;
+}
 export type CategoryId = MediaId;
 export interface MinimalStationsCategory extends ShowerMusicObject
 {
@@ -65,7 +70,7 @@ export interface UserStationAccess
     view: boolean; // Can the user view (listen to) the station
     player: boolean; // Seek / Skip track
     tracks: boolean; // Add / remove tracks
-    metadata: boolean; // Rename
+    metadata: boolean; // Rename & Invite users
     delete: boolean;
 }
 

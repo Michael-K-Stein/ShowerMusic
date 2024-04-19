@@ -235,6 +235,7 @@ export default function SongSearchBar()
                                     spellCheck={ true }
                                     autoCorrect='on'
                                     list='search-bar-completions'
+                                    accessKey='/'
                                 />
                                 <datalist id="search-bar-completions">
                                     { searchBarNativeCompletionOptions }

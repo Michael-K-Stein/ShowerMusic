@@ -40,13 +40,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode; }) =>
             }
         }
 
-        const checkLogin = async () =>
-        {
-            const loggedIn = await checkIfUserIsLoggedIn();
-            setIsLoggedIn(loggedIn);
-        };
-
-        checkLogin();
+        checkIfUserIsLoggedIn().then(setIsLoggedIn);
     }, [ setUserData ]);
 
     // Redirect the user to /login if they are not logged in

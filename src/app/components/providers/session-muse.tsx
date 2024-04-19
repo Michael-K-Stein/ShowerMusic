@@ -208,12 +208,12 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
         };
     }, [ preloadTrackId ]);
 
-    const updatePlayingSongEnded = useCallback(() =>
+    const updatePlayingSongEnded = useCallback((userRequestedSkip: boolean = false) =>
     {
         setMuseLoadingState(true);
         if (requiresSyncOperations())
         {
-            commandPopTrackFromQueue(streamMediaId)
+            commandPopTrackFromQueue(streamMediaId, userRequestedSkip)
                 .catch((e: any) =>
                 {
                     enqueueApiErrorSnackbar(enqueueSnackbar, `Error synchronizing with station!`, e);
@@ -273,7 +273,7 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
         if (!_Muse.current) { return; }
         _Muse.current.ontimeupdate = museTimeUpdate;
         _Muse.current.ondurationchange = updatePlayingSongTimeFillBar;
-        _Muse.current.onended = updatePlayingSongEnded;
+        _Muse.current.onended = () => updatePlayingSongEnded();
         _Muse.current.oncanplay = () => { trackPlayingReady(); };
     }, [ setMuseLoadingState, setCurrentlyPlayingTrackId, preloadNextTrack, trackPlayingReady, updatePlayingSongEnded ]);
 
@@ -313,7 +313,7 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
 
     const skipTrack = useCallback(() =>
     {
-        updatePlayingSongEnded();
+        updatePlayingSongEnded(true);
     }, [ updatePlayingSongEnded ]);
 
     const seekTimeRef = useRef<number | undefined>(undefined);

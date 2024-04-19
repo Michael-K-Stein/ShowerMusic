@@ -2,6 +2,7 @@ import { safeApiFetcher } from "@/app/client-api/common-utils";
 import { MediaId } from "@/app/shared-api/media-objects/media-id";
 import { ShowerMusicObjectType } from "@/app/shared-api/other/common";
 import Playlist, { MinimalPlaylist, NewPlaylistInitOptions, PlaylistId } from "@/app/shared-api/other/playlist";
+import { PrivateStation } from "@/app/shared-api/other/stations";
 import { UserId } from "@/app/shared-api/user-objects/users";
 
 
@@ -42,4 +43,11 @@ export async function commandRenamePlaylist(playlistId: PlaylistId, newName: str
             'newName': newName,
         })
     });
+}
+
+export async function commandConvertPlaylistToStation(playlistId: PlaylistId)
+{
+    return (await safeApiFetcher(`/api/playlists/${playlistId}/convert`, {
+        method: 'POST',
+    })) as PrivateStation;
 }

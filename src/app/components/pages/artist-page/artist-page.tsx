@@ -1,11 +1,11 @@
 'use client';
 import './artist-page.css';
 import { ArtistAlbumsSearchOptions, ArtistDict, ArtistId } from '@/app/shared-api/media-objects/artists';
-import { StreamStateType, useSessionState } from '@/app/components/providers/session/session';
+import { useSessionState } from '@/app/components/providers/session/session';
 import { useSnackbar } from 'notistack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArtistList, GenericControlBar, ModalPageToolbar, enqueueApiErrorSnackbar, enqueueSnackbarWithSubtext } from '@/app/components/providers/global-props/global-modals';
-import { commandPlayerSetCurrentlyPlayingTrack, commandPlayerSkipCurrentTrack } from '@/app/client-api/player';
+import { ArtistList, GenericControlBar, enqueueApiErrorSnackbar, enqueueSnackbarWithSubtext } from '@/app/components/providers/global-props/global-modals';
+import { commandPlayerSetCurrentlyPlayingTrack } from '@/app/client-api/player';
 import { getArtistAlbums, getArtistInfo } from '@/app/client-api/get-artist';
 import PlayGlyph from '@/app/components/glyphs/play';
 import { Box, Typography } from '@mui/material';
@@ -17,7 +17,6 @@ import { AlbumDict, MinimalAlbumDict } from '@/app/shared-api/media-objects/albu
 import { gotoAlbumCallbackFactory } from '../goto-callback-factory';
 import { getAlbumInfo } from '@/app/client-api/get-album';
 import SuperMiniTrackControls from '@/app/components/pages/super-mini-track-controls';
-import { commandAnyAddArbitrary, commandAnySetArbitrary } from '@/app/client-api/common-utils';
 import { ShowerMusicObjectType } from '@/app/settings';
 import { spotifileDownloadArtist } from '@/app/spotifile-utils/spotifile';
 import { ModalPageBase } from '@/app/components/pages/modal-page/modal-page';

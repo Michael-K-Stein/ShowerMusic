@@ -1,4 +1,5 @@
-import { SetView, ViewportType } from "@/app/components/providers/session/session";
+import { SetView } from "@/app/components/providers/session/session";
+import { ViewportType } from "@/app/shared-api/other/common";
 import { AlbumId } from "@/app/shared-api/media-objects/albums";
 import { ArtistId } from "@/app/shared-api/media-objects/artists";
 import { ShowerMusicObjectType, ShowerMusicPlayableMediaDict } from "@/app/shared-api/other/common";

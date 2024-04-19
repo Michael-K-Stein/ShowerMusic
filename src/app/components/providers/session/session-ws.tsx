@@ -5,7 +5,7 @@ import { UserId } from "@/app/shared-api/user-objects/users";
 import assert from "assert";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef } from "react";
 
-export type MessageHandlerType = (messageType: MessageTypes, data: any) => void;
+export type MessageHandlerType = (messageType: MessageTypes, messageTarget: string, data: any) => void;
 const MessageHandlerContext = createContext<MessageHandlerType>(() => { });
 export default function useSessionWebSocketContext(
     setUserId: React.Dispatch<React.SetStateAction<UserId>>
@@ -28,10 +28,10 @@ export default function useSessionWebSocketContext(
     const webSocketMessageHandler = useCallback((ev: MessageEvent<any>) =>
     {
         const data = JSON.parse(ev.data);
-        const messageType: MessageTypes = data[ 'type' ];
-        console.log(`[WS] Message type: ${messageType}`);
+        const { type, target }: { type: MessageTypes, target: string; } = data;
+        console.log(`[WS] Message type: ${type}`);
 
-        if (messageType === MessageTypes.COMBO)
+        if (type === MessageTypes.COMBO)
         {
             console.log(data);
             const comboData: MessageTypes[] = data[ COMBO_DATA_KEY ];
@@ -40,14 +40,14 @@ export default function useSessionWebSocketContext(
                 handler =>
                     comboData.forEach(
                         comboDataMessageType =>
-                            handler(comboDataMessageType, data)
+                            handler(comboDataMessageType, target, data)
                     )
             );
         }
         else
         {
             // Call all registered message handlers
-            messageHandlers.current.forEach(handler => handler(messageType, data));
+            messageHandlers.current.forEach(handler => handler(type, target, data));
         }
     }, []);
 
@@ -87,16 +87,21 @@ export default function useSessionWebSocketContext(
 
         ws.current.onmessage = (ev: MessageEvent<any>) => webSocketMessageHandler(ev);
 
-        const loadUserData = async () =>
-        {
-            const me = await getUserMe();
-            setUserId(getClientSideObjectId(me));
+        getUserMe()
+            .then((me) =>
+            {
+                setUserId(getClientSideObjectId(me));
 
-            if (!ws.current) { return; }
-            waitForSocketConnection(ws.current, () => { registerCurrentSession(me._id.toString()); });
-        };
+                if (!ws.current) { return; }
+                waitForSocketConnection(
+                    ws.current,
+                    () =>
+                    {
+                        registerCurrentSession(getClientSideObjectId(me));
+                    }
+                );
+            });
 
-        loadUserData();
     }, [ registerCurrentSession, waitForSocketConnection, webSocketMessageHandler, setUserId ]);
 
     useMemo(() =>

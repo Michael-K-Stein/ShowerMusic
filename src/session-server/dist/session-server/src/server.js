@@ -40,8 +40,11 @@ var registerSyncObjectConnection = function (ws, syncObjectId) {
     }
     registeredSyncObjectConnections[syncObjectId].push(ws);
 };
-var buildMessage = function (messageType, data) {
-    var result = { 'type': messageType };
+var buildMessage = function (messageType, target, data) {
+    var result = {
+        'type': messageType,
+        'target': target,
+    };
     if (messageType === common_1.MessageTypes.COMBO) {
         (0, assert_1.default)(data !== undefined);
         result[common_1.COMBO_DATA_KEY] = data[common_1.COMBO_DATA_KEY];
@@ -51,7 +54,8 @@ var buildMessage = function (messageType, data) {
 };
 var dispatchMessageToUser = function (messageType, userId, data) {
     if (connectedUsers[userId] != null) {
-        connectedUsers[userId].send(buildMessage(messageType, data));
+        console.log("Sending ".concat(messageType, " to user ").concat(userId));
+        connectedUsers[userId].send(buildMessage(messageType, userId, data));
     }
 };
 var dispatchToSyncObjectListeners = function (messageType, syncObjectId, data) {
@@ -59,8 +63,9 @@ var dispatchToSyncObjectListeners = function (messageType, syncObjectId, data) {
         console.log("Dispatch was requested on an object with no listeners!");
         return;
     }
-    var message = buildMessage(messageType, data);
+    var message = buildMessage(messageType, syncObjectId, data);
     registeredSyncObjectConnections[syncObjectId].map(function (listenerWS) {
+        console.log("Sending ".concat(messageType, " to sync-sock ").concat(listenerWS));
         listenerWS.send(message);
     });
 };

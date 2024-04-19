@@ -1,6 +1,6 @@
 import './home-page.css';
 import { UserDict } from '@/app/shared-api/user-objects/users';
-import { Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import UserPlaylists from '@/app/components/pages/home-page/user-playlists';
 import UserRecentlyPlayed from '@/app/components/pages/home-page/user-recently-played';
 import useUserSession from '@/app/components/providers/user-provider/user-session';
@@ -27,8 +27,11 @@ export default function HomePageLoader()
                 <HomePageHeader userData={ userData } />
                 <UserRecentlyPlayed />
                 <div className='box-border p-2 m-2'>
-                    <UserPlaylists />
-                    <UserFavorites />
+                    <div className='flex row items-start justify-start'>
+                        <UserFavorites />
+                        <Box sx={ { width: '1em', marginX: '1em' } } />
+                        <UserPlaylists />
+                    </div>
                 </div>
             </div>
         </div>

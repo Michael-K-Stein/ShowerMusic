@@ -1,6 +1,6 @@
 'use client';
-import React, { useMemo, useState } from 'react';
-import { Theme, ThemeProvider, createTheme } from '@mui/material';
+import React, { } from 'react';
+import { ThemeProvider, createTheme } from '@mui/material';
 import { SnackbarProvider } from 'notistack';
 import { GlobalPropsProvider } from '@/app/components/providers/global-props/global-props';
 import '@/app/globals.css';
@@ -18,6 +18,9 @@ const theme = createTheme({
     typography: {
         fontFamily: sfFonts.join(','),
     },
+    palette: {
+        mode: 'dark',
+    }
 });
 
 export default function GlobalProvidersRootLayout({
@@ -26,20 +29,8 @@ export default function GlobalProvidersRootLayout({
     children: React.ReactNode;
 })
 {
-    const darkMode = true;
-    const [ currentTheme, setCurrentTheme ] = useState<Theme>(theme);
-    useMemo(() =>
-    {
-        if (typeof window === 'undefined') { return; }
-        setCurrentTheme(createTheme(theme, {
-            palette: {
-                mode: darkMode ? 'dark' : 'light',
-            },
-        }));
-    }, [ darkMode ]);
-
     return (
-        <ThemeProvider theme={ currentTheme ?? {} }>
+        <ThemeProvider theme={ theme }>
             <GlobalPropsProvider>
                 <SnackbarProvider>
                     { children }

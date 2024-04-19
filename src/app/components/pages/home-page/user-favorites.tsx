@@ -42,10 +42,10 @@ function UserFavoritesInternal()
     );
 }
 
-export default function UserFavorites()
+export default function UserFavorites({ className, ...props }: React.HTMLAttributes<HTMLDivElement>)
 {
     return (
-        <div className="user-favorites-container-wrapper">
+        <div className={ `user-favorites-container-wrapper ${className}` } { ...props }>
             <UserFavoritesInternal />
         </div>
     );

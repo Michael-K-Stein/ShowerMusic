@@ -30,7 +30,7 @@ export default async function deletePlaylist(userId: SSUserId, playlistId: Playl
         _id: new ObjectId(playlistId),
         id: playlistId,
         creator: userId,
-        type: ShowerMusicObjectType.Playlist,
+        // type: ShowerMusicObjectType.Playlist,
     });
     if (!deleteResults.acknowledged || deleteResults.deletedCount !== 1)
     {
@@ -86,7 +86,7 @@ export default async function deletePlaylist(userId: SSUserId, playlistId: Playl
     // Let's find these bastards
     const usersWithPlaylistSavedAsFavorite = await databaseController.getUsers<UserExtendedDict>().find({
         'favorites.items.id': playlistId,
-        'favorites.items.type': ShowerMusicObjectType.Playlist
+        // 'favorites.items.type': ShowerMusicObjectType.Playlist
     }, {
         projection: {
             '_id': 1,
@@ -107,12 +107,12 @@ export default async function deletePlaylist(userId: SSUserId, playlistId: Playl
         // I know that this can theoretically lead to false positives if a user has a playlist in their favorites,
         //  and they have an album with the same ID as the playlist. This really shouldn't happen.
         // If it does happen, however, I do not give a shit. - And the $pull later should be able to handle that correctly :)
-        'favorites.items.type': ShowerMusicObjectType.Playlist
+        // 'favorites.items.type': ShowerMusicObjectType.Playlist
     }, {
         $pull: {
             'favorites.items': {
                 id: playlistId,
-                type: ShowerMusicObjectType.Playlist
+                // type: ShowerMusicObjectType.Playlist
             }
         }
     });

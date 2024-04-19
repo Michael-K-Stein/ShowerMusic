@@ -7,7 +7,8 @@ export async function getPlaylistInfo(playlistId: PlaylistId)
 {
     const data = await databaseController.playlists.findOne({
         id: playlistId,
-        type: ShowerMusicObjectType.Playlist,
+        // Strict type checking here messes with stations
+        // type: ShowerMusicObjectType.Playlist,
     });
     if (data === null)
     {

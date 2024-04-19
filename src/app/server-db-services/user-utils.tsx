@@ -7,6 +7,15 @@ import jwt from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
 import { cookies } from 'next/headers';
 export type SSUserId = ObjectId;
+export class UserNotLoggedInError extends Error
+{
+    constructor(message?: string)
+    {
+        super(message);
+        this.name = 'UserNotLoggedInError';
+    }
+};
+
 export async function getUser()
 {
     const jwtSecret = getJwtSecret();
@@ -14,7 +23,7 @@ export async function getUser()
     const authToken = cookies().get(USER_AUTH_COOKIE_NAME);
     if (!authToken)
     {
-        throw new Error('User must be logged in to use this api!');
+        throw new UserNotLoggedInError('User must be logged in to use this api!');
     }
 
     // Verify the JWT and get the user data
@@ -47,7 +56,7 @@ export async function getUserId(): Promise<SSUserId>
     const authToken = cookies().get(USER_AUTH_COOKIE_NAME);
     if (!authToken)
     {
-        throw new Error('User must be logged in to use this api!');
+        throw new UserNotLoggedInError('User must be logged in to use this api!');
     }
 
     // Verify the JWT and get the user data

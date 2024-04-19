@@ -31,7 +31,7 @@ export function UserPlaylist({ minimalPlaylist }: { minimalPlaylist: MinimalPlay
     );
 }
 
-export default function UserPlaylists()
+export default function UserPlaylists({ ...props }: React.HTMLAttributes<HTMLDivElement>)
 {
     const { userPlaylists } = useUserSession();
 
@@ -43,7 +43,7 @@ export default function UserPlaylists()
     }) : [];
 
     return (
-        <div>
+        <div  { ...props }>
             <Typography variant='h4' fontWeight={ 700 }>Your playlists</Typography>
             { playlistElementItems.length === 0 &&
                 <Typography fontWeight={ 500 }>You have yet to create a playlist</Typography> }

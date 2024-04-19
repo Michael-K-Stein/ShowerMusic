@@ -12,7 +12,8 @@ import ItemFavoriteGlyph from '@/app/components/other/item-favorite-glyph';
 import { gotoArtistCallbackFactory } from '../../pages/goto-callback-factory';
 import SuperMiniTrackControls, { SuperMiniTrackEndControls } from "@/app/components/pages/super-mini-track-controls";
 import { addArbitraryToQueueClickHandler, playArbitraryClickHandlerFactory } from '@/app/components/providers/global-props/arbitrary-click-handler-factories';
-import { SetStream, SetView, ViewportType, useSessionState } from "@/app/components/providers/session/session";
+import { SetStream, SetView, useSessionState } from "@/app/components/providers/session/session";
+import { ViewportType } from "@/app/shared-api/other/common";
 import { MinimalArtistDict } from "@/app/shared-api/media-objects/artists";
 import { MediaId } from '@/app/shared-api/media-objects/media-id';
 import { TrackDict, TrackId } from "@/app/shared-api/media-objects/tracks";
@@ -253,7 +254,7 @@ export function GenericControlBar({ ...props }: GenericControlBarProps)
                 itemType={ props.objectType }
                 glyphTitle={ props.favoritePrompt }
                 className='w-10 h-10 m-1 clickable' />
-            <ShareGlyph glyphTitle={ 'Share' } className='w-10 h-10 m-1' onClick={ props.objectData ? shareItemClickHandlerFactory(props.objectData, props.objectType) : () => { } } />
+            <ShareGlyph glyphTitle={ 'Share' } className='w-10 h-10 m-1' onClick={ operationWrapper(shareItemClickHandlerFactory) } />
         </div>
     );
 }

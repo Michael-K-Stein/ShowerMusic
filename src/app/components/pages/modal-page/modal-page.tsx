@@ -102,8 +102,8 @@ function ModalPage(
 
     return (
         <ModalPageBase { ...props }>
-            < div className='modal-page-info-container' >
-                <div className='modal-page-sub-info-container' >
+            <div className='modal-page-info-container'>
+                <div className='modal-page-sub-info-container'>
                     <div className='modal-cover-art' >
                         <ArbitraryPlayableMediaImage data={ itemData } quality={ 100 } />
                     </div>

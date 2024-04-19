@@ -14,8 +14,9 @@ export async function GET(request: NextRequest)
         const url = new URL(request.url);
         const searchParams = new URLSearchParams(url.search);
         const tunedIntoStationId = searchParams.get('tunedIntoStationId');
+        const skipValidation = JSON.parse(searchParams.get('skipValidation') ?? 'false') as boolean;
 
-        const poppedTrack = await DbObjects.Users.Queue.popTrack(userId, tunedIntoStationId);
+        const poppedTrack = await DbObjects.Users.Queue.popTrack(userId, tunedIntoStationId, skipValidation);
 
         return ApiSuccess(poppedTrack);
     }

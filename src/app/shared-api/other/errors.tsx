@@ -266,3 +266,21 @@ export class CategoryNotFoundError extends CategoryApiError
         this.name = 'CategoryNotFoundError';
     }
 }
+
+export class SecurityCheckError extends ClientError
+{
+    constructor(message?: string)
+    {
+        super(message);
+        this.name = 'SecurityCheckError';
+    }
+}
+
+export class MaliciousActivityError extends SecurityCheckError
+{
+    constructor(message?: string)
+    {
+        super(message);
+        this.name = 'MaliciousActivityError';
+    }
+}

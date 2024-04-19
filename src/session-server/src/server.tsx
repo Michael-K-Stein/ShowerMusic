@@ -51,9 +51,13 @@ const registerSyncObjectConnection = (ws: WebSocket, syncObjectId: string) =>
     registeredSyncObjectConnections[ syncObjectId ].push(ws);
 };
 
-const buildMessage = (messageType: MessageTypes, data?: { [ x: string ]: any; }) =>
+const buildMessage = (messageType: MessageTypes, target: string, data?: { [ x: string ]: any; }) =>
 {
-    const result: any = { 'type': messageType };
+    const result: any = {
+        'type': messageType,
+        'target': target,
+    };
+
     if (messageType === MessageTypes.COMBO)
     {
         assert(data !== undefined);
@@ -67,7 +71,8 @@ const dispatchMessageToUser = (messageType: MessageTypes, userId: string, data?:
 {
     if (connectedUsers[ userId ] != null)
     {
-        connectedUsers[ userId ].send(buildMessage(messageType, data));
+        console.log(`Sending ${messageType} to user ${userId}`);
+        connectedUsers[ userId ].send(buildMessage(messageType, userId, data));
     }
 };
 
@@ -78,9 +83,10 @@ const dispatchToSyncObjectListeners = (messageType: MessageTypes, syncObjectId: 
         console.log(`Dispatch was requested on an object with no listeners!`);
         return;
     }
-    const message = buildMessage(messageType, data);
+    const message = buildMessage(messageType, syncObjectId, data);
     registeredSyncObjectConnections[ syncObjectId ].map((listenerWS: WebSocket) =>
     {
+        console.log(`Sending ${messageType} to sync-sock ${listenerWS}`);
         listenerWS.send(message);
     });
 };

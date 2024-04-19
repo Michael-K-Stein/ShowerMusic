@@ -1,6 +1,7 @@
 'use client';
 import React, { createContext, useContext, useState, useEffect, Dispatch, SetStateAction, useCallback, useRef } from 'react';
-import { PoppedState, ViewportType, useSessionState } from '@/app/components/providers/session/session';
+import { PoppedState, useSessionState } from '@/app/components/providers/session/session';
+import { ViewportType } from "@/app/shared-api/other/common";
 import { TrackDict } from '@/app/shared-api/media-objects/tracks';
 import ElasticApi from '@/app/client-api/search/elastic';
 import { ShowerMusicObjectType, ShowerMusicPlayableMediaType } from '@/app/showermusic-object-types';

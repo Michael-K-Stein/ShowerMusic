@@ -3,24 +3,11 @@ import AddToArbitraryModal, { AddToArbitraryModalStateType } from "@/app/compone
 import { registerSyncProvider } from "@/app/components/providers/shared-sync-object-provides";
 import useUserSession from "@/app/components/providers/user-provider/user-session";
 import { MediaId } from "@/app/shared-api/media-objects/media-id";
-import { ShowerMusicPlayableMediaId } from "@/app/shared-api/user-objects/users";
-import { ShowerMusicPlayableMediaType } from "@/app/showermusic-object-types";
+import { ViewportType } from "@/app/shared-api/other/common";
+import { StreamStateType } from "@/app/shared-api/other/common";
+import { buildUrlForState } from "@/app/shared-api/other/common";
 import React, { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { URLSearchParams } from "url";
-
-export enum ViewportType
-{
-    None,
-    Home,
-    SearchResults,
-    Album,
-    Artist,
-    Station,
-    Stations,
-    Playlist,
-    Lyrics,
-
-};
 
 function isModalView(view: ViewportType | undefined): boolean
 {
@@ -36,17 +23,6 @@ function isModalView(view: ViewportType | undefined): boolean
             return false;
     }
 }
-
-export enum StreamStateType
-{
-    None,
-    SingleTrack,
-    AlbumTracks,
-    ArtistTracks,
-    Playlist,
-    Station,
-    PrivateStation,
-};
 
 export interface PoppedState
 {
@@ -122,44 +98,6 @@ export const SessionStateContext = createContext<SessionStateType>({
 
     requiresSyncOperations: () => false,
 });
-
-export function buildUrlForState({
-    newViewMediaId,
-    newViewportType,
-    newStreamMediaId,
-    newStreamStateType,
-}: {
-    newViewMediaId?: MediaId,
-    newViewportType?: ViewportType,
-    newStreamMediaId?: MediaId,
-    newStreamStateType?: StreamStateType;
-})
-{
-    if (typeof (window) === 'undefined') { return; }
-
-    const url = new URL(window.location.toString());
-
-    if (newViewMediaId !== undefined)
-    {
-        url.searchParams.set('viewMediaId', JSON.stringify(newViewMediaId));
-    }
-
-    if (newViewportType !== undefined)
-    {
-        url.searchParams.set('viewportType', JSON.stringify(newViewportType));
-    }
-
-    if (newStreamMediaId !== undefined)
-    {
-        url.searchParams.set('streamMediaId', JSON.stringify(newStreamMediaId));
-    }
-
-    if (newStreamStateType !== undefined)
-    {
-        url.searchParams.set('streamStateType', JSON.stringify(newStreamStateType));
-    }
-    return url;
-}
 
 // Create a provider component for the stream state
 export const SessionStateProvider = ({ children }: { children: React.JSX.Element[] | React.JSX.Element; }) =>
@@ -351,18 +289,11 @@ export const SessionStateProvider = ({ children }: { children: React.JSX.Element
 
     useLayoutEffect(() =>
     {
-        const getJsonParam = (paramName: string): any | undefined =>
-        {
-            const rawV = url.searchParams.get(paramName);
-            if (!rawV) { return undefined; }
-            return JSON.parse(rawV);
-        };
-
         // Simulate a state pop when a page is loaded with a url
         const url = new URL(window.location.toString());
-        const viewMediaId = getJsonParam('viewMediaId');
+        const viewMediaId = url.searchParams.get('viewMediaId') ?? undefined;
         const viewportType = parseInt(url.searchParams.get('viewportType') ?? '0');
-        const streamMediaId = getJsonParam('streamMediaId');
+        const streamMediaId = url.searchParams.get('streamMediaId') ?? undefined;
         const streamStateType = parseInt(url.searchParams.get('streamStateType') ?? '0');
 
         const state: PoppedState = {

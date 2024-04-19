@@ -61,12 +61,14 @@ const SharedSyncObjectProvider = (
     }, []);
 
     // The sync provider has its own "sub-message-handler" which will dispatch the message appropriately
-    const webSocketMessageHandler = useCallback((messageType: MessageTypes, data: any) =>
+    const webSocketMessageHandler = useCallback((messageType: MessageTypes, target: string, data: any) =>
     {
-        console.log(`[WS] Message type: ${messageType}`);
+        // Skip messages irrelevant to this sync object
+        if (id !== target) { return; }
+        console.log(`[WS => ${target}] Message type: ${messageType}`);
         // Call all registered message handlers
-        messageHandlers.current.forEach(handler => handler(messageType, data));
-    }, []);
+        messageHandlers.current.forEach(handler => handler(messageType, target, data));
+    }, [ id ]);
 
     useEffect(() =>
     {
@@ -126,7 +128,7 @@ export function useSharedSyncObject<T>(
             .then(setData)
             .catch((e) =>
             {
-                enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to load data ${id}!`, e);
+                enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to load data for ${id}!`, e);
             });
     }, [ id, setData, apiDataGetter, enqueueSnackbar ]);
 

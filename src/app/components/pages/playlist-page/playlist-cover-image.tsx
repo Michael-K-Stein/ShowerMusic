@@ -13,9 +13,18 @@ import { getPlaylist } from "@/app/client-api/get-playlist";
 
 export function StationCoverImage({ station }: { station: MinimalStation | Station; })
 {
+    const [ useFallback, setUseFallback ] = useState<boolean>(false);
     return (
         <div className='relative'>
-            <Image src={ getStationCoverImage(station.id) } width={ 640 } height={ 640 } alt={ `${station.name} Cover Image` } />
+            {/* Fallback to using playlist image if the station has no specific cover */ }
+            { (useFallback && <PlaylistImage playlistInitData={ station } />) ||
+                <Image
+                    src={ getStationCoverImage(station.id) }
+                    width={ 640 } height={ 640 }
+                    alt={ `${station.name} Cover Image` }
+                    onError={ () => setUseFallback(true) }
+                />
+            }
             <RadioTowerGlyph glyphTitle='' className='absolute bottom-1 right-1 w-1/4 h-1/4' />
         </div>
     );

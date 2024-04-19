@@ -8,6 +8,7 @@ import { moveStationToNextTrack } from "@/app/server-db-services/other/stations/
 import { getStationInfo } from "@/app/server-db-services/other/stations/get";
 import { getCategoriesFull, getCategoriesMinimal } from "@/app/server-db-services/other/stations/get-categories";
 import { getStationSeekTime, setStationSeekTime } from "@/app/server-db-services/other/stations/seek";
+import { generateStationInvite, joinStationFromInvite, promoteStationMember } from "@/app/server-db-services/other/stations/users";
 import { SSUserId, getUserId } from "@/app/server-db-services/user-utils";
 import { QueuedTrackDict, TrackId } from "@/app/shared-api/media-objects/tracks";
 import { CategoryId, StationId, UserStationDesiredAccess } from "@/app/shared-api/other/stations";
@@ -48,6 +49,10 @@ export namespace DbStation
     export const setSeekTime = accessWrapper(setStationSeekTime, { player: true }, 0);
     export const getSeekTime = accessWrapper(getStationSeekTime, { view: true }, 0);
     export const moveToNextTrack = accessWrapper(moveStationToNextTrack, { view: true }, 0);
+    // Member management
+    export const generateInvite = accessWrapper(generateStationInvite, { metadata: true }, 0);
+    export const join = joinStationFromInvite; // No access wrapping allowed here since the user neccessarily does not have access yet
+    export const promoteMember = accessWrapper(promoteStationMember, { metadata: true }, 0);
 }
 
 export namespace DbCategory
@@ -59,9 +64,10 @@ export namespace DbCategory
 export async function handleUserRequestedPopOnStation(
     stationId: StationId,
     _requestingUserId: SSUserId, // Unreferenced
-    _poppedTrack: QueuedTrackDict | null
+    _poppedTrack: QueuedTrackDict | null,
+    skipValidation: boolean = false
 )
 {
     // const newTrack: TrackId | null = poppedTrack ? poppedTrack.trackId : null;
-    DbStation.moveToNextTrack(stationId);
+    DbStation.moveToNextTrack(stationId, skipValidation);
 }

@@ -29,13 +29,18 @@ export async function queryQueue()
     return r as PlayingNextTracks;
 }
 
-export async function commandPopTrackFromQueue(tunedIntoStationId: StationId | null = null)
+export async function commandPopTrackFromQueue(tunedIntoStationId: StationId | null = null, skipValidation: boolean = false)
 {
     const url = new URL(`${window.location.origin}/api/commands/queue/pop`);
 
     if (tunedIntoStationId !== null)
     {
         url.searchParams.set('tunedIntoStationId', tunedIntoStationId);
+    }
+
+    if (skipValidation !== null)
+    {
+        url.searchParams.set('skipValidation', JSON.stringify(skipValidation));
     }
 
     const r = await safeApiFetcher(url.toString(), { method: 'GET' });

@@ -1,9 +1,12 @@
 import databaseController from "@/app/server-db-services/mongo-db-controller";
+import updatePlaylistForAllUsers from "@/app/server-db-services/other/playlists/update-internals";
 import { SSUserId } from "@/app/server-db-services/user-utils";
+import { MessageTypes } from "@/app/settings";
 import { ShowerMusicObjectType } from "@/app/shared-api/other/common";
 import { PlaylistNotFoundError } from "@/app/shared-api/other/errors";
 import Playlist, { } from "@/app/shared-api/other/playlist";
 import { NewStationInitOptions, PrivateStation, PrivateStationOnlyProperties, Station, StationOnlyProperties } from "@/app/shared-api/other/stations";
+import { SendServerRequestToSessionServerForPlaylistListeners } from "@/app/web-socket-utils";
 import { MatchKeysAndValues, WithId } from "mongodb";
 
 export async function createNewStation(userId: SSUserId, stationInitOptions: NewStationInitOptions)
@@ -24,7 +27,7 @@ export async function createNewStation(userId: SSUserId, stationInitOptions: New
 
     const setProperties: MatchKeysAndValues<Playlist & Station> & MatchKeysAndValues<Playlist> & MatchKeysAndValues<Station> = {
         type: ShowerMusicObjectType.Station,
-        newStationProperties,
+        ...newStationProperties,
     };
 
     // Find the original playlist and simply upgrade it
@@ -42,6 +45,10 @@ export async function createNewStation(userId: SSUserId, stationInitOptions: New
     {
         throw new PlaylistNotFoundError(`Failed to upgrade playlist to station, since no matching playlist was found!`);
     }
+
+    await updatePlaylistForAllUsers(stationInitOptions.playlistId, 'type', ShowerMusicObjectType.Station);
+
+    SendServerRequestToSessionServerForPlaylistListeners(MessageTypes.PLAYLIST_UPDATE, [ upgradedPlaylist.id ]);
 
     return upgradedPlaylist as unknown as WithId<PrivateStation>;
 }

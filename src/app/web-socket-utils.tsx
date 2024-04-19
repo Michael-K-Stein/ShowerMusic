@@ -66,6 +66,11 @@ export function SendServerRequestToSessionServerForPlaylistListeners(type: Messa
     });
 }
 
+export function SendServerRequestToSessionServerForStationListeners(type: MessageTypes, targetStations: StationId[])
+{
+    return SendServerRequestToSessionServerForPlaylistListeners(type, targetStations);
+}
+
 export function SendComboServerRequestToSessionServerForStationListeners(messageTypes: MessageTypes[], targetStation: StationId)
 {
     SendComboServerRequestToSessionServer(

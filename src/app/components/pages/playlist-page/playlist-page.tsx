@@ -8,66 +8,99 @@ import { commandRenamePlaylist, getPlaylist } from '@/app/client-api/get-playlis
 import { ShowerMusicObjectType } from '@/app/shared-api/other/common';
 import SharedSyncObjectProvider, { useSharedSyncObject } from '@/app/components/providers/shared-sync-object-provides';
 import RenameGlyph from '@/app/components/glyphs/rename';
-import { Box, Button, FormControl, FormGroup, TextField, Typography } from '@mui/material';
+import { Box, Button, capitalize, FormControl, FormGroup, TextField, Typography } from '@mui/material';
 import useGlobalProps from '@/app/components/providers/global-props/global-props';
 import SendIcon from '@mui/icons-material/Send';
 import commandGetUserById from '@/app/client-api/users/get-user';
 import { ModalPageLoader } from '@/app/components/pages/modal-page/modal-page';
 import { commandUserStationAccess } from '@/app/client-api/stations/get-station-specific';
+import RadioTowerGlyph from '@/app/components/glyphs/radio-tower';
+import { convertPlaylistToStationClickHandlerFactory } from '@/app/components/pages/playlist-page/playlist-callback-factories';
+import { UserId } from '@/app/shared-api/user-objects/users';
 
-export function PlaylistTitleContainer(
-    { playlistId, playlistData, playlistName }:
-        { playlistId?: PlaylistId, playlistName?: React.JSX.Element | string, playlistData?: PlaylistAndStationBaseInterface; })
+function PlaylistMembers({ playlist }: { playlist?: Playlist; })
+{
+    const listenerCount = (playlist?.members.length ?? 0) + 1;
+    return (
+        <div>
+            <Typography >{ listenerCount } listener{ listenerCount === 1 ? '' : 's' }</Typography>
+        </div>
+    );
+}
+
+function PlaylistSpecificSubInfo({ playlist }: { playlist: Playlist; })
+{
+    const { enqueueSnackbar } = useSnackbar();
+
+    return (
+        <div className='absolute w-full h-full flex flex-row items-end justify-end content-center right-0 bottom-0'>
+            <div className='m-2'>
+                <PlaylistMembers playlist={ playlist } />
+            </div>
+            <div className='m-2'>
+                <RadioTowerGlyph glyphTitle='Convert to station' className='w-8 h-8' onClick={ convertPlaylistToStationClickHandlerFactory(playlist, enqueueSnackbar) } />
+            </div>
+        </div>
+    );
+}
+
+export function RenameableTitleContainer(
+    { itemId, itemName, itemType = ShowerMusicObjectType.Playlist, children }:
+        {
+            itemId?: PlaylistId,
+            itemName?: React.JSX.Element | string,
+            itemType?: ShowerMusicObjectType.Playlist | ShowerMusicObjectType.Station,
+            children?: React.ReactNode;
+        })
 {
     const { enqueueSnackbar } = useSnackbar();
     const { setGenericModalData, setGenericModalOpen } = useGlobalProps();
-    const [ playlistCreatorName, setPlaylistCreatorName ] = useState<string>();
     const [ userCanRename, setUserCanRename ] = useState<boolean>(false);
 
     const playlistRenameInputTextField = useRef<HTMLInputElement>(null);
 
     useMemo(() =>
     {
-        if (!playlistId || !playlistData) { return; }
-        if (playlistData.type === ShowerMusicObjectType.Playlist)
+        if (!itemId) { return; }
+        if (itemType === ShowerMusicObjectType.Playlist)
         {
             setUserCanRename(true);
             return;
         }
-        commandUserStationAccess(playlistId)
+        commandUserStationAccess(itemId)
             .then((access) =>
             {
                 setUserCanRename(access.metadata);
             }).catch((_error) => { /* Ignore this error */ });
-    }, [ playlistId, playlistData, setUserCanRename ]);
+    }, [ itemId, itemType, setUserCanRename ]);
 
     const playlistRenameSubmitHandler = useCallback((event: FormEvent) =>
     {
         if (typeof window === 'undefined') { return; }
-        if (playlistId === undefined) { return; }
+        if (itemId === undefined) { return; }
         const inputField = playlistRenameInputTextField.current;
         if (!inputField) { return; }
-        commandRenamePlaylist(playlistId, inputField.value)
+        commandRenamePlaylist(itemId, inputField.value)
             .then(() =>
             {
-                enqueueSnackbar(`Playlist has been renamed to ${inputField.value}`, { variant: 'success' });
+                enqueueSnackbar(`${capitalize(itemType)} has been renamed to ${inputField.value}`, { variant: 'success' });
                 setGenericModalOpen(false);
             })
             .catch((error) =>
             {
-                enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to rename playlist!`, error);
+                enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to rename ${itemType}!`, error);
             });
         event.preventDefault();
         event.stopPropagation();
-    }, [ playlistId, enqueueSnackbar, setGenericModalOpen ]);
+    }, [ itemType, itemId, enqueueSnackbar, setGenericModalOpen ]);
 
     const playlistNameClickHandler = useCallback(() =>
     {
-        if (typeof playlistName !== 'string') { return; }
+        if (typeof itemName !== 'string') { return; }
         if (!userCanRename) { return; }
         setGenericModalData(
             <>
-                <Typography fontWeight={ 700 }>Renaming { '"' }{ playlistName }{ '"' }</Typography>
+                <Typography fontWeight={ 700 }>Renaming { '"' }{ itemName }{ '"' }</Typography>
                 <form className='w-full' onSubmit={ playlistRenameSubmitHandler }>
                     <FormControl className='w-full'>
                         <FormGroup row={ true }>
@@ -75,7 +108,7 @@ export function PlaylistTitleContainer(
                                 inputProps={ { className: 'text-white' } }
                                 inputRef={ playlistRenameInputTextField }
                                 id='playlist-rename-input-text-field'
-                                placeholder='New playlist name...'
+                                placeholder={ `New ${itemType} name...` }
                                 autoFocus={ true }
                                 required={ true }
                                 className='grow' />
@@ -87,22 +120,9 @@ export function PlaylistTitleContainer(
             </>
         );
         setGenericModalOpen(true);
-    }, [ playlistName, userCanRename, playlistRenameSubmitHandler, setGenericModalData, setGenericModalOpen ]);
+    }, [ itemName, itemType, userCanRename, playlistRenameSubmitHandler, setGenericModalData, setGenericModalOpen ]);
 
-    useMemo(() =>
-    {
-        if (!playlistData) { return; }
-        commandGetUserById(playlistData.creator as unknown as string)
-            .then((creatorInfo) =>
-            {
-                setPlaylistCreatorName(`Created by ${creatorInfo.username}`);
-            }).catch((_error) =>
-            {
-                setPlaylistCreatorName(`Created by ShowerMusic`);
-            });
-    }, [ playlistData, setPlaylistCreatorName ]);
-
-    if (!playlistName || !playlistId)
+    if (!itemName || !itemId)
     {
         return (
             <ModalNameRectangleLoaderSkeleton />
@@ -110,17 +130,51 @@ export function PlaylistTitleContainer(
     }
 
     return (
-        <>
+        <div className='w-full h-full flex flex-col justify-flex-start items-center relative'>
             <div className='playlist-name' style={ { overflowWrap: 'break-word' } } onClick={ playlistNameClickHandler } data-user-can-rename={ userCanRename }>
-                <Typography fontSize={ 'inherit' } className='playlist-name-text' fontWeight={ 900 }>{ playlistName }</Typography>
+                <Typography fontSize={ 'inherit' } className='playlist-name-text' fontWeight={ 900 }>{ itemName }</Typography>
                 { userCanRename && <div className='rename-playlist-glyph'>
                     <RenameGlyph glyphTitle='Rename' />
                 </div> }
             </div>
-            <div className='playlist-creator-name'>
-                <Typography fontWeight={ 600 }>{ playlistCreatorName ?? <ModalNameRectangleLoaderSkeleton /> }</Typography>
-            </div>
-        </>
+            <>
+                { children }
+            </>
+        </div>
+    );
+}
+
+export function ObjectCreatorTitleContainer(
+    { itemData }: { itemData?: PlaylistAndStationBaseInterface; }
+)
+{
+    const [ playlistCreatorName, setPlaylistCreatorName ] = useState<string>();
+    const [ playlistCreatorId, setPlaylistCreatorId ] = useState<UserId>();
+
+    useMemo(() =>
+    {
+        if (!itemData) { return; }
+        if (!itemData.creator) { return; }
+        setPlaylistCreatorId(itemData.creator as unknown as string);
+    }, [ itemData, setPlaylistCreatorId ]);
+
+    useMemo(() =>
+    {
+        if (!playlistCreatorId) { return; }
+        commandGetUserById(playlistCreatorId as unknown as string)
+            .then((creatorInfo) =>
+            {
+                setPlaylistCreatorName(`Created by ${creatorInfo.username}`);
+            }).catch((_error) =>
+            {
+                setPlaylistCreatorName(`Created by ShowerMusic`);
+            });
+    }, [ playlistCreatorId, setPlaylistCreatorName ]);
+
+    return (
+        <div className='playlist-creator-name'>
+            <Typography fontWeight={ 600 }>{ playlistCreatorName ?? <ModalNameRectangleLoaderSkeleton /> }</Typography>
+        </div>
     );
 }
 
@@ -132,7 +186,11 @@ function PlaylistPageInsideSync({ playlistId }: { playlistId: PlaylistId; })
             itemId={ playlistId }
             itemType={ ShowerMusicObjectType.Playlist }
             itemData={ playlistData }
-            customTitle={ <PlaylistTitleContainer playlistId={ playlistId } playlistData={ playlistData } playlistName={ playlistData?.name } /> }
+            customTitle={
+                <RenameableTitleContainer itemId={ playlistId }   >
+                    <ObjectCreatorTitleContainer itemData={ playlistData } />
+                    <PlaylistSpecificSubInfo playlist={ playlistData as Playlist } />
+                </RenameableTitleContainer> }
         />
     );
 }

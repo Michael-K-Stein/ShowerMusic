@@ -77,3 +77,62 @@ export function getKeysOfObject<T extends object>(obj: T): Keys<T>[]
 {
     return Object.keys(obj) as Keys<T>[];
 }
+export function buildUrlForState({
+    newViewMediaId, newViewportType, newStreamMediaId, newStreamStateType, givenUrl,
+}: {
+    newViewMediaId?: MediaId;
+    newViewportType?: ViewportType;
+    newStreamMediaId?: MediaId;
+    newStreamStateType?: StreamStateType;
+    givenUrl?: URL;
+})
+{
+    if (typeof (window) === 'undefined' && !givenUrl) { return; }
+    const url = givenUrl ?? new URL(window.location.toString());
+
+    if (newViewMediaId !== undefined)
+    {
+        url.searchParams.set('viewMediaId', newViewMediaId);
+    }
+
+    if (newViewportType !== undefined)
+    {
+        url.searchParams.set('viewportType', JSON.stringify(newViewportType));
+    }
+
+    if (newStreamMediaId !== undefined)
+    {
+        url.searchParams.set('streamMediaId', newStreamMediaId);
+    }
+
+    if (newStreamStateType !== undefined)
+    {
+        url.searchParams.set('streamStateType', JSON.stringify(newStreamStateType));
+    }
+    return url;
+}
+
+export enum ViewportType
+{
+    None,
+    Home,
+    SearchResults,
+    Album,
+    Artist,
+    Station,
+    Stations,
+    Playlist,
+    Lyrics
+
+};
+
+export enum StreamStateType
+{
+    None,
+    SingleTrack,
+    AlbumTracks,
+    ArtistTracks,
+    Playlist,
+    Station,
+    PrivateStation
+};

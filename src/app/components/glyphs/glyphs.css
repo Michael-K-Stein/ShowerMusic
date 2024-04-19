@@ -6,7 +6,7 @@
     transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
-:not([aria-disabled=true]) > .svg-glyph
+:not([aria-disabled=true]):not([data-static]) > .svg-glyph
 {
     cursor: pointer;
 }
@@ -17,7 +17,7 @@
     pointer-events: bounding-box;
 }
 
-:not([aria-disabled=true]) > .svg-glyph:hover
+:not([aria-disabled=true]):not([data-static]) > .svg-glyph:hover
 {
     transform: scale(1.1);
 }

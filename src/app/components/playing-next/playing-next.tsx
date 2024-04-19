@@ -1,7 +1,8 @@
 'use client';
 import { Box, Typography } from '@mui/material';
 import './playing-next.css';
-import { StreamStateType, useSessionState } from '@/app/components/providers/session/session';
+import { useSessionState } from '@/app/components/providers/session/session';
+import { StreamStateType } from "@/app/shared-api/other/common";
 import { getMultipleTracksInfo, getTrackInfo } from '@/app/client-api/get-track';
 import Image from 'next/image';
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
@@ -245,25 +246,20 @@ export default function PlayingNext()
     {
         if (streamType === StreamStateType.AlbumTracks)
         {
-            const asyncHandler = async () =>
-            {
-                const albumInfo = await getAlbumInfo(streamMediaId);
-                if (!albumInfo) { return; }
-                setPlayingNextTitle(albumInfo.name);
-            };
-            asyncHandler();
+            getAlbumInfo(streamMediaId)
+                .then((albumInfo) =>
+                {
+                    setPlayingNextTitle(albumInfo.name);
+                });
         }
         else if (streamType === StreamStateType.Station)
         {
-            const asyncHandler = async () =>
-            {
-                const stationInfo = await commandGetStation(streamMediaId);
-                if (!stationInfo) { return; }
-                setPlayingNextTitle(`Tuned in to ${stationInfo.name}`);
-            };
-            asyncHandler();
+            commandGetStation(streamMediaId)
+                .then((stationInfo) =>
+                {
+                    setPlayingNextTitle(`Tuned in to ${stationInfo.name}`);
+                });
         }
-
     }, [ streamMediaId, streamType ]);
 
     useLayoutEffect(() =>

@@ -113,6 +113,9 @@
     opacity: 0;
     transform: translateX(0);
     transition: all 0.2s cubic-bezier(0.075, 0.82, 0.165, 1);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }
 
 .playlist-name[data-user-can-rename=true]:hover .rename-playlist-glyph

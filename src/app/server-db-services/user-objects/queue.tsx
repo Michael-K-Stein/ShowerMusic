@@ -92,7 +92,7 @@ async function addTrackToUserPlayingNextQueue(userId: SSUserId, trackId: string)
     SendServerRequestToSessionServerForUsers(MessageTypes.QUEUE_UPDATE, [ userId ]);
 }
 
-export async function popUserPlayingNextQueue(userId: SSUserId, tunedIntoStationId: StationId | null = null)
+export async function popUserPlayingNextQueue(userId: SSUserId, tunedIntoStationId: StationId | null = null, skipValidation: boolean = false)
 {
     const oldData = await databaseController.users.findOneAndUpdate(
         { '_id': userId },
@@ -114,7 +114,8 @@ export async function popUserPlayingNextQueue(userId: SSUserId, tunedIntoStation
     if (tunedIntoStationId !== null)
     {
         handleUserRequestedPopOnStation(tunedIntoStationId, userId,
-            oldData ? (oldData.playingNextTracks.tracks[ 0 ] as QueuedTrackDict) : null
+            oldData ? (oldData.playingNextTracks.tracks[ 0 ] as QueuedTrackDict) : null,
+            skipValidation
         );
     }
 

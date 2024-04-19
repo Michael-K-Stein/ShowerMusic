@@ -55,8 +55,6 @@ export async function POST(
             path: '/',
         });
 
-        console.log('Login success!');
-
         return res;
     } catch (e)
     {

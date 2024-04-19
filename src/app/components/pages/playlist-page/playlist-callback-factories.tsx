@@ -1,18 +1,22 @@
 'use client';
-import { SetStream, StreamStateType } from '@/app/components/providers/session/session';
+import { SetStream } from '@/app/components/providers/session/session';
+import { StreamStateType } from "@/app/shared-api/other/common";
 import { EnqueueSnackbar } from 'notistack';
-import { enqueueApiErrorSnackbar } from '@/app/components/providers/global-props/global-modals';
+import { enqueueApiErrorSnackbar, enqueueSnackbarWithSubtext } from '@/app/components/providers/global-props/global-modals';
 import Playlist, { MinimalPlaylist } from '@/app/shared-api/other/playlist';
-import { commandDeletePlaylist } from '@/app/client-api/get-playlist';
+import { commandConvertPlaylistToStation, commandDeletePlaylist } from '@/app/client-api/get-playlist';
 import { ShowerMusicObjectType } from '@/app/shared-api/other/common';
 import { ClientApiError } from '@/app/shared-api/other/errors';
 import { commandPlayerSkipCurrentTrack } from '@/app/client-api/player';
 import { commandQueueAddArbitraryTypeTracks, commandQueueSetPlaylistTracks } from '@/app/client-api/queue';
+import { MouseEventHandler } from 'react';
+import { buildStationShareUrl } from '@/app/components/pages/stations/station-page/station-page';
 
-export function playPlaylistClickHandlerFactory(
+export function playPlaylistClickHandlerFactory<T>(
     playlistData: MinimalPlaylist | Playlist | undefined,
     setStream: SetStream,
     enqueueSnackbar: EnqueueSnackbar)
+    : MouseEventHandler<T>
 {
     return () =>
     {
@@ -36,10 +40,9 @@ export function playPlaylistClickHandlerFactory(
     };
 }
 
-
-export function addToQueuePlaylistClickHandlerFactory(
+export function addToQueuePlaylistClickHandlerFactory<T>(
     playlistData: MinimalPlaylist | Playlist | undefined, enqueueSnackbar: EnqueueSnackbar
-)
+): MouseEventHandler<T>
 {
     return () =>
     {
@@ -57,10 +60,10 @@ export function addToQueuePlaylistClickHandlerFactory(
     };
 }
 
-export function deletePlaylistClickHandlerFactory(
+export function deletePlaylistClickHandlerFactory<T>(
     playlistData: MinimalPlaylist | Playlist | undefined, enqueueSnackbar: EnqueueSnackbar
 
-)
+): MouseEventHandler<T>
 {
     return () =>
     {
@@ -81,6 +84,25 @@ export function deletePlaylistClickHandlerFactory(
                 {
                     enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to delete playlist ${playlistData.name}!`, reason);
                 }
+            });
+    };
+}
+
+export function convertPlaylistToStationClickHandlerFactory<T = Element>(playlist: Playlist, enqueueSnackbar: EnqueueSnackbar)
+    : MouseEventHandler<T>
+{
+    return (e) =>
+    {
+        commandConvertPlaylistToStation(playlist.id)
+            .then((station) =>
+            {
+                enqueueSnackbarWithSubtext(
+                    enqueueSnackbar,
+                    `Playlist ${playlist.name} has been successfully converted to a station!`,
+                    <><a href={ buildStationShareUrl(station.id)?.toString() }>{ `Click here` }</a>{ ` to open the new station!` }</>);
+            }).catch((error) =>
+            {
+                enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to convert playlist to station!`, error);
             });
     };
 }

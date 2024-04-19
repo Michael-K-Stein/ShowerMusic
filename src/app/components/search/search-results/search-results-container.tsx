@@ -40,7 +40,7 @@ export default function SearchResultsContainerComponent()
                     setIsLoading(false);
                 });
         },
-        [ searchQuery, isLoading, setIsLoading, trackResults, setTrackResults, enqueueSnackbar ]
+        [ searchQuery, isLoading, setIsLoading, setTrackResults, enqueueSnackbar ]
     );
 
     const handleSearchResultsScroll = useCallback((event: React.UIEvent<HTMLDivElement>) =>

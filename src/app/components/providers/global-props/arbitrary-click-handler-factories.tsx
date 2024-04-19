@@ -1,7 +1,8 @@
 import { commandPlayerSkipCurrentTrack } from "@/app/client-api/player";
 import { commandQueueAddArbitraryTypeTracks, commandQueueSetArbitraryTracks, commandSetPlayNextArbitraryTypeTracks } from "@/app/client-api/queue";
 import { enqueueApiErrorSnackbar } from "@/app/components/providers/global-props/global-modals";
-import { SetStream, StreamStateType } from "@/app/components/providers/session/session";
+import { SetStream } from "@/app/components/providers/session/session";
+import { StreamStateType } from "@/app/shared-api/other/common";
 import { ShowerMusicPlayableMediaDict } from "@/app/shared-api/other/common";
 import { ShowerMusicNamedResolveableItem } from "@/app/shared-api/user-objects/users";
 import { ShowerMusicPlayableMediaType, ShowerMusicObjectType } from "@/app/showermusic-object-types";

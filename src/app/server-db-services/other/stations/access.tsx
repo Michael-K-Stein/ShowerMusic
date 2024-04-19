@@ -5,14 +5,25 @@ import { PrivateStation, Station, StationId, UserStationAccess, UserStationDesir
 import { ShowerMusicObjectType } from "@/app/showermusic-object-types";
 import assert from "assert";
 
+export function isUserOneOf(userId: SSUserId, group: SSUserId[])
+{
+    return group.reduce(
+        (includes: boolean, admin: SSUserId) =>
+            includes || admin.equals(userId), // Use "equals" instead of "===" for "ObjectId"
+        false // Initial value is that the user is NOT an admin
+    );
+}
+
 export default async function getUserStationAccess(userId: SSUserId, stationId: StationId, stationData?: Station): Promise<UserStationAccess>
 {
     const stationInfo = stationData ? stationData : await getStationInfo(stationId);
 
     assert(stationInfo.type === ShowerMusicObjectType.Station);
 
+    console.log(`Cecking access rights for user ${userId.toHexString()} to station ${stationId}`);
+
     // Creator has all access always
-    const userIsCreator = stationInfo.creator === userId;
+    const userIsCreator = stationInfo.creator.equals(userId);
     if (userIsCreator)
     {
         return {
@@ -24,7 +35,7 @@ export default async function getUserStationAccess(userId: SSUserId, stationId: 
         };
     }
 
-    const userIsAdmin = stationInfo.admins.includes(userId);
+    const userIsAdmin = isUserOneOf(userId, stationInfo.admins);
     if (userIsAdmin)
     {
         return {
@@ -53,7 +64,7 @@ export default async function getUserStationAccess(userId: SSUserId, stationId: 
     const stationMembers = (stationInfo as PrivateStation).members;
     assert(stationMembers);
 
-    const userIsMember = stationMembers.includes(userId);
+    const userIsMember = isUserOneOf(userId, stationMembers);
     if (userIsMember)
     {
         return {

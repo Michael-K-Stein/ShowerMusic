@@ -23,7 +23,7 @@ export async function addTracksToPlaylistWithPosition(playlistId: PlaylistId, tr
     await databaseController.playlists.updateOne(
         {
             id: playlistId,
-            type: ShowerMusicObjectType.Playlist,
+            // type: ShowerMusicObjectType.Playlist,
         },
         {
             '$push': {
