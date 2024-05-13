@@ -2,9 +2,10 @@ export const dynamic = "force-dynamic";
 
 import { ApiSuccess, catchHandler } from '@/app/api/common';
 import { DbObjects } from '@/app/server-db-services/db-objects';
+import { NextRequest } from 'next/server';
 
 export async function GET(
-    _request: Request,
+    request: NextRequest,
     { params }: { params: { slug: string; }; }
 )
 {
@@ -16,6 +17,6 @@ export async function GET(
     }
     catch (e: any)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     };
 };

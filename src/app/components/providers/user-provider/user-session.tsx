@@ -58,7 +58,18 @@ export const UserSessionProvider = ({ children }: { children: React.JSX.Element[
     const sendMessage = useCallback((data: WebSocketSessionMessage) =>
     {
         if (!ws.current) { return; }
-        ws.current.send(JSON.stringify(data));
+
+        if (ws.current.OPEN !== ws.current.readyState)
+        {
+            setTimeout(() =>
+            {
+                sendMessage(data);
+            }, 50);
+        }
+        else
+        {
+            ws.current.send(JSON.stringify(data));
+        }
     }, [ ws ]);
 
     const reloadUserFavorites = useCallback(() =>

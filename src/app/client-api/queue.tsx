@@ -68,6 +68,28 @@ export async function skipToQueuedTrack(queueId: any)
     return r as QueuedTrackDict;
 }
 
+export async function commandSkipTrack(tunedIntoStationId: StationId | null = null, skipValidation: boolean = false)
+{
+    const r = await safeApiFetcher(`/api/commands/queue/skip`, {
+        method: 'POST', body: JSON.stringify({
+            'tunedIntoStationId': tunedIntoStationId,
+            'skipValidation': skipValidation,
+        })
+    });
+    return r as QueuedTrackDict | null;
+}
+
+export async function commandRewindTrack(tunedIntoStationId: StationId | null = null, userSeekTime: number | null = null)
+{
+    const r = await safeApiFetcher(`/api/commands/queue/rewind`, {
+        method: 'POST', body: JSON.stringify({
+            'tunedIntoStationId': tunedIntoStationId,
+            'userSeekTime': userSeekTime,
+        })
+    });
+    return r as QueuedTrackDict | null;
+}
+
 export async function commandFlushQueue()
 {
     const r = await safeApiFetcher(`/api/commands/queue/flush`, { method: 'GET' });

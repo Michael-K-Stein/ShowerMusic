@@ -7,7 +7,7 @@ import { getUserId } from '@/app/server-db-services/user-utils';
 import { ObjectId } from 'mongodb';
 import { NextRequest } from "next/server";
 
-export async function POST(req: NextRequest)
+export async function POST(request: NextRequest)
 {
     try
     {
@@ -15,16 +15,30 @@ export async function POST(req: NextRequest)
         const commandData: {
             toQueuedItem: string,
             targetId?: string,
-        } = await req.json();
+        } | {
+            skipValidation: boolean,
+            tunedIntoStationId?: string,
+        } = await request.json();
 
-        const targetId = commandData.targetId ?? undefined;
+        const isSkipToQueueItem = 'toQueuedItem' in commandData;
 
-        const skippedToTrack = await DbObjects.Users.Queue.skipTo(await filterTargetOrUserId(targetId, userId), new ObjectId(commandData.toQueuedItem));
+        if (isSkipToQueueItem)
+        {
+            const targetId = commandData.targetId ?? undefined;
 
-        return ApiSuccess(skippedToTrack);
+            const skippedToTrack = await DbObjects.Users.Queue.skipTo(await filterTargetOrUserId(targetId, userId), new ObjectId(commandData.toQueuedItem));
+
+            return ApiSuccess(skippedToTrack);
+        }
+        else
+        {
+            const { tunedIntoStationId, skipValidation } = commandData;
+            await DbObjects.Users.Player.skip(userId, tunedIntoStationId, skipValidation);
+            return ApiSuccess();
+        }
     }
     catch (e)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     }
 }

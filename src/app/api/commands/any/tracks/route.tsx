@@ -5,12 +5,12 @@ import { MediaId } from '@/app/shared-api/media-objects/media-id';
 import { ArbitraryDataApiRequestBody, ShowerMusicObjectType } from '@/app/shared-api/other/common';
 import { NextRequest } from "next/server";
 
-export async function POST(req: NextRequest)
+export async function POST(request: NextRequest)
 {
     try
     {
         const userId = await getUserId();
-        const commandData: ArbitraryDataApiRequestBody = await req.json();
+        const commandData: ArbitraryDataApiRequestBody = await request.json();
 
         const mediaId: MediaId = commandData.id;
         const type: ShowerMusicObjectType = commandData.type;
@@ -21,6 +21,6 @@ export async function POST(req: NextRequest)
     }
     catch (e)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     }
 }

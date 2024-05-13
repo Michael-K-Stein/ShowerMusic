@@ -9,7 +9,7 @@ import { ShowerMusicObjectType } from '@/app/shared-api/other/common';
 import { ApiNotImplementedError } from '@/app/shared-api/other/errors';
 import { NextRequest } from "next/server";
 
-export async function POST(req: NextRequest)
+export async function POST(request: NextRequest)
 {
     try
     {
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest)
             'id': MediaId,
             'targetId': string,
             'targetType': ShowerMusicObjectType;
-        } = await req.json();
+        } = await request.json();
 
         const mediaId: MediaId = commandData.id;
         const type: ShowerMusicObjectType = commandData.type;
@@ -57,6 +57,6 @@ export async function POST(req: NextRequest)
     }
     catch (e)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     }
 }

@@ -4,7 +4,7 @@ import { ApiSuccess, catchHandler } from '@/app/api/common';
 import { NextRequest } from 'next/server';
 import { getUser } from '@/app/server-db-services/user-utils';
 
-export async function GET(_req: NextRequest)
+export async function GET(request: NextRequest)
 {
     try
     {
@@ -13,6 +13,6 @@ export async function GET(_req: NextRequest)
     }
     catch (e)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     }
 }

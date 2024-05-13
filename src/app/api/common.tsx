@@ -1,7 +1,10 @@
 export const dynamic = "force-dynamic";
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { ClientApiError } from "@/app/shared-api/other/errors";
+import { friendlyRedirectToLogin } from "@/app/api/users/login/redirect-to-login";
+import { UserNotLoggedInError } from "@/app/server-db-services/user-utils";
+import { request } from "http";
 
 
 export function ApiResponseMaker(data: any)
@@ -28,12 +31,18 @@ export function ApiSuccess(data?: any)
     return ApiResponseMaker(data);
 }
 
-export function catchHandler(e: any)
+export function catchHandler<T extends NextRequest>(request: T, e: any)
 {
+    if (e instanceof UserNotLoggedInError)
+    {
+        return friendlyRedirectToLogin(request, request.url);
+    }
+
     if (e instanceof ClientApiError)
     {
         return ApiErrorMaker(e);
     }
+
     console.log(e);
     return ApiError(e);
 }

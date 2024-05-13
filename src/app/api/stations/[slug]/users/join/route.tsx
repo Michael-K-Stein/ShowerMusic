@@ -38,10 +38,6 @@ export async function GET(
     }
     catch (e)
     {
-        if (e instanceof UserNotLoggedInError)
-        {
-            return friendlyRedirectToLogin(request, request.url);
-        }
-        return catchHandler(e);
+        return catchHandler(request, e);
     }
 }

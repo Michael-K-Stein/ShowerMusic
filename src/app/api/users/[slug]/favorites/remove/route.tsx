@@ -5,9 +5,10 @@ import { UserFavoritesAddItemCommandData } from "@/app/api/users/[slug]/favorite
 import getEffectiveUserId from "@/app/api/users/[slug]/get-effective-user-id";
 import { DbObjects } from "@/app/server-db-services/db-objects";
 import { ObjectId } from "mongodb";
+import { NextRequest } from "next/server";
 
 export async function POST(
-    req: Request,
+    request: NextRequest,
     { params }: { params: { slug: string; }; }
 )
 {
@@ -15,7 +16,7 @@ export async function POST(
     {
         const targetUserId = await getEffectiveUserId(params);
 
-        const commandData: UserFavoritesAddItemCommandData = await req.json();
+        const commandData: UserFavoritesAddItemCommandData = await request.json();
 
         await DbObjects.Users.Favorites.remove(targetUserId,
             {
@@ -31,7 +32,7 @@ export async function POST(
     catch (e)
     {
         console.log(e);
-        return catchHandler(e);
+        return catchHandler(request, e);
     }
 }
 

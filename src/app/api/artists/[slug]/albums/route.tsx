@@ -38,6 +38,6 @@ export async function GET(
     }
     catch (e)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     };
 };

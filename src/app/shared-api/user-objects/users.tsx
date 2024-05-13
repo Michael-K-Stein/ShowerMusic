@@ -11,7 +11,17 @@ export type UserId = string;
 export interface MinimalUserDict extends ShowerMusicObject
 {
     username: string;
+    displayName?: string;
 }
+export function useUserPreferedName<T extends MinimalUserDict = MinimalUserDict>(user: T): string
+{
+    if ('displayName' in user && user.displayName)
+    {
+        return user.displayName;
+    }
+    return user.username;
+}
+
 export type ShowerMusicPlayableMediaId = TrackId | AlbumId | ArtistId | PlaylistId;
 export type ShowerMusicPlayableMediaContainerId = AlbumId | ArtistId | PlaylistId;
 export interface ShowerMusicResolveableItem
@@ -29,6 +39,12 @@ export interface UserListenHistoryRecentsMediaItem extends ShowerMusicObject, Sh
 {
     playedAt: Date;
 }
+export const USER_TRAVERSABLE_HISTORY_MAX_DEPTH = 20;
+export interface TraversableHistory extends ShowerMusicObject
+{
+    traversalIndex: number;
+    history: TrackId[];
+}
 export interface UserListenHistory 
 {
     lastStations: MinimalStation[];
@@ -37,6 +53,7 @@ export interface UserListenHistory
     lastAlbums: MinimalAlbumDict[];
     lastTracks: TrackId[]; // Usually tracks will be displayed with album and artist information, so there is no benifit to a minimal version here
     recents: UserListenHistoryRecentsMediaItem[];
+    traversableHistory: TraversableHistory;
 }
 export type UserListenHistoryMediaTypes = 'lastPlaylists' | 'lastArtists' | 'lastAlbums' | 'lastTracks' | 'lastStations';
 // Type guard for UserListenHistoryMediaTypes
@@ -72,7 +89,7 @@ export interface PlayerState
 }
 export interface UserDict extends MinimalUserDict
 {
-    password: string;
+    password?: string;
     playingNextTracks: PlayingNextTracks;
     friends: UserId[];
     player: PlayerState;

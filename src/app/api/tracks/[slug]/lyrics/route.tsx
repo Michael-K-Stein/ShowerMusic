@@ -4,7 +4,7 @@ import { DbObjects } from '@/app/server-db-services/db-objects';
 import { LyricsNotFoundError } from '@/app/shared-api/other/errors';
 
 export async function GET(
-    _request: NextRequest,
+    request: NextRequest,
     { params }: { params: { slug: string; }; }
 )
 {
@@ -20,12 +20,12 @@ export async function GET(
         return ApiSuccess(lyricsData);
     } catch (e)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     }
 }
 
 export async function OPTIONS(
-    _request: NextRequest,
+    request: NextRequest,
     { params }: { params: { slug: string; }; }
 )
 {
@@ -48,6 +48,6 @@ export async function OPTIONS(
     }
     catch (e)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     }
 }

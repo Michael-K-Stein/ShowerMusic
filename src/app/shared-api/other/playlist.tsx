@@ -18,7 +18,7 @@ export interface MinimalPlaylist extends ShowerMusicObject
 }
 export interface PlaylistAndStationBaseInterface extends MinimalPlaylist
 {
-    creator: SSUserId; // Only the creator (or an Admin) can delete the playlist from the DB
+    creator: SSUserId | 'system'; // Only the creator (or an Admin) can delete the playlist from the DB
     tracks: PlaylistTrack[];
 }
 

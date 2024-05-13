@@ -3,12 +3,12 @@ import { DbObjects } from '@/app/server-db-services/db-objects';
 import { getUserId } from '@/app/server-db-services/user-utils';
 import { NextRequest } from "next/server";
 
-export async function POST(req: NextRequest)
+export async function POST(request: NextRequest)
 {
     try
     {
         const userId = await getUserId();
-        const commandData: { 'type': string, 'id': string; } = await req.json();
+        const commandData: { 'type': string, 'id': string; } = await request.json();
         const queueId = commandData.id;
 
         // Technically, the item need not be a track, sinec we only care about the queueId
@@ -18,6 +18,6 @@ export async function POST(req: NextRequest)
     }
     catch (e)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     }
 }

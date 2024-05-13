@@ -66,7 +66,7 @@ async function addUserToStationMembers(stationId: StationId, userId: SSUserId)
         $addToSet: { 'members': userId, },
     });
 
-    SendServerRequestToSessionServerForStationListeners(MessageTypes.PLAYLIST_UPDATE, [ stationId ]);
+    SendServerRequestToSessionServerForStationListeners(MessageTypes.STATION_UPDATE, [ stationId ]);
 }
 
 export async function generateStationInvite(stationId: StationId, invitationMetaData: StationInvitationMetadata)

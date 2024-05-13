@@ -65,7 +65,7 @@ var dispatchToSyncObjectListeners = function (messageType, syncObjectId, data) {
     }
     var message = buildMessage(messageType, syncObjectId, data);
     registeredSyncObjectConnections[syncObjectId].map(function (listenerWS) {
-        console.log("Sending ".concat(messageType, " to sync-sock ").concat(listenerWS));
+        console.log("Sending ".concat(messageType, " to sync-sock ").concat(syncObjectId));
         listenerWS.send(message);
     });
 };

@@ -16,22 +16,23 @@ import { TrackDict } from "@/app/shared-api/media-objects/tracks";
 import { ArtistList, TrackCoverImage } from '@/app/components/providers/global-props/global-modals';
 import StreamBarExtraControls from '@/app/components/stream-bar/stream-bar-extra-controls';
 import { commandUserStationAccess } from '@/app/client-api/stations/get-station-specific';
+import { PauseState } from '@/app/shared-api/user-objects/users';
 
 function StreamBarSongControls({ userCanSeek }: { userCanSeek: boolean; })
 {
-    const { museLoadingState, musePausedState, setMusePausedState, skipTrack } = useSessionMuse();
+    const { museLoadingState, musePausedState, setPauseState, skipTrack, rewindTrack } = useSessionMuse();
 
     const pauseTrack = useCallback(() =>
     {
         if (!userCanSeek) { return; }
-        setMusePausedState(true);
-    }, [ userCanSeek, setMusePausedState ]);
+        setPauseState(PauseState.Paused);
+    }, [ userCanSeek, setPauseState ]);
 
     const unpauseTrack = useCallback(() =>
     {
         if (!userCanSeek) { return; }
-        setMusePausedState(false);
-    }, [ userCanSeek, setMusePausedState ]);
+        setPauseState(PauseState.Playing);
+    }, [ userCanSeek, setPauseState ]);
 
     const skipTrackHandler = useCallback(() =>
     {
@@ -39,17 +40,23 @@ function StreamBarSongControls({ userCanSeek }: { userCanSeek: boolean; })
         skipTrack();
     }, [ userCanSeek, skipTrack ]);
 
+    const rewindTrackHandler = useCallback(() =>
+    {
+        if (!userCanSeek) { return; }
+        rewindTrack();
+    }, [ userCanSeek, rewindTrack ]);
+
+
     return (
         <div className="absolute top-0 flex flex-row min-w-full max-w-full items-center justify-center mt-3">
             { userCanSeek &&
-                <RewindGlyph glyphTitle={ "Rewind" } className="w-10 m-1 clickable" />
+                <RewindGlyph glyphTitle={ "Rewind" } className="w-10 m-1 clickable" onClick={ rewindTrackHandler } />
             }
             {
                 museLoadingState &&
                 <CircularProgress color="inherit" className="w-10 m-1" />
                 || (
-                    musePausedState &&
-
+                    (musePausedState === PauseState.Paused) &&
                     <PlayGlyph
                         className={ `w-10 m-1 ` + (userCanSeek ? 'clickable' : '') }
                         onClick={ unpauseTrack }

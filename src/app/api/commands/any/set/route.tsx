@@ -7,12 +7,12 @@ import { ArbitraryTargetAndDataApiRequestBody, ShowerMusicObjectType } from "@/a
 import { InvalidTargetIdError, InvalidTargetTypeError, TrackNotFoundError } from "@/app/shared-api/other/errors";
 import { NextRequest } from "next/server";
 
-export async function POST(req: NextRequest)
+export async function POST(request: NextRequest)
 {
     try
     {
         const userId = await getUserId();
-        const commandData: ArbitraryTargetAndDataApiRequestBody = await req.json();
+        const commandData: ArbitraryTargetAndDataApiRequestBody = await request.json();
         const sourceId: MediaId = commandData.id;
         const sourceType: ShowerMusicObjectType = commandData.type;
         const targetId = commandData.targetId;
@@ -53,6 +53,6 @@ export async function POST(req: NextRequest)
     }
     catch (e)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     }
 }

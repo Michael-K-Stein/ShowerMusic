@@ -1,5 +1,5 @@
-import { AlbumNotFoundError, ArtistNotFoundError, ClientApiError, ClientError, ServerNetworkError, TrackNotFoundError, constructErrorFromNetworkMessage } from "@/app/shared-api/other/errors";
-import { ApiResponseJson, ArbitraryDataApiRequestBody, ArbitraryTargetAndDataApiRequestBody, ArbitraryTargetAndDataApiRequestBodyWithComplexItem, ComplexItem, ComplexItemType, RemovalId, ShowerMusicObject, ShowerMusicObjectType, ShowerMusicPlayableMediaDict } from "@/app/shared-api/other/common";
+import { ClientApiError, ClientError, ServerNetworkError, UserNotLoggedInError, constructErrorFromNetworkMessage } from "@/app/shared-api/other/errors";
+import { ApiResponseJson, ArbitraryDataApiRequestBody, ArbitraryTargetAndDataApiRequestBody, ArbitraryTargetAndDataApiRequestBodyWithComplexItem, ComplexItemType, RemovalId, ShowerMusicObject, ShowerMusicObjectType, ShowerMusicPlayableMediaDict } from "@/app/shared-api/other/common";
 import { MediaId } from "@/app/shared-api/media-objects/media-id";
 import { SetAddToArbitraryModalState } from "@/app/components/providers/session/session";
 import { MouseEventHandler } from "react";
@@ -7,7 +7,9 @@ import { ShowerMusicPlayableMediaType } from "@/app/showermusic-object-types";
 import { ShowerMusicNamedResolveableItem } from "@/app/shared-api/user-objects/users";
 import { TrackId } from "@/app/shared-api/media-objects/tracks";
 
-export function safeFetcher(input: RequestInfo, init?: RequestInit | undefined): Promise<Response | false>
+const API_LOGIN_REQUIRED_SLEEP_TIMEOUT = 60 * 1000; // 1 Minute
+
+export function safeFetcher(input: RequestInfo, init?: RequestInit | undefined): Promise<Response>
 {
     return fetch(input, init);
 }
@@ -17,7 +19,13 @@ export function safeApiFetcher(input: RequestInfo, init?: RequestInit | undefine
     return safeFetcher(input, init)
         .then((response) =>
         {
-            if (response === false) { return response; }
+            // An API request should only return a redirect if the user is not logged in!
+            if (response.redirected)
+            {
+                window.location.replace(response.url);
+                return new Promise((r) => setTimeout(r, API_LOGIN_REQUIRED_SLEEP_TIMEOUT));
+            }
+
             return response.json()
                 .then((data: ApiResponseJson) =>
                 {
@@ -32,9 +40,13 @@ export function safeApiFetcher(input: RequestInfo, init?: RequestInit | undefine
                 {
                     if (withCatch !== true) { throw e; }
 
-                    if (e instanceof ClientApiError)
+                    if (e instanceof UserNotLoggedInError)
                     {
-                        console.log(`[ClientApiError] ${e}`);
+                        console.log(`[UserNotLoggedInError] ${e.status}`);
+                    }
+                    else if (e instanceof ClientApiError)
+                    {
+                        console.log(`[ClientApiError] ${e.status}`);
                     }
                     else if (e instanceof ClientError)
                     {

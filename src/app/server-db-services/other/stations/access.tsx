@@ -23,7 +23,7 @@ export default async function getUserStationAccess(userId: SSUserId, stationId: 
     console.log(`Cecking access rights for user ${userId.toHexString()} to station ${stationId}`);
 
     // Creator has all access always
-    const userIsCreator = stationInfo.creator.equals(userId);
+    const userIsCreator = stationInfo.creator === 'system' ? false : stationInfo.creator.equals(userId);
     if (userIsCreator)
     {
         return {

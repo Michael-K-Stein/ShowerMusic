@@ -71,10 +71,10 @@ export default function SearchResultsContainerComponent()
             return;
         }
 
-        trackResults.map((trackData) =>
-        {
-            <TrackModal key={ trackData.id } data={ trackData } />;
-        });
+        setTrackModals(
+            trackResults.map((trackData) =>
+                <TrackModal key={ trackData.id } data={ trackData } />
+            ));
 
     }, [ trackResults, setTrackModals ]);
 

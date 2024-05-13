@@ -2,20 +2,12 @@ export const dynamic = "force-dynamic";
 
 import { DbObjects } from '@/app/server-db-services/db-objects';
 import { getJwtSecret, USER_AUTH_COOKIE_NAME } from '@/app/settings';
+import { UserNotLoggedInError } from '@/app/shared-api/other/errors';
 import { JWTUserData } from '@/app/shared-api/user-objects/users';
 import jwt from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
 import { cookies } from 'next/headers';
 export type SSUserId = ObjectId;
-export class UserNotLoggedInError extends Error
-{
-    constructor(message?: string)
-    {
-        super(message);
-        this.name = 'UserNotLoggedInError';
-    }
-};
-
 export async function getUser()
 {
     const jwtSecret = getJwtSecret();
@@ -70,3 +62,5 @@ export async function getUserId(): Promise<SSUserId>
         throw new Error('Error verifying JWT!');
     }
 }
+export { UserNotLoggedInError };
+

@@ -4,9 +4,10 @@ import renamePlaylist from "@/app/server-db-services/other/playlists/rename";
 import { pushTracksToPlaylist, removeTrackFromPlaylist } from "@/app/server-db-services/other/playlists/track-control";
 import getUserStationAccess, { assertUserStationAccess } from "@/app/server-db-services/other/stations/access";
 import { createNewStation } from "@/app/server-db-services/other/stations/create";
-import { moveStationToNextTrack } from "@/app/server-db-services/other/stations/currently-playing";
+import { moveStationToNextTrack, moveStationToPreviousTrack } from "@/app/server-db-services/other/stations/currently-playing";
 import { getStationInfo } from "@/app/server-db-services/other/stations/get";
 import { getCategoriesFull, getCategoriesMinimal } from "@/app/server-db-services/other/stations/get-categories";
+import { getStationPauseState, setStationPauseState } from "@/app/server-db-services/other/stations/pause";
 import { getStationSeekTime, setStationSeekTime } from "@/app/server-db-services/other/stations/seek";
 import { generateStationInvite, joinStationFromInvite, promoteStationMember } from "@/app/server-db-services/other/stations/users";
 import { SSUserId, getUserId } from "@/app/server-db-services/user-utils";
@@ -49,6 +50,10 @@ export namespace DbStation
     export const setSeekTime = accessWrapper(setStationSeekTime, { player: true }, 0);
     export const getSeekTime = accessWrapper(getStationSeekTime, { view: true }, 0);
     export const moveToNextTrack = accessWrapper(moveStationToNextTrack, { view: true }, 0);
+    export const moveToPreviousTrack = accessWrapper(moveStationToPreviousTrack, { player: true }, 0);
+    export const setPauseState = accessWrapper(setStationPauseState, { player: true }, 0);
+    export const getPauseState = accessWrapper(getStationPauseState, { view: true }, 0);
+
     // Member management
     export const generateInvite = accessWrapper(generateStationInvite, { metadata: true }, 0);
     export const join = joinStationFromInvite; // No access wrapping allowed here since the user neccessarily does not have access yet

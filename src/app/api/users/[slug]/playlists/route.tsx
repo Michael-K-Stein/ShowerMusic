@@ -1,9 +1,10 @@
 import { ApiSuccess, catchHandler } from "@/app/api/common";
 import getEffectiveUserId from "@/app/api/users/[slug]/get-effective-user-id";
 import { DbObjects } from "@/app/server-db-services/db-objects";
+import { NextRequest } from "next/server";
 
 export async function GET(
-    req: Request,
+    request: NextRequest,
     { params }: { params: { slug: string; }; }
 )
 {
@@ -15,6 +16,7 @@ export async function GET(
     }
     catch (e)
     {
-        return catchHandler(e);
+        console.log(request, e);
+        return catchHandler(request, e);
     }
 }

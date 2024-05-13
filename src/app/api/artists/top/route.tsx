@@ -5,9 +5,10 @@ export const dynamic = "force-dynamic";
 
 import { ApiSuccess, catchHandler } from "@/app/api/common";
 import databaseController from "@/app/server-db-services/mongo-db-controller";
+import { NextRequest } from "next/server";
 
 export async function GET(
-    request: Request
+    request: NextRequest
 
 )
 {
@@ -19,6 +20,6 @@ export async function GET(
     }
     catch (e)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     };
 }

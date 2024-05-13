@@ -13,11 +13,15 @@ import { buildUrlForState } from "@/app/shared-api/other/common";
 import SharedSyncObjectProvider, { useSharedSyncObject } from "@/app/components/providers/shared-sync-object-provides";
 import { PrivateStation, PublicStation, Station, StationId, StationParticipant } from "@/app/shared-api/other/stations";
 import { ShowerMusicObjectType } from "@/app/showermusic-object-types";
-import { Box, Typography } from "@mui/material";
+import { Box, CircularProgress, Tooltip, Typography } from "@mui/material";
 import { EnqueueSnackbar, useSnackbar } from "notistack";
-import { MouseEventHandler, useMemo, useState } from "react";
+import React, { MouseEventHandler, useCallback, useMemo, useState } from "react";
 import LoginRoundedUpGlyph from "@/app/components/glyphs/login-rounded-up";
-import { UserId } from "@/app/shared-api/user-objects/users";
+import { UserId, useUserPreferedName } from "@/app/shared-api/user-objects/users";
+import DeleteUserMaleGlyph from "@/app/components/glyphs/delete-user-male";
+import { useAuth } from "@/app/components/auth-provider";
+import { getClientSideObjectId } from "@/app/client-api/common-utils";
+import { MessageTypes } from "@/app/settings";
 
 
 function accumulateStationMembersAndAdmins(station: PrivateStation | PublicStation)
@@ -90,44 +94,86 @@ function promoteStationMemberClickHandlerFactory(enqueueSnackbar: EnqueueSnackba
     };
 }
 
+function StationAdminGlyphControls({ stationId, member, ...props }: { stationId: StationId, member: StationParticipant | undefined; } & React.HTMLAttributes<HTMLDivElement>)
+{
+    return (
+        <div { ...props } className="relative overflow-visible">
+            <div className="flex flex-row-reverse group overflow-visible">
+                <CaptainGlyph
+                    glyphTitle={ "Admin" }
+                    placement={ 'bottom-end' }
+                    data-static
+                    className="w-4 h-4 text-pink-300"
+                />
+                <div className="absolute overflow-visible w-4 h-4 -left-4">
+                    <DeleteUserMaleGlyph
+                        className="h-4 text-pink-300 absolute group-hover:w-4 overflow-visible"
+                        glyphTitle={ "Remove" }
+                        placement={ 'bottom-start' }
+                    />
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function StationMember({ stationId, member }: { stationId: StationId, member: StationParticipant | undefined; })
 {
     const { enqueueSnackbar } = useSnackbar();
+    const { userData: me } = useAuth();
     const [ memberName, setMemberName ] = useState<string>();
+    const isUserMe = me && member && me._id && member.userId && (me._id as unknown == member.userId as unknown);
 
     useMemo(() =>
     {
+        console.log('Re-rendering Memo!');
         if (!member) { return; }
         commandGetUserById(member.userId as unknown as string)
             .then((userInfo) =>
             {
-                setMemberName(userInfo.username);
+                setMemberName(useUserPreferedName(userInfo));
             });
+
     }, [ member, setMemberName ]);
 
     return (
-        <div className="flex flex-row items-center justify-center">
+        <div className="flex flex-row items-center justify-center overflow-x-visible">
             {
-                (member?.isCreator && <CaptainGeneralGlyph glyphTitle={ "Creator" } placement={ 'left' } data-static className="w-4 h-4 text-pink-300" />) ||
-                (member?.isAdmin && <CaptainGlyph glyphTitle={ "Admin" } placement={ 'left' } data-static className="w-4 h-4 text-pink-300" /> ||
-                    member && <LoginRoundedUpGlyph
-                        glyphTitle={ "Promote" }
+                (
+                    member?.isCreator &&
+                    <CaptainGeneralGlyph
+                        glyphTitle={ "Creator" }
                         placement={ 'left' }
-                        className="w-4 h-4 text-pink-300 opacity-60 scale-75"
-                        onClick={ (member && memberName) ? promoteStationMemberClickHandlerFactory(enqueueSnackbar, stationId, member, memberName) : () => { } }
-                    />)
+                        data-static
+                        className="w-4 h-4 text-pink-300"
+                    />
+                ) || (
+                    (
+                        member?.isAdmin &&
+                        <StationAdminGlyphControls stationId={ stationId } member={ member } />
+
+                    ) || (
+                        member &&
+                        <LoginRoundedUpGlyph
+                            glyphTitle={ "Promote" }
+                            placement={ 'left' }
+                            className="w-4 h-4 text-pink-300 opacity-60 scale-75"
+                            onClick={ (member && memberName) ? promoteStationMemberClickHandlerFactory(enqueueSnackbar, stationId, member, memberName) : () => { } }
+                        />
+                    )
+                )
             }
             <Box sx={ { width: '0.3em' } } />
             <Typography fontWeight={ 500 }>
-                { memberName ?? <TextLoader /> }
+                { isUserMe ? 'You' : (memberName ?? <TextLoader />) }
             </Typography>
         </div>
     );
 }
 
-function inviteMemberToStationClickHandlerFactory(enqueueSnackbar: EnqueueSnackbar, station: PrivateStation | PublicStation): MouseEventHandler
+function inviteMemberToStationClickHandlerFactory<T extends Element = Element>(enqueueSnackbar: EnqueueSnackbar, station: PrivateStation | PublicStation)
 {
-    return async (e) =>
+    return async (e: React.MouseEvent<T>) =>
     {
         const stationInvitationUrl = await commandGenerateStationInvitationUrl(station.id)
             .catch((error) =>
@@ -146,16 +192,46 @@ function inviteMemberToStationClickHandlerFactory(enqueueSnackbar: EnqueueSnackb
 function StationGeneralMemberControls({ station }: { station: PrivateStation | PublicStation; })
 {
     const { enqueueSnackbar } = useSnackbar();
+    const [ inviteLinkCreationDisabled, setInviteLinkCreationDisabled ] = useState<boolean>(false);
+
+    const inviteMemberToStationClickHandlerFactoryWrapper = useCallback((station: PrivateStation | PublicStation) =>
+    {
+        const invitationGenerator = inviteMemberToStationClickHandlerFactory(enqueueSnackbar, station);
+        return ((e) =>
+        {
+            setInviteLinkCreationDisabled(true);
+            invitationGenerator(e)
+                .then(() =>
+                {
+                    setInviteLinkCreationDisabled(false);
+                });
+        }) as MouseEventHandler;
+
+
+    }, [ setInviteLinkCreationDisabled, enqueueSnackbar ]);
 
     return (
         <div className="flex flex-row-reverse justify-start w-full">
-            <AddUserMaleGlyph glyphTitle={ "Invite member" } className="w-5 h-5" onClick={ inviteMemberToStationClickHandlerFactory(enqueueSnackbar, station) } />
+            <div className="w-4 h-4 p-0 m-0" aria-disabled={ inviteLinkCreationDisabled }>
+                {
+                    inviteLinkCreationDisabled
+                    &&
+                    <CircularProgress color="inherit" className="w-4 h-4" sx={ { width: '1rem', height: '1rem' } } size={ '1rem' } />
+                    ||
+                    <AddUserMaleGlyph
+                        glyphTitle={ "Invite member" }
+                        className="w-5 h-5"
+                        onClick={ inviteMemberToStationClickHandlerFactoryWrapper(station) }
+                    />
+                }
+            </div>
         </div>
     );
 }
 
 function StationMembers({ station }: { station: PrivateStation | PublicStation | undefined; })
 {
+    console.log('Re-rendering!');
     const members = station ? accumulateStationMembersAndAdmins(station) : [ undefined, undefined, undefined, undefined ];
     const memberComponents = members.map(
         (member?: StationParticipant) =>
@@ -165,14 +241,14 @@ function StationMembers({ station }: { station: PrivateStation | PublicStation |
                 stationId={ station?.id ?? '' }
             />);
     return (
-        <div className="flex flex-col justify-center items-center p-2 overflow-hidden">
+        <div className="flex flex-col justify-center items-center p-2 overflow-y-hidden overflow-x-visible">
             <div className="flex flex-row items-center">
                 <Typography fontWeight={ 700 }>{ members.length.toString() }</Typography>
                 <Box sx={ { width: '2px', height: '70%', backgroundColor: 'rgba(147,197,253,0.35)', marginX: '0.3rem' } } />
                 <Typography fontWeight={ 700 }>Members</Typography>
             </div>
             <Box sx={ { width: '100%', height: '2px', backgroundColor: 'rgba(147,197,253,0.35)' } } />
-            <div className="flex flex-col justify-center items-start h-full overflow-y-scroll">
+            <div className="flex flex-col justify-center items-start h-full overflow-y-scroll overflow-x-visible">
                 { memberComponents }
             </div>
             <Box sx={ { height: '0.5em' } } />
@@ -199,7 +275,10 @@ function StationCustomHeader({ stationData }: { stationData: Station | undefined
 
 function StationPageInsideSync({ stationId }: { stationId: StationId; })
 {
-    const stationData = useSharedSyncObject(commandGetStation, stationId);
+    const stationData = useSharedSyncObject(stationId, commandGetStation, MessageTypes.STATION_UPDATE);
+
+    console.log('StationPageInsideSync');
+
     return (
         <ModalPageLoader
             itemId={ stationId }

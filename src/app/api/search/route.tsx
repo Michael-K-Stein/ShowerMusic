@@ -3,15 +3,15 @@ export const dynamic = "force-dynamic";
 import { ApiSuccess, catchHandler } from "@/app/api/common";
 import { ApiSearchError } from "@/app/shared-api/other/errors";
 import { DbObjects } from "@/app/server-db-services/db-objects";
+import { NextRequest } from "next/server";
 
 export async function GET(
-    request: Request
+    request: NextRequest
 )
 {
     try
     {
-        const url = new URL(request.url);
-        const searchParams = new URLSearchParams(url.search);
+        const searchParams = request.nextUrl.searchParams;
         const query = searchParams.get('q');
         if (!query)
         {
@@ -24,7 +24,7 @@ export async function GET(
     }
     catch (e)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     }
 };
 

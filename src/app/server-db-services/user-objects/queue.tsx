@@ -1,5 +1,6 @@
 import databaseController from "@/app/server-db-services/mongo-db-controller";
 import { handleUserRequestedPopOnStation } from "@/app/server-db-services/other/stations/db-station";
+import { flushUserTraversableHistory } from "@/app/server-db-services/user-objects/user-history";
 import { UserNotFoundError } from "@/app/server-db-services/user-objects/user-object";
 import { SSUserId } from "@/app/server-db-services/user-utils";
 import { MessageTypes } from "@/app/settings";
@@ -43,6 +44,8 @@ export async function setUserPlayingNextQueue(userId: SSUserId, tracks: TrackId[
     );
 
     SendServerRequestToSessionServerForUsers(MessageTypes.QUEUE_UPDATE, [ userId ]);
+
+    flushUserTraversableHistory(userId);
 }
 
 export async function addTracksToUserPlayingNextQueue(userId: SSUserId, trackIds: TrackId[])

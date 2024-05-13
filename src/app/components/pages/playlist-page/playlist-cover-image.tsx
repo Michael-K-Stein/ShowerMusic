@@ -10,6 +10,7 @@ import Image from "next/image";
 import { useSnackbar } from "notistack";
 import React, { useMemo, useState } from "react";
 import { getPlaylist } from "@/app/client-api/get-playlist";
+import { MessageTypes } from "@/app/settings";
 
 export function StationCoverImage({ station }: { station: MinimalStation | Station; })
 {
@@ -35,18 +36,13 @@ export function getStationCoverImage(stationId: StationId): string
     return `/art/stations/${stationId}.png`;
 }
 
-export function PlaylistImage({ playlistInitData }: { playlistInitData: Playlist | MinimalPlaylist | PlaylistId | undefined; })
+function PlaylistImageInternal({ playlistId }: { playlistId: PlaylistId; })
 {
     const { enqueueSnackbar } = useSnackbar();
     const playlistData = useSharedSyncObject(
+        playlistId,
         getPlaylist,
-        (typeof playlistInitData === 'string') ?
-            playlistInitData :
-            (
-                (typeof playlistInitData === 'object') ?
-                    playlistInitData.id :
-                    undefined
-            ),
+        MessageTypes.PLAYLIST_UPDATE,
         false
     );
 
@@ -81,7 +77,7 @@ export function PlaylistImage({ playlistInitData }: { playlistInitData: Playlist
                 return [ ...previousResults, trackData ];
             }, Promise.resolve([] as TrackDict[])
         ).then(setTracksData);
-    }, [ playlistData, enqueueSnackbar ]);
+    }, [ playlistData, setGridTrackCount, setTracksData, enqueueSnackbar ]);
 
     let playlistImageContent: React.JSX.Element[] = [ (
         <Image
@@ -119,8 +115,27 @@ export function PlaylistImage({ playlistInitData }: { playlistInitData: Playlist
             className='playlist-image'
             data-playlist-track-count={ playlistData?.tracks.length }
             data-playlist-image-grid-track-count={ Math.floor(Math.sqrt(gridTrackCount)) }
-            key={ playlistData ? playlistData.id : (playlistInitData as (string | undefined)) } >
+            key={ playlistId } >
             { playlistImageContent }
         </div>
     );
+}
+
+export function PlaylistImage({ playlistInitData }: { playlistInitData: Playlist | MinimalPlaylist | PlaylistId | undefined; })
+{
+    const [ playlistId, setPlaylistId ] = useState<PlaylistId>();
+
+    useMemo(() =>
+    {
+        if (typeof playlistInitData === 'string')
+        {
+            setPlaylistId(playlistInitData);
+        }
+        else if ((typeof playlistInitData === 'object'))
+        {
+            setPlaylistId(playlistInitData.id);
+        }
+    }, [ setPlaylistId, playlistInitData ]);
+
+    return (playlistId && <PlaylistImageInternal playlistId={ playlistId } />);
 }

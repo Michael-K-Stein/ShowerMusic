@@ -4,7 +4,11 @@ import { getArtistInfo } from '@/app/client-api/get-artist';
 import { getPlaylist } from '@/app/client-api/get-playlist';
 import { getTrackInfo } from '@/app/client-api/get-track';
 import { commandGetStation } from '@/app/client-api/stations/get-station-specific';
+import PlayGlyph from '@/app/components/glyphs/play';
 import { gotoArbitraryPlayableMediaPageCallbackFactory } from '@/app/components/media-modals/card-modal/card-modal';
+import { GenericCoverLoader } from '@/app/components/pages/artist-page/artist-page';
+import { PlaylistImage, StationCoverImage } from '@/app/components/pages/playlist-page/playlist-cover-image';
+import { playArbitraryClickHandlerFactory } from '@/app/components/providers/global-props/arbitrary-click-handler-factories';
 import { ArtistList, enqueueApiErrorSnackbar } from '@/app/components/providers/global-props/global-modals';
 import { useSessionState } from '@/app/components/providers/session/session';
 import useUserSession from '@/app/components/providers/user-provider/user-session';
@@ -13,6 +17,7 @@ import { ArtistDict, MinimalArtistDict } from '@/app/shared-api/media-objects/ar
 import { TrackDict } from '@/app/shared-api/media-objects/tracks';
 import { ShowerMusicPlayableMediaDict } from '@/app/shared-api/other/common';
 import Playlist from '@/app/shared-api/other/playlist';
+import { Station } from '@/app/shared-api/other/stations';
 import { ShowerMusicPlayableMediaId, UserListenHistoryRecentsMediaItem } from "@/app/shared-api/user-objects/users";
 import { ShowerMusicObjectType, ShowerMusicPlayableMediaType } from '@/app/showermusic-object-types';
 import { Typography } from '@mui/material';
@@ -20,11 +25,6 @@ import Image from 'next/image';
 import { EnqueueSnackbar, useSnackbar } from 'notistack';
 import { MouseEventHandler, Suspense, useCallback, useMemo, useState } from 'react';
 import './home-page-playlists.css';
-import { GenericCoverLoader } from '@/app/components/pages/artist-page/artist-page';
-import { PlaylistImage, StationCoverImage } from '@/app/components/pages/playlist-page/playlist-cover-image';
-import { Station } from '@/app/shared-api/other/stations';
-import PlayGlyph from '@/app/components/glyphs/play';
-import { playArbitraryClickHandlerFactory } from '@/app/components/providers/global-props/arbitrary-click-handler-factories';
 
 type ImageType = (typeof Image)[ 'defaultProps' ];
 export type ShowerMusicImage = Partial<ImageType>;
@@ -157,7 +157,7 @@ function RecentUserPlayedItem({ item }: { item: UserListenHistoryRecentsMediaIte
                 <PlayGlyph
                     onClick={ (e) => { e.stopPropagation(); e.preventDefault(); playArbitraryClickHandlerFactory(itemData as ShowerMusicPlayableMediaDict, item.type, setStream, enqueueSnackbar)(); } }
                     glyphTitle='Play'
-                    className='absolute box-border p-4 opacity-45 group-hover:opacity-95' />
+                    className='absolute box-border p-4 opacity-45 group-hover:opacity-95 z-[2]' />
                 <ArbitraryPlayableMediaImage data={ itemData } quality={ 40 } width={ 128 } height={ 128 } className='w-full h-full' />
             </div>
             <div className='m-0 ml-[3em] p-0'>

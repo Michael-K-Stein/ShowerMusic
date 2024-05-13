@@ -39,6 +39,17 @@ export class ClientApiError extends ClientError
     }
 }
 
+
+export class UserNotLoggedInError extends ClientApiError
+{
+    constructor(message?: string)
+    {
+        super(message);
+        this.name = 'UserNotLoggedInError';
+    }
+};
+
+
 export function constructErrorFromNetworkMessage(networkMessage: ClientApiError): ClientApiError
 {
     return new ClientApiError(networkMessage);

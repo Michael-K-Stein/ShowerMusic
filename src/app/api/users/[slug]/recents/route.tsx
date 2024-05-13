@@ -1,13 +1,13 @@
-import { filterTargetOrUserId } from "@/app/api/commands/any/common";
+export const dynamic = "force-dynamic";
+
 import { ApiSuccess, catchHandler } from "@/app/api/common";
 import getEffectiveUserId from "@/app/api/users/[slug]/get-effective-user-id";
 import { DbObjects } from "@/app/server-db-services/db-objects";
-import { getUserId } from "@/app/server-db-services/user-utils";
+import { NextRequest } from "next/server";
 
-export const dynamic = "force-dynamic";
 
 export async function GET(
-    req: Request,
+    request: NextRequest,
     { params }: { params: { slug: string; }; }
 )
 {
@@ -21,6 +21,6 @@ export async function GET(
     }
     catch (e)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     }
 }

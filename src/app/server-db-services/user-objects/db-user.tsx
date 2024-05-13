@@ -1,8 +1,8 @@
 import UserFavorites from "@/app/server-db-services/user-objects/favorites/user-favorites";
-import { getUserPlayerLoopState, getUserPlayerSeekTime, getUserPlayingTrack, setUserPlayerLoopState, setUserPlayerSeekTime, setUserPlayingTrack } from "@/app/server-db-services/user-objects/player";
+import { getUserPlayerLoopState, getUserPlayerSeekTime, getUserPlayingTrack, getUserPlayPauseState, setUserPlayerLoopState, setUserPlayerSeekTime, setUserPlayingTrack, setUserPlayPauseState } from "@/app/server-db-services/user-objects/player";
 import { addTracksToUserPlayingNextQueue, addTracksToUserPlayingNextQueueWithPosition, flushUserPlayingNextQueue, peekUserPlayingNextQueue, popUserPlayingNextQueue, queryUserPlayingNextQueue, removeUserQueuedTrack, setPlayingNextTracksToUserPlayingNextQueue, setUserPlayingNextQueue, skipToQueueItem } from "@/app/server-db-services/user-objects/queue";
 import UserRecentlyPlayedManager from "@/app/server-db-services/user-objects/recommendations/user-recently-played-manager";
-import { getUserListenHistory, pushMediaToUserListenHistory, pushTrackToUserListenHistory } from "@/app/server-db-services/user-objects/user-history";
+import { getUserListenHistory, pushMediaToUserListenHistory, pushTrackToUserListenHistory, rewindUserTrack, skipUserTrack } from "@/app/server-db-services/user-objects/user-history";
 import { getUserById, getUserByStringId, getUserByUsername, getUserPublicInfo, loginUser, verifyAdminUser } from "@/app/server-db-services/user-objects/user-object";
 
 export namespace DbUser
@@ -23,6 +23,10 @@ export namespace DbUser
         export const getSeekTime = getUserPlayerSeekTime;
         export const setLoopState = setUserPlayerLoopState;
         export const getLoopState = getUserPlayerLoopState;
+        export const skip = skipUserTrack;
+        export const rewind = rewindUserTrack;
+        export const setPlayPauseState = setUserPlayPauseState;
+        export const getPlayPauseState = getUserPlayPauseState;
     }
 
     export namespace Queue

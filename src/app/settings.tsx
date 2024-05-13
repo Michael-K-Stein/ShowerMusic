@@ -9,6 +9,9 @@ export const STATION_TRACK_CHANGE_TIME_EXPECTATION_MISS_MAX_MS = 1000 * 2; // 2 
 
 export const USER_AUTH_COOKIE_NAME = 'auth';
 
+export const USE_LDAP_AUTHENTICATION = false;
+export const LDAP_DISPLAY_NAME_FIELD = 'sn';
+
 export function getJwtSecret()
 {
     const jwtSecret = process.env.JWT_SECRET;

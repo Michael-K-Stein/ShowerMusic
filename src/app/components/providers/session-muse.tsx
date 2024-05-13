@@ -1,21 +1,23 @@
 import { getTrackInfo } from "@/app/client-api/get-track";
 import { commandPlayerSkipCurrentTrack, queryCurrentlyPlayingTrack } from "@/app/client-api/player";
+import { commandGetUserPlayPauseState, commandSetUserPlayPauseState } from "@/app/client-api/player/pause";
 import { commandGetSeekTime, commandSetSeekTime } from "@/app/client-api/player/seek";
-import { commandPopTrackFromQueue, peekTrackFromQueue } from "@/app/client-api/queue";
-import { commandGetStationSeekTime, commandSetStationSeekTime } from "@/app/client-api/stations/get-station-specific";
+import { commandPopTrackFromQueue, commandQueueAddArbitraryTypeTracks, commandRewindTrack, commandSkipTrack, peekTrackFromQueue } from "@/app/client-api/queue";
+import { commandGetStationPauseState, commandGetStationSeekTime, commandSetStationPauseState, commandSetStationSeekTime } from "@/app/client-api/stations/get-station-specific";
 import { enqueueApiErrorSnackbar } from "@/app/components/providers/global-props/global-modals";
-import useGlobalProps from "@/app/components/providers/global-props/global-props";
+import useGlobalProps, { addTrackToQueueClickHandler } from "@/app/components/providers/global-props/global-props";
 import { useSessionState } from "@/app/components/providers/session/session";
 import { queryStationCurrentlyPlayingTrack } from "@/app/components/providers/station-session-muse";
 import useUserSession from "@/app/components/providers/user-provider/user-session";
-import { MessageTypes } from "@/app/settings";
+import { MessageTypes, ShowerMusicObjectType } from "@/app/settings";
 import { TrackDict, TrackId } from "@/app/shared-api/media-objects/tracks";
+import { LoopState, PauseState } from "@/app/shared-api/user-objects/users";
 import { useSnackbar } from "notistack";
 import React, { Dispatch, MutableRefObject, SetStateAction, createContext, useCallback, useContext, useLayoutEffect, useMemo } from "react";
 import { useEffect, useRef, useState } from "react";
 
-export type MusePausedState = boolean;
-export type SetMusePausedState = React.Dispatch<React.SetStateAction<MusePausedState>>;
+export type MusePausedState = PauseState;
+export type SetPausedState = (newState: PauseState) => void;
 
 type SessionMuseType = {
     isDefault: boolean;
@@ -24,8 +26,9 @@ type SessionMuseType = {
     trackDurationFillBar: MutableRefObject<HTMLDivElement | null> | undefined;
     currentlyPlayingTrack: TrackDict | undefined;
     musePausedState: MusePausedState;
-    setMusePausedState: SetMusePausedState;
+    setPauseState: SetPausedState;
     skipTrack: () => void;
+    rewindTrack: () => void;
     seek: (newTimeSeconds: number, updateSync: boolean) => void;
 };
 
@@ -55,9 +58,10 @@ export const SessionMuseContext = createContext<SessionMuseType>(
         museLoadingState: true,
         trackDurationFillBar: undefined,
         currentlyPlayingTrack: undefined,
-        musePausedState: true,
-        setMusePausedState: () => { },
+        musePausedState: PauseState.Paused,
+        setPauseState: () => { },
         skipTrack: () => { },
+        rewindTrack: () => { },
         seek: () => { },
     }
 );
@@ -68,7 +72,7 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
 {
     const { enqueueSnackbar } = useSnackbar();
     const { reportGeneralServerError } = useGlobalProps();
-    const { addMessageHandler } = useUserSession();
+    const { userData, addMessageHandler } = useUserSession();
     const { requiresSyncOperations, streamType, streamMediaId } = useSessionState();
 
     const _Muse = useRef<HTMLAudioElement>();
@@ -79,7 +83,7 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
     const [ museLoadingState, setMuseLoadingState ] = useState<boolean>(true);
 
     const { setGenericModalData, setGenericModalOpen, setModalCloseCallback } = useGlobalProps();
-    const [ musePausedState, setMusePausedState ] = React.useState<MusePausedState>(true);
+    const [ musePausedState, setMusePausedState ] = React.useState<MusePausedState>(PauseState.Paused);
 
     useMemo(() =>
     {
@@ -156,16 +160,17 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
     useEffect(() =>
     {
         if (!_Muse.current) { return; }
+        if (museLoadingState) { return; }
 
-        if (musePausedState)
+        if (musePausedState === PauseState.Paused)
         {
             _Muse.current.pause();
         }
-        else
+        else if (musePausedState === PauseState.Playing)
         {
             tryStartPlaying();
         }
-    }, [ musePausedState, tryStartPlaying ]);
+    }, [ musePausedState, museLoadingState, tryStartPlaying ]);
 
     useEffect(() =>
     {
@@ -211,6 +216,7 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
     const updatePlayingSongEnded = useCallback((userRequestedSkip: boolean = false) =>
     {
         setMuseLoadingState(true);
+
         if (requiresSyncOperations())
         {
             commandPopTrackFromQueue(streamMediaId, userRequestedSkip)
@@ -220,20 +226,32 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
                 });
             return;
         }
+
+        if (currentlyPlayingTrack && userData?.player.loopState === LoopState.Loop)
+        {
+            commandQueueAddArbitraryTypeTracks(ShowerMusicObjectType.Track, currentlyPlayingTrack.id)
+                .then((_v) =>
+                {
+                    enqueueSnackbar(`"${currentlyPlayingTrack.name}" has been added to your queue`, { variant: 'success' });
+                })
+                .catch((error: any) =>
+                {
+                    enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to add "${currentlyPlayingTrack.name}" to your queue`, error);
+                });
+        }
+
         commandPlayerSkipCurrentTrack()
             .catch((e: any) =>
             {
                 enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to move to next track!`, e);
             });
-    }, [ streamMediaId, requiresSyncOperations, setMuseLoadingState, enqueueSnackbar ]);
+    }, [ userData?.player.loopState, currentlyPlayingTrack, streamMediaId, requiresSyncOperations, setMuseLoadingState, enqueueSnackbar ]);
 
     const trackPlayingReady = useCallback(() =>
     {
         if (!_Muse.current) { return; }
         setMuseLoadingState(false);
-        setMusePausedState(false);
-        tryStartPlaying();
-    }, [ setMuseLoadingState, setMusePausedState, tryStartPlaying ]);
+    }, [ setMuseLoadingState ]);
 
     const preloadNextTrack = useCallback(() =>
     {
@@ -296,13 +314,85 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
         setCurrentlyPlayingTrackId(currentlyPlayingTrack);
     }, [ streamMediaId, requiresSyncOperations, reportGeneralServerError, setCurrentlyPlayingTrackId ]);
 
+    const seek = useCallback((newTrackTime: number, updateSync: boolean = true, updateServer: boolean = true) =>
+    {
+        if (!_Muse.current) { return; }
+        if (!isFinite(newTrackTime)) { return; }
+        if (updateServer && updateSync && requiresSyncOperations())
+        {
+            const newTrackTimeMs = newTrackTime * 1000;
+            commandSetStationSeekTime(streamMediaId, newTrackTimeMs);
+        }
+        else // If the new time was sent to the server, it should return an UPDATE message which will update our currentTime
+        {
+            _Muse.current.currentTime = newTrackTime;
+        }
+        seekTimeRef.current = newTrackTime;
+        // We do not care if this fails
+        if (updateServer)
+        {
+            commandSetSeekTime(seekTimeRef.current)
+                .catch((error) =>
+                {
+                    // Pass undefined instead of enqueueSnackbar to avoid a user popup
+                    enqueueApiErrorSnackbar(undefined, `Failed to update server seek time`, error);
+                });
+        }
+    }, [ streamMediaId, requiresSyncOperations ]);
+
+    const reloadSeekTime = useCallback(() =>
+    {
+        if (requiresSyncOperations())
+        {
+            commandGetStationSeekTime(streamMediaId)
+                .then((time) => 
+                {
+                    seek(time / 1000, false, false);
+                });
+            return;
+        }
+        commandGetSeekTime()
+            .then((time) =>
+            {
+                seek(time, false, false);
+            });
+    }, [ streamMediaId, requiresSyncOperations, seek ]);
+
+    const reloadPauseState = useCallback(() =>
+    {
+        if (requiresSyncOperations())
+        {
+            commandGetStationPauseState(streamMediaId)
+                .then((state) => 
+                {
+                    setMusePausedState(state);
+                });
+        }
+        else
+        {
+            commandGetUserPlayPauseState()
+                .then((state) => 
+                {
+                    setMusePausedState(state);
+                });
+        }
+    }, [ streamMediaId, requiresSyncOperations, setMusePausedState ]);
+
     const messageHandler = useCallback((messageType: string, data: any) =>
     {
         if (messageType === MessageTypes.CURRENTLY_PLAYING_UPDATE)
         {
             reloadCurrentlyPlaying();
         }
-    }, [ reloadCurrentlyPlaying ]);
+        else if (messageType === MessageTypes.SEEK_TIME_UPDATE)
+        {
+            reloadSeekTime();
+        }
+        else if (messageType === MessageTypes.PAUSE_STATE_UPDATE)
+        {
+            reloadPauseState();
+        }
+    }, [ reloadCurrentlyPlaying, reloadSeekTime, reloadPauseState ]);
 
     useEffect(() =>
     {
@@ -311,57 +401,60 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
         return removeHandler;
     }, [ addMessageHandler, messageHandler ]);
 
+    const setPauseState = useCallback((newState: PauseState) =>
+    {
+        if (newState !== PauseState.Playing && newState !== PauseState.Paused) { return; }
+
+        // Satisfy local user ASAP. 
+        // If this was a sync opperation and the user doesn't have proper access
+        //  then its their problem. The UI should reflect that doing so is not an option.
+        // If the user insists, they can go fuck themselves. 
+        setMusePausedState(newState);
+
+        if (!requiresSyncOperations())
+        {
+            commandSetUserPlayPauseState(newState)
+                .catch((error) =>
+                {
+                    enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to ${newState === PauseState.Playing ? 'play' : 'pause'} track!`, error);
+                });
+        }
+        else
+        {
+            commandSetStationPauseState(streamMediaId, newState)
+                .catch((error) =>
+                {
+                    enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to ${newState === PauseState.Playing ? 'play' : 'pause'} station!`, error);
+                });
+        }
+    }, [ streamMediaId, requiresSyncOperations, setMusePausedState, enqueueSnackbar ]);
+
     const skipTrack = useCallback(() =>
     {
-        updatePlayingSongEnded(true);
-    }, [ updatePlayingSongEnded ]);
-
-    const seekTimeRef = useRef<number | undefined>(undefined);
-
-    const seek = useCallback((newTrackTime: number, updateSync: boolean = true) =>
-    {
-        if (!_Muse.current) { return; }
-        if (!isFinite(newTrackTime)) { return; }
-        if (updateSync && requiresSyncOperations())
-        {
-            const newTrackTimeMs = newTrackTime * 1000;
-            commandSetStationSeekTime(streamMediaId, newTrackTimeMs);
-        }
-        seekTimeRef.current = newTrackTime;
-        _Muse.current.currentTime = newTrackTime;
-        // We do not care if this fails
-        commandSetSeekTime(seekTimeRef.current)
+        commandSkipTrack(requiresSyncOperations() ? streamMediaId : null, true)
             .catch((error) =>
             {
-                // Pass undefined instead of enqueueSnackbar to avoid a user popup
-                enqueueApiErrorSnackbar(undefined, `Failed to update server seek time`, error);
+                enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to skip track!`, error);
             });
-    }, [ streamMediaId, requiresSyncOperations ]);
+    }, [ streamMediaId, requiresSyncOperations, enqueueSnackbar ]);
+
+    const rewindTrack = useCallback(() =>
+    {
+        commandRewindTrack(requiresSyncOperations() ? streamMediaId : null, (_Muse.current) ? _Muse.current.currentTime : null)
+            .catch((error) =>
+            {
+                enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to rewind track!`, error);
+            });
+    }, [ streamMediaId, requiresSyncOperations, enqueueSnackbar ]);
+
+    const seekTimeRef = useRef<number | undefined>(undefined);
 
     useEffect(() =>
     {
         reloadCurrentlyPlaying();
     }, [ reloadCurrentlyPlaying ]);
-
-
-    useEffect(() =>
-    {
-        if (requiresSyncOperations())
-        {
-            commandGetStationSeekTime(streamMediaId)
-                .then((time) => 
-                {
-                    seek(time / 1000, false);
-                }
-                );
-            return;
-        }
-        commandGetSeekTime()
-            .then((time) =>
-            {
-                seek(time);
-            });
-    }, [ streamMediaId, requiresSyncOperations, seek ]);
+    useEffect(reloadSeekTime, [ reloadSeekTime ]);
+    useEffect(reloadPauseState, [ reloadPauseState ]);
 
     useLayoutEffect(() =>
     {
@@ -404,8 +497,8 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
                 trackDurationFillBar,
                 museLoadingState,
                 currentlyPlayingTrack,
-                musePausedState, setMusePausedState,
-                skipTrack, seek
+                musePausedState, setPauseState,
+                skipTrack, rewindTrack, seek
             }
         }>
             { children }

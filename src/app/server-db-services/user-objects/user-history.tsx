@@ -1,11 +1,15 @@
 import databaseController from "@/app/server-db-services/mongo-db-controller";
 import { UserNotFoundError } from "@/app/server-db-services/user-objects/user-object";
 import { SSUserId } from "@/app/server-db-services/user-utils";
-import { ShowerMusicObjectType } from "@/app/settings";
+import { MessageTypes, ShowerMusicObjectType } from "@/app/settings";
 import { TrackId } from "@/app/shared-api/media-objects/tracks";
 import { ShowerMusicPlayableMediaType } from "@/app/showermusic-object-types";
-import { ShowerMusicPlayableMediaId, UserDict, UserListenHistoryMediaTypes, UserListenHistoryRecentsMediaItem, isUserListenHistoryMediaType } from "@/app/shared-api/user-objects/users";
+import { ShowerMusicPlayableMediaId, USER_TRAVERSABLE_HISTORY_MAX_DEPTH, UserDict, UserExtendedDict, UserListenHistoryMediaTypes, UserListenHistoryRecentsMediaItem, isUserListenHistoryMediaType } from "@/app/shared-api/user-objects/users";
 import { ObjectId, UpdateFilter } from "mongodb";
+import { MaliciousActivityError, SecurityCheckError } from "@/app/shared-api/other/errors";
+import { DbObjects } from "@/app/server-db-services/db-objects";
+import { StationId } from "@/app/shared-api/other/stations";
+import { SendServerRequestToSessionServerForUsers } from "@/app/web-socket-utils";
 
 export async function getUserListenHistory(userId: SSUserId)
 {
@@ -103,7 +107,24 @@ export async function pushMediaToUserListenHistory(userId: SSUserId, playableMed
         _id: new ObjectId(),
     };
 
-    const oldData = await databaseController.users.findOne({ '_id': userId }, { projection: { 'listenHistory.recents': 1 } });
+    const oldData = await databaseController.users.findOne({ '_id': userId }, {
+        projection: {
+            'listenHistory.recents': 1,
+            'listenHistory.traversableHistory.traversalIndex': 1
+        }
+    });
+
+    // If the traversalIndex is non-zero, then we are already inside a traversal and cannot add new tracks to this queue.
+    // It would be like an iterator's size being modified mid iteration (ilegal in python at least). 
+    if (oldData?.listenHistory.traversableHistory.traversalIndex === 0)
+    {
+        if (playableMediaType === ShowerMusicObjectType.Track)
+        {
+            // This is probably fine being async...
+            addTrackToUserTraversableListenHistory(userId, playableMediaId);
+        }
+
+    }
 
     const alreadyExistingEntries = oldData ?
         // If oldData exists, check the array for duplicates    
@@ -148,4 +169,175 @@ export async function pushMediaToUserListenHistory(userId: SSUserId, playableMed
     await databaseController.users.updateOne({ '_id': userId }, update);
 
     return;
+}
+
+async function addTrackToUserTraversableListenHistory(userId: SSUserId, trackId: TrackId)
+{
+    await databaseController.users.updateOne({
+        _id: userId,
+    }, {
+        $push: {
+            'listenHistory.traversableHistory.history': {
+                '$each': [ trackId ],
+                '$slice': USER_TRAVERSABLE_HISTORY_MAX_DEPTH,
+                '$position': 0,
+            },
+        },
+        $set: {
+            'listenHistory.traversableHistory.traversalIndex': 0,
+        }
+    });
+}
+
+async function getUserTraverseIndex(userId: SSUserId): Promise<number>
+{
+    const v = await databaseController.users.findOne({ _id: userId }, { projection: { 'listenHistory.traversableHistory.traversalIndex': 1 } });
+    if (v === null)
+    {
+        throw new UserNotFoundError(`Cannot find non-existent user's traversal index!`);
+    }
+    return v.listenHistory.traversableHistory.traversalIndex;
+}
+
+// Moves the traversalIndex UP by 'amount' and sets the currently playing track to wahtever we landed on.
+// If the traversalIndex exceeds the size of the traversableHistory.history array, it is set to the last element. 
+async function traverseUserHistoryBackwards(userId: SSUserId, amount: number = 1)
+{
+    if (amount < 1) { throw new MaliciousActivityError(`Attempted OOB while traversing user history!`); }
+
+    let updateResults = await databaseController.users.findOneAndUpdate({
+        _id: userId,
+        $where: function ()
+        {
+            return this.listenHistory.traversableHistory.history.length > this.listenHistory.traversableHistory.traversalIndex + amount;
+        }
+    }, {
+        $inc: {
+            'listenHistory.traversableHistory.traversalIndex': amount,
+        }
+    }, {
+        projection: {
+            'listenHistory.traversableHistory.history': 1,
+            'listenHistory.traversableHistory.traversalIndex': 1,
+        }
+    });
+
+    // The count might have been too large, try setting it to the maximum
+    if (updateResults === null)
+    {
+        // Don't care if this succeeded...
+        updateResults = await databaseController.users.findOneAndUpdate({
+            _id: userId,
+        }, {
+            $set: {
+                'listenHistory.traversableHistory.traversalIndex': USER_TRAVERSABLE_HISTORY_MAX_DEPTH - 1,
+            }
+        }, {
+            projection: {
+                'listenHistory.traversableHistory.history': 1,
+                'listenHistory.traversableHistory.traversalIndex': 1,
+            }
+        });
+    }
+
+    if (updateResults !== null)
+    {
+        const newTrack = updateResults.listenHistory.traversableHistory.history[ updateResults.listenHistory.traversableHistory.traversalIndex ];
+        console.log('Switching to track: ', newTrack);
+        await DbObjects.Users.Player.setPlayingTrack(userId, newTrack);
+    }
+    else
+    {
+        console.log('No track found!');
+    }
+}
+
+// Moves the traversalIndex DOWN by 'amount' and sets the currently playing track to wahtever we landed on.
+// If the traversalIndex underflows 0, it is reset back to 0.
+async function traverseUserHistoryForwards(userId: SSUserId, amount: number = 1)
+{
+    if (amount < 1) { throw new MaliciousActivityError(`Attempted OOB while traversing user history!`); }
+
+    let updateResults = await databaseController.users.findOneAndUpdate({
+        _id: userId,
+        $where: function ()
+        {
+            return this.listenHistory.traversableHistory.traversalIndex > amount;
+        }
+    }, {
+        $inc: {
+            'listenHistory.traversableHistory.traversalIndex': -amount,
+        }
+    }, {
+        projection: {
+            'listenHistory.traversableHistory.history': 1,
+            'listenHistory.traversableHistory.traversalIndex': 1,
+        }
+    });
+
+    // The count might have been too small, try setting it to 0
+    if (updateResults === null)
+    {
+        updateResults = await databaseController.users.findOneAndUpdate({
+            _id: userId,
+        }, {
+            $set: {
+                'listenHistory.traversableHistory.traversalIndex': 0,
+            }
+        }, {
+            projection: {
+                'listenHistory.traversableHistory.history': 1,
+                'listenHistory.traversableHistory.traversalIndex': 1,
+            }
+        });
+    }
+
+    if (updateResults !== null)
+    {
+        await DbObjects.Users.Player.setPlayingTrack(userId, updateResults.listenHistory.traversableHistory.history[ updateResults.listenHistory.traversableHistory.traversalIndex ]);
+    }
+}
+
+export async function skipUserTrack(userId: SSUserId, tunedIntoStationId: StationId | null = null, skipValidation: boolean = false)
+{
+    if (await getUserTraverseIndex(userId) === 0)
+    {
+
+        const poppedTrack = await DbObjects.Users.Queue.popTrack(userId, tunedIntoStationId, skipValidation);
+        await DbObjects.Users.Player.setPlayingTrack(userId, poppedTrack ? poppedTrack.trackId : null);
+    } else
+    {
+        await traverseUserHistoryForwards(userId);
+    }
+}
+
+export async function rewindUserTrack(userId: SSUserId, userSeekTime: number | null = null)
+{
+    // If seek time is LEQ 3 seconds, we rewind to the previous track, otherwise, we rewind to the beginning.
+    const seekTime = (userSeekTime !== null) ? userSeekTime : await DbObjects.Users.Player.getSeekTime(userId);
+    console.log('Seek time: ', seekTime);
+    if (seekTime > 3)
+    {
+        await DbObjects.Users.Player.setSeekTime(userId, 0);
+        // Player.setSeekTime does not update the user, rather it is meant to update the server
+        SendServerRequestToSessionServerForUsers(MessageTypes.SEEK_TIME_UPDATE, [ userId ]);
+    }
+    else
+    {
+        await traverseUserHistoryBackwards(userId);
+    }
+}
+
+export async function flushUserTraversableHistory(userId: SSUserId)
+{
+    await databaseController.users.updateOne({
+        _id: userId,
+    }, {
+        $set: {
+            'listenHistory.traversableHistory': {
+                'history': [],
+                'traversalIndex': 0,
+            },
+        }
+    });
 }

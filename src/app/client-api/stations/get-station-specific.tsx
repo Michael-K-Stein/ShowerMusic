@@ -1,6 +1,6 @@
 import { safeApiFetcher } from "@/app/client-api/common-utils";
 import { MinimalStation, NewStationInitOptions, PrivateStation, Station, StationId, UserStationAccess } from "@/app/shared-api/other/stations";
-import { UserId } from "@/app/shared-api/user-objects/users";
+import { PauseState, UserId } from "@/app/shared-api/user-objects/users";
 
 
 export async function commandGetUserStations(userId?: UserId)
@@ -58,6 +58,21 @@ export async function commandSetStationSeekTime(stationId: StationId, newTime: n
     await safeApiFetcher(`/api/stations/${stationId}/sync/seek`, {
         method: 'POST', body: JSON.stringify({
             'time': newTime,
+        })
+    });
+}
+
+export async function commandGetStationPauseState(stationId: StationId)
+{
+    const r = await safeApiFetcher(`/api/stations/${stationId}/sync/pause`);
+    return r as PauseState;
+}
+
+export async function commandSetStationPauseState(stationId: StationId, newState: PauseState)
+{
+    await safeApiFetcher(`/api/stations/${stationId}/sync/pause`, {
+        method: 'POST', body: JSON.stringify({
+            'state': newState,
         })
     });
 }

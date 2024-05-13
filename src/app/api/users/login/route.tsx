@@ -10,29 +10,30 @@ import { DbObjects } from '@/app/server-db-services/db-objects';
 import { getJwtSecret, USER_AUTH_COOKIE_NAME } from '@/app/settings';
 
 export async function POST(
-    req: NextRequest
+    request: NextRequest
 )
 {
     const jwtSecret = getJwtSecret();
 
     try
     {
-        const formData = await req.formData();
+        const formData = await request.formData();
         const username = formData.get('username');
         const password = formData.get('password');
+        const fromReferer = formData.get('from') ? formData.get('from') : '/stream';
 
-        if (!username || !password)
+        if (!username || !password || !fromReferer)
         {
             return NextResponse.json({ status: 403 });
         }
 
-        if (typeof username !== 'string' || typeof password !== 'string')
+        if (typeof username !== 'string' || typeof password !== 'string' || typeof fromReferer !== 'string')
         {
             return NextResponse.json({ status: 400 });
         }
 
         const user = await DbObjects.Users.login(username, password);
-        const url = new URL(req.nextUrl.searchParams.get('from') ?? '/stream', req.url);
+        const url = new URL(fromReferer, request.url);
         let res = NextResponse.redirect(url, 303);
 
         const userJWTData: JWTUserData = {
@@ -56,8 +57,9 @@ export async function POST(
         });
 
         return res;
+
     } catch (e)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     }
 }

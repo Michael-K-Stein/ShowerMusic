@@ -5,7 +5,7 @@ import { DbObjects } from '@/app/server-db-services/db-objects';
 import { getUserId } from '@/app/server-db-services/user-utils';
 import { NextRequest } from "next/server";
 
-export async function GET(_req: NextRequest)
+export async function GET(request: NextRequest)
 {
     try
     {
@@ -17,6 +17,6 @@ export async function GET(_req: NextRequest)
     }
     catch (e)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     }
 }

@@ -3,16 +3,15 @@ import { ApiSuccess, catchHandler } from '@/app/api/common';
 import { DbObjects } from '@/app/server-db-services/db-objects';
 import { getUserId } from '@/app/server-db-services/user-utils';
 import { ArbitraryTargetAndDataApiRequestBodyWithComplexItem, ComplexItem, ComplexItemType, RemovalId, ShowerMusicObjectType } from '@/app/shared-api/other/common';
-import { InvalidParameterCombinationError, InvalidSourceTypeError, InvalidTargetIdError, InvalidTargetTypeError } from '@/app/shared-api/other/errors';
-import { PlaylistTrack } from '@/app/shared-api/other/playlist';
+import { InvalidParameterCombinationError, InvalidTargetIdError, InvalidTargetTypeError } from '@/app/shared-api/other/errors';
 import { NextRequest } from "next/server";
 
-export async function POST(req: NextRequest)
+export async function POST(request: NextRequest)
 {
     try
     {
         const userId = await getUserId();
-        const commandData: ArbitraryTargetAndDataApiRequestBodyWithComplexItem = await req.json();
+        const commandData: ArbitraryTargetAndDataApiRequestBodyWithComplexItem = await request.json();
 
         const mediaToRemove: ComplexItem = commandData.item;
         const typeOfMediaToRemove: ComplexItemType = commandData.itemType;
@@ -70,6 +69,6 @@ export async function POST(req: NextRequest)
     }
     catch (e)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     }
 }

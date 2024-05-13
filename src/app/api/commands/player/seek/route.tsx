@@ -3,7 +3,7 @@ import { ApiSuccess, catchHandler } from "@/app/api/common";
 import { DbObjects } from "@/app/server-db-services/db-objects";
 import { getUserId } from "@/app/server-db-services/user-utils";
 
-export async function GET(_req: NextRequest)
+export async function GET(request: NextRequest)
 {
     try
     {
@@ -13,23 +13,23 @@ export async function GET(_req: NextRequest)
     }
     catch (e)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     }
 }
 
 
-export async function POST(req: NextRequest)
+export async function POST(request: NextRequest)
 {
     try
     {
         const userId = await getUserId();
-        const commandData: { 'time': number; } = await req.json();
+        const commandData: { 'time': number; } = await request.json();
         const seekTime = commandData.time;
         await DbObjects.Users.Player.setSeekTime(userId, seekTime);
         return ApiSuccess();
     }
     catch (e)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     }
 }

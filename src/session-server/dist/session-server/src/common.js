@@ -10,7 +10,10 @@ var MessageTypes;
 (function (MessageTypes) {
     MessageTypes["QUEUE_UPDATE"] = "queue-update";
     MessageTypes["PLAYLIST_UPDATE"] = "playlist-update";
+    MessageTypes["STATION_UPDATE"] = "playlist-update";
     MessageTypes["CURRENTLY_PLAYING_UPDATE"] = "currently-playing-update";
+    MessageTypes["SEEK_TIME_UPDATE"] = "seek-time-update";
+    MessageTypes["PAUSE_STATE_UPDATE"] = "pause-state-update";
     MessageTypes["REGISTER_SESSION"] = "register-session";
     MessageTypes["REGISTER_SYNC_PROVIDER"] = "register-sync-provider";
     MessageTypes["DEREGISTER_SYNC_PROVIDER"] = "deregister-sync-provider";

@@ -18,7 +18,7 @@ import { MinimalArtistDict } from "@/app/shared-api/media-objects/artists";
 import { MediaId } from '@/app/shared-api/media-objects/media-id';
 import { TrackDict, TrackId } from "@/app/shared-api/media-objects/tracks";
 import { RemovalId, ShowerMusicObject, ShowerMusicObjectType, ShowerMusicPlayableMediaDict } from "@/app/shared-api/other/common";
-import { ClientApiError } from '@/app/shared-api/other/errors';
+import { ClientApiError, UserNotLoggedInError } from '@/app/shared-api/other/errors';
 import { PlaylistTrack } from '@/app/shared-api/other/playlist';
 import { ShowerMusicPlayableMediaType } from '@/app/showermusic-object-types';
 import { spotifileDownloadTrack } from '@/app/spotifile-utils/spotifile';
@@ -106,6 +106,8 @@ export function enqueueSnackbarWithSubtext(
 
 export function enqueueApiErrorSnackbar(enqueueSnackbar: EnqueueSnackbar | undefined, mainText: string | React.ReactNode, error: any)
 {
+    if (error instanceof UserNotLoggedInError) { console.log(error.message); return; }
+
     if (!(error instanceof ClientApiError))
     {
         return enqueueSnackbarWithSubtext(

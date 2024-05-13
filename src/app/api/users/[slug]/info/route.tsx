@@ -2,10 +2,11 @@ import { ApiSuccess, catchHandler } from "@/app/api/common";
 import { DbObjects } from "@/app/server-db-services/db-objects";
 import { ClientApiError } from "@/app/shared-api/other/errors";
 import { BSONError } from 'bson';
+import { NextRequest } from "next/server";
 
 // Returns the public info of a user
 export async function GET(
-    req: Request,
+    request: NextRequest,
     { params }: { params: { slug: string; }; }
 )
 {
@@ -27,6 +28,6 @@ export async function GET(
     }
     catch (e)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     }
 }

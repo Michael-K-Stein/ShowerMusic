@@ -10,7 +10,10 @@ export enum MessageTypes
 {
     QUEUE_UPDATE = 'queue-update',
     PLAYLIST_UPDATE = 'playlist-update',
+    STATION_UPDATE = PLAYLIST_UPDATE,
     CURRENTLY_PLAYING_UPDATE = 'currently-playing-update',
+    SEEK_TIME_UPDATE = 'seek-time-update',
+    PAUSE_STATE_UPDATE = 'pause-state-update',
     REGISTER_SESSION = 'register-session',
     REGISTER_SYNC_PROVIDER = 'register-sync-provider',
     DEREGISTER_SYNC_PROVIDER = 'deregister-sync-provider',

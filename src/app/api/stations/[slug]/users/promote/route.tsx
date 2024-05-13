@@ -6,14 +6,14 @@ import { ObjectId } from "mongodb";
 import { NextRequest } from "next/server";
 
 export async function POST(
-    req: NextRequest,
+    request: NextRequest,
     { params }: { params: { slug: string; }; }
 )
 {
     try
     {
         const stationId = params.slug;
-        const commandData: { userToPromote: UserId; } = await req.json();
+        const commandData: { userToPromote: UserId; } = await request.json();
         const userToPromote = new ObjectId(commandData.userToPromote);
 
         await DbObjects.Stations.promoteMember(stationId, userToPromote);
@@ -22,6 +22,6 @@ export async function POST(
     }
     catch (e: any)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     };
 }

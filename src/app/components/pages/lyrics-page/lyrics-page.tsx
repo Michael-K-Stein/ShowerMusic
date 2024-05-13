@@ -61,8 +61,8 @@ export default function LyricsPage()
     {
         if (!trackLyrics) { return; }
         const newHighlightedLineId = `lyric-line-${highlightedLineIndex}-${trackLyrics.id}`;
+        // TODO: Use "useRef" instead of getElementById
         const highlightedLineElement = document.getElementById(newHighlightedLineId);
-        console.log('Scrolling into view: ', highlightedLineElement);
         if (!highlightedLineElement) { return; }
         const syncedLinesContainer = lyricsPageContainer.current;
         if (!syncedLinesContainer) { return; }

@@ -22,6 +22,6 @@ export async function GET(request: NextRequest)
     }
     catch (e)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     }
 }

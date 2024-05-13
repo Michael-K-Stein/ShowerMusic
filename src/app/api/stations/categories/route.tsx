@@ -1,8 +1,9 @@
 import { ApiSuccess, catchHandler } from "@/app/api/common";
 import { DbObjects } from "@/app/server-db-services/db-objects";
+import { NextRequest } from "next/server";
 
 // Get all the categories
-export async function GET()
+export async function GET(request: NextRequest)
 {
     try
     {
@@ -11,6 +12,6 @@ export async function GET()
     }
     catch (e)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     }
 }

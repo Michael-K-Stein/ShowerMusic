@@ -16,7 +16,8 @@ import { ModalPageLoader } from '@/app/components/pages/modal-page/modal-page';
 import { commandUserStationAccess } from '@/app/client-api/stations/get-station-specific';
 import RadioTowerGlyph from '@/app/components/glyphs/radio-tower';
 import { convertPlaylistToStationClickHandlerFactory } from '@/app/components/pages/playlist-page/playlist-callback-factories';
-import { UserId } from '@/app/shared-api/user-objects/users';
+import { UserId, useUserPreferedName } from '@/app/shared-api/user-objects/users';
+import { MessageTypes } from '@/app/settings';
 
 function PlaylistMembers({ playlist }: { playlist?: Playlist; })
 {
@@ -149,7 +150,7 @@ export function ObjectCreatorTitleContainer(
 )
 {
     const [ playlistCreatorName, setPlaylistCreatorName ] = useState<string>();
-    const [ playlistCreatorId, setPlaylistCreatorId ] = useState<UserId>();
+    const [ playlistCreatorId, setPlaylistCreatorId ] = useState<UserId | 'system'>();
 
     useMemo(() =>
     {
@@ -161,10 +162,16 @@ export function ObjectCreatorTitleContainer(
     useMemo(() =>
     {
         if (!playlistCreatorId) { return; }
+        if (playlistCreatorId === 'system')
+        {
+            setPlaylistCreatorName(`Created by ShowerMusic`);
+            return;
+        }
+
         commandGetUserById(playlistCreatorId as unknown as string)
             .then((creatorInfo) =>
             {
-                setPlaylistCreatorName(`Created by ${creatorInfo.username}`);
+                setPlaylistCreatorName(`Created by ${useUserPreferedName(creatorInfo)}`);
             }).catch((_error) =>
             {
                 setPlaylistCreatorName(`Created by ShowerMusic`);
@@ -180,7 +187,7 @@ export function ObjectCreatorTitleContainer(
 
 function PlaylistPageInsideSync({ playlistId }: { playlistId: PlaylistId; })
 {
-    const playlistData = useSharedSyncObject(getPlaylist, playlistId);
+    const playlistData = useSharedSyncObject(playlistId, getPlaylist, MessageTypes.PLAYLIST_UPDATE);
     return (
         <ModalPageLoader
             itemId={ playlistId }

@@ -4,5 +4,5 @@ export async function friendlyRedirectToLogin(request: NextRequest, originUrl: s
 {
     const redirectionUrl = new URL(`${request.nextUrl.origin}/login`);
     redirectionUrl.searchParams.set('from', originUrl);
-    return NextResponse.redirect(redirectionUrl);
+    return NextResponse.redirect(redirectionUrl, { statusText: 'UserNotLoggedInError' });
 }

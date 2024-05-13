@@ -4,9 +4,10 @@ import { ApiSuccess, catchHandler } from '@/app/api/common';
 import { DbObjects } from '@/app/server-db-services/db-objects';
 import { TrackDict } from '@/app/shared-api/media-objects/tracks';
 import { ClientApiError } from '@/app/shared-api/other/errors';
+import { NextRequest } from 'next/server';
 
 export async function GET(
-    request: Request
+    request: NextRequest
 )
 {
     try
@@ -31,6 +32,6 @@ export async function GET(
     }
     catch (e)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     };
 };

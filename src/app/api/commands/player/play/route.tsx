@@ -1,6 +1,5 @@
 import { getUserId } from '@/app/server-db-services/user-utils';
 import { MediaId } from '@/app/shared-api/media-objects/media-id';
-import { setUserPlayingTrack, getUserPlayingTrack } from '@/app/server-db-services/user-objects/player';
 import { NextRequest } from "next/server";
 import { ApiSuccess, catchHandler } from '@/app/api/common';
 import { DbObjects } from '@/app/server-db-services/db-objects';
@@ -9,12 +8,12 @@ import { DbObjects } from '@/app/server-db-services/db-objects';
  * Set the current playing track, overriding anything currently playing.
  * Return to the user the track that was playing previously (if any)
  */
-export async function POST(req: NextRequest)
+export async function POST(request: NextRequest)
 {
     try
     {
         const userId = await getUserId();
-        const commandData: { 'type': string, 'id': MediaId; } = await req.json();
+        const commandData: { 'type': string, 'id': MediaId; } = await request.json();
         const trackId = commandData.id;
         const previousTrack = await DbObjects.Users.Player.setPlayingTrack(userId, trackId);
 
@@ -22,11 +21,11 @@ export async function POST(req: NextRequest)
     }
     catch (e)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     }
 }
 
-export async function GET(req: NextRequest)
+export async function GET(request: NextRequest)
 {
     try
     {
@@ -38,6 +37,6 @@ export async function GET(req: NextRequest)
     }
     catch (e)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     }
 }

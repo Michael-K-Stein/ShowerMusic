@@ -8,23 +8,30 @@
     {
         font-family: 'SFHebrewRounded';
         src: url('/fonts/SF-Hebrew-Rounded.ttf');
+        font-display: block;
     }
 
     @font-face
     {
         font-family: 'SFHebrew';
         src: url('/fonts/SF-Hebrew.ttf');
+        font-display: block;
+
     }
 
     @font-face
     {
         font-family: 'SFProItalic';
         src: url('/fonts/SF-Pro-Italic.ttf');
+        font-display: block;
+
     }
 
     @font-face
     {
         font-family: 'SFPro';
         src: url('/fonts/SF-Pro.ttf');
+        font-display: block;
+
     }
 }

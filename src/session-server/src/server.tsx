@@ -86,7 +86,7 @@ const dispatchToSyncObjectListeners = (messageType: MessageTypes, syncObjectId: 
     const message = buildMessage(messageType, syncObjectId, data);
     registeredSyncObjectConnections[ syncObjectId ].map((listenerWS: WebSocket) =>
     {
-        console.log(`Sending ${messageType} to sync-sock ${listenerWS}`);
+        console.log(`Sending ${messageType} to sync-sock ${syncObjectId}`);
         listenerWS.send(message);
     });
 };

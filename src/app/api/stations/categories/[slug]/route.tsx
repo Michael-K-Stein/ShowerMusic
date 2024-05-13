@@ -2,10 +2,11 @@ import { ApiSuccess, catchHandler } from "@/app/api/common";
 import { DbObjects } from "@/app/server-db-services/db-objects";
 import { CategoryNotFoundError } from "@/app/shared-api/other/errors";
 import { CategoryId } from "@/app/shared-api/other/stations";
+import { NextRequest } from "next/server";
 
 // Get all the categories
 export async function GET(
-    _request: Request,
+    request: NextRequest,
     { params }: { params: { slug: string; }; }
 )
 {
@@ -21,6 +22,6 @@ export async function GET(
     }
     catch (e)
     {
-        return catchHandler(e);
+        return catchHandler(request, e);
     }
 }

@@ -1,7 +1,6 @@
 import { queryQueue } from '@/app/client-api/queue';
 import { commandGetStation } from '@/app/client-api/stations/get-station-specific';
-import { enqueueApiErrorSnackbar, enqueueSnackbarWithSubtext } from '@/app/components/providers/global-props/global-modals';
-import useGlobalProps from '@/app/components/providers/global-props/global-props';
+import { enqueueApiErrorSnackbar } from '@/app/components/providers/global-props/global-modals';
 import { useSessionState } from '@/app/components/providers/session/session';
 import useUserSession from '@/app/components/providers/user-provider/user-session';
 import { MessageTypes } from '@/app/settings';
