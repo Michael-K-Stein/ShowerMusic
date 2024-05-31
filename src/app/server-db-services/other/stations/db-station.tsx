@@ -18,7 +18,6 @@ function accessWrapper<T extends (...args: any[]) => any>(playlistFunction: T, r
 {
     const wrapperFunction: any = async (...args: Parameters<T>): Promise<ReturnType<T>> =>
     {
-        // Assuming you have a way to get userId and stationId from args or context
         const userId = await getUserId();
         const stationId = args[ playlistIdArgIndex ];
 

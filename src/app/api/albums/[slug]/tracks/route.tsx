@@ -1,5 +1,6 @@
 import { ApiSuccess, catchHandler } from '@/app/api/common';
 import { DbObjects } from '@/app/server-db-services/db-objects';
+import { ALBUMS_API_CACHE_TTL } from '@/app/settings';
 import { NextRequest } from 'next/server';
 
 export async function GET(
@@ -27,7 +28,7 @@ export async function GET(
         const id = params.slug;
         const tracksData = await DbObjects.MediaObjects.Albums.getTracks(id);
 
-        return ApiSuccess(tracksData);
+        return ApiSuccess(tracksData, ALBUMS_API_CACHE_TTL);
     }
     catch (e)
     {

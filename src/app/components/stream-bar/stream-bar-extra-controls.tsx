@@ -1,3 +1,4 @@
+import './stream-bar.css';
 import AddGlyph from '@/app/components/glyphs/add';
 import LoungeMusicPlaylistGlyph from '@/app/components/glyphs/lounge-music-playlist';
 import MicroGlyph from '@/app/components/glyphs/micro';
@@ -8,7 +9,6 @@ import { useSessionState } from '@/app/components/providers/session/session';
 import { ViewportType } from "@/app/shared-api/other/common";
 import { TrackDict } from '@/app/shared-api/media-objects/tracks';
 import { ShowerMusicObjectType } from '@/app/showermusic-object-types';
-import './stream-bar.css';
 import { useSnackbar } from 'notistack';
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { LoopState } from '@/app/shared-api/user-objects/users';

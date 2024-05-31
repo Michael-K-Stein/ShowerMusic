@@ -11,7 +11,7 @@ export async function GET(
     {
         const id = params.slug;
         const data = await DbObjects.Playlists.get(id);
-        return ApiSuccess(data);
+        return ApiSuccess(data, 'must-revalidate');
     }
     catch (e: any)
     {

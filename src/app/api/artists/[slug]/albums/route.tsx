@@ -1,5 +1,6 @@
 import { ApiSuccess, catchHandler } from '@/app/api/common';
 import { DbObjects } from '@/app/server-db-services/db-objects';
+import { ARTISTS_API_CACHE_TTL } from '@/app/settings';
 import { ArtistAlbumsSearchType } from '@/app/shared-api/media-objects/artists';
 import { NextRequest } from 'next/server';
 
@@ -34,7 +35,7 @@ export async function GET(
         const id = params.slug;
         const artistAlbums = await DbObjects.MediaObjects.Compound.getAlbumsOfArtist(id, offset, limit, albumTypes);
 
-        return ApiSuccess(artistAlbums);
+        return ApiSuccess(artistAlbums, ARTISTS_API_CACHE_TTL);
     }
     catch (e)
     {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stat, open } from 'fs/promises';
 import rangeParser from 'range-parser';
-import { MAX_STREAM_BUFFER_SIZE } from '@/app/settings';
+import { CACHE_CONTROL_HTTP_HEADER, MAX_STREAM_BUFFER_SIZE } from '@/app/settings';
 import { catchHandler } from '@/app/api/common';
 import { DbObjects } from '@/app/server-db-services/db-objects';
 import { ClientError } from '@/app/shared-api/other/errors';
@@ -68,6 +68,7 @@ export async function GET(
                 'Accept-Ranges': 'bytes',
                 'Content-Length': chunkSize.toString(),
                 'Content-Type': 'audio/mpeg',
+                [ CACHE_CONTROL_HTTP_HEADER ]: 'immutable, public'
             },
         });
     } catch (e)

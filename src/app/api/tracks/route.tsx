@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { ApiSuccess, catchHandler } from '@/app/api/common';
 import { DbObjects } from '@/app/server-db-services/db-objects';
+import { TRACKS_API_CACHE_TTL } from '@/app/settings';
 import { TrackDict } from '@/app/shared-api/media-objects/tracks';
 import { ClientApiError } from '@/app/shared-api/other/errors';
 import { NextRequest } from 'next/server';
@@ -28,7 +29,7 @@ export async function GET(
             }, Promise.resolve<TrackDict[]>([])
         );
 
-        return ApiSuccess(tracksData);
+        return ApiSuccess(tracksData, TRACKS_API_CACHE_TTL);
     }
     catch (e)
     {

@@ -1,6 +1,7 @@
 import { safeApiFetcher } from "@/app/client-api/common-utils";
 import { MinimalStation, NewStationInitOptions, PrivateStation, Station, StationId, UserStationAccess } from "@/app/shared-api/other/stations";
-import { PauseState, UserId } from "@/app/shared-api/user-objects/users";
+import { isValidPauseState, PauseState, UserId } from "@/app/shared-api/user-objects/users";
+import assert from "assert";
 
 
 export async function commandGetUserStations(userId?: UserId)
@@ -65,6 +66,7 @@ export async function commandSetStationSeekTime(stationId: StationId, newTime: n
 export async function commandGetStationPauseState(stationId: StationId)
 {
     const r = await safeApiFetcher(`/api/stations/${stationId}/sync/pause`);
+    assert(isValidPauseState(r));
     return r as PauseState;
 }
 

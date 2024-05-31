@@ -13,7 +13,7 @@ export async function GET(request: NextRequest)
 
         const peekedTrack = await DbObjects.Users.Queue.peekTrack(userId);
 
-        return ApiSuccess(peekedTrack);
+        return ApiSuccess(peekedTrack, 'must-revalidate');
     }
     catch (e)
     {

@@ -73,7 +73,11 @@ export async function loginUser(username: string, password: string)
         }
 
         // Do not pass the password if we are using LDAP authentication
-        user = (await createUser(username, USE_LDAP_AUTHENTICATION ? undefined : password), userDisplayName);
+        user = await createUser(
+            username,
+            USE_LDAP_AUTHENTICATION ? undefined : password,
+            userDisplayName
+        );
     };
 
     assert(user !== null);
@@ -105,13 +109,13 @@ export async function getUserById(userId: SSUserId, options?: FindOptions<Docume
     return user;
 };
 
-async function createUser(username: string, password?: string, userDisplayName?: string)
+async function createUser(username: string, password?: string, userDisplayName?: string): Promise<UserDict>
 {
-    if (!userDisplayName) { userDisplayName = username; }
+    const displayName = userDisplayName ?? username;
 
     const newUserInfo = await databaseController.users.insertOne({
         'username': username,
-        'displayName': userDisplayName,
+        'displayName': displayName,
         'password': password,
         'playingNextTracks': { _id: new ObjectId, tracks: [] },
         'friends': [],

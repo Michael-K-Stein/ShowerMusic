@@ -1,9 +1,10 @@
+import { SHOWERMUSIC_WEB_TITLE } from '@/app/settings';
 import type { Metadata } from 'next';
-import './globals.css';
 import Image from 'next/image';
+import './globals.css';
 
 export const metadata: Metadata = {
-    title: 'ShowerMusic',
+    title: SHOWERMUSIC_WEB_TITLE,
     description: 'Music to my ears',
 };
 

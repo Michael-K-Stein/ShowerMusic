@@ -1,10 +1,12 @@
 import { safeApiFetcher } from "@/app/client-api/common-utils";
-import { PauseState } from "@/app/shared-api/user-objects/users";
+import { isValidPauseState, PauseState } from "@/app/shared-api/user-objects/users";
+import assert from "assert";
 
 
 export async function commandGetUserPlayPauseState()
 {
-    const r = await safeApiFetcher(`/api/commands/player/seek`);
+    const r = await safeApiFetcher(`/api/commands/player/pause`);
+    assert(isValidPauseState(r));
     return r as PauseState;
 }
 

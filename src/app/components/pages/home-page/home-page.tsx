@@ -1,5 +1,5 @@
 import './home-page.css';
-import { UserDict, useUserPreferedName } from '@/app/shared-api/user-objects/users';
+import { UserDict, getUserPreferedName } from '@/app/shared-api/user-objects/users';
 import { Box, Typography } from '@mui/material';
 import UserPlaylists from '@/app/components/pages/home-page/user-playlists';
 import UserRecentlyPlayed from '@/app/components/pages/home-page/user-recently-played';
@@ -11,7 +11,7 @@ function HomePageHeader({ userData }: { userData: UserDict | undefined; })
     return (
         <div className='mt-16 ml-4 max-w-full h-full box-border'>
             <Typography variant='h3' fontWeight={ 700 }>
-                Welcome back{ userData ? `, ${useUserPreferedName(userData)}` : '' }
+                Welcome back{ userData ? `, ${getUserPreferedName(userData)}` : '' }
             </Typography>
         </div>
     );

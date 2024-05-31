@@ -13,7 +13,7 @@ export interface MinimalUserDict extends ShowerMusicObject
     username: string;
     displayName?: string;
 }
-export function useUserPreferedName<T extends MinimalUserDict = MinimalUserDict>(user: T): string
+export function getUserPreferedName<T extends MinimalUserDict = MinimalUserDict>(user: T): string
 {
     if ('displayName' in user && user.displayName)
     {
@@ -77,6 +77,13 @@ export enum PauseState
 {
     Playing,
     Paused,
+}
+export function isValidPauseState(state: PauseState | any)
+{
+    return (typeof (state as PauseState) === 'number') && (
+        (state as PauseState) === PauseState.Playing ||
+        (state as PauseState) === PauseState.Paused
+    );
 }
 
 export interface PlayerState

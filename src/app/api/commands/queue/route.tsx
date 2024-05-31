@@ -13,7 +13,7 @@ export async function GET(request: NextRequest)
 
         const playingNextTracks = await DbObjects.Users.Queue.queryTracks(userId);
 
-        return ApiSuccess(playingNextTracks);
+        return ApiSuccess(playingNextTracks, 'must-revalidate');
     }
     catch (e)
     {

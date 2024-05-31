@@ -1,5 +1,6 @@
 import { ApiSuccess, catchHandler } from '@/app/api/common';
 import { DbObjects } from '@/app/server-db-services/db-objects';
+import { TRACKS_API_CACHE_TTL } from '@/app/settings';
 import { NextRequest } from 'next/server';
 
 export async function GET(
@@ -12,7 +13,7 @@ export async function GET(
         const id = params.slug;
         const trackData = await DbObjects.MediaObjects.Tracks.getInfo(id);
 
-        return ApiSuccess(trackData);
+        return ApiSuccess(trackData, TRACKS_API_CACHE_TTL);
     }
     catch (e)
     {

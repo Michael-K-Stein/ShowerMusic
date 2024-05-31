@@ -19,7 +19,7 @@ export async function GET(
 
         const userFavorites = await DbObjects.Users.Favorites.get(targetUserId);
 
-        return ApiSuccess(userFavorites);
+        return ApiSuccess(userFavorites, 'no-cache');
     }
     catch (e)
     {

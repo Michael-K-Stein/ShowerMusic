@@ -17,7 +17,7 @@ export async function GET(
 
         const userRecents = await DbObjects.Users.ListenHistory.get(targetUserId);
 
-        return ApiSuccess(userRecents);
+        return ApiSuccess(userRecents, 'no-cache');
     }
     catch (e)
     {

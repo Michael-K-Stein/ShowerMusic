@@ -13,7 +13,7 @@ export async function GET(
     {
         const stationId = params.slug;
         const stationData = await DbObjects.Stations.get(stationId);
-        return ApiSuccess(stationData);
+        return ApiSuccess(stationData, 'must-revalidate');
     }
     catch (e: any)
     {

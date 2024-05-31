@@ -12,7 +12,7 @@ export async function GET(
     {
         const targetUserId = await getEffectiveUserId(params);
         const userPlaylists = (await DbObjects.Users.get(targetUserId, { projection: { 'playlists': 1 } })).playlists;
-        return ApiSuccess(userPlaylists);
+        return ApiSuccess(userPlaylists, 'must-revalidate');
     }
     catch (e)
     {

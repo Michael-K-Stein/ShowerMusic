@@ -17,7 +17,7 @@ import { Box, CircularProgress, Tooltip, Typography } from "@mui/material";
 import { EnqueueSnackbar, useSnackbar } from "notistack";
 import React, { MouseEventHandler, useCallback, useMemo, useState } from "react";
 import LoginRoundedUpGlyph from "@/app/components/glyphs/login-rounded-up";
-import { UserId, useUserPreferedName } from "@/app/shared-api/user-objects/users";
+import { UserId, getUserPreferedName } from "@/app/shared-api/user-objects/users";
 import DeleteUserMaleGlyph from "@/app/components/glyphs/delete-user-male";
 import { useAuth } from "@/app/components/auth-provider";
 import { getClientSideObjectId } from "@/app/client-api/common-utils";
@@ -131,7 +131,7 @@ function StationMember({ stationId, member }: { stationId: StationId, member: St
         commandGetUserById(member.userId as unknown as string)
             .then((userInfo) =>
             {
-                setMemberName(useUserPreferedName(userInfo));
+                setMemberName(getUserPreferedName(userInfo));
             });
 
     }, [ member, setMemberName ]);

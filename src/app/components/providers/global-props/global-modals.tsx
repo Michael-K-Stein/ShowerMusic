@@ -1,6 +1,6 @@
 'use client';
 import { addAnyToArbitraryClickHandlerFactory, getClientSideObjectId } from '@/app/client-api/common-utils';
-import { getTrackInfo } from "@/app/client-api/get-track";
+import { getMultipleTracksInfo, getTrackInfo } from "@/app/client-api/get-track";
 import { commandPlayerSetCurrentlyPlayingTrack } from "@/app/client-api/player";
 import AddGlyph from "@/app/components/glyphs/add";
 import AddSongGlyph from '@/app/components/glyphs/add-song';
@@ -26,7 +26,7 @@ import { Box, Modal, Typography } from "@mui/material";
 import assert from "assert";
 import Image from 'next/image';
 import { EnqueueSnackbar, OptionsObject, VariantType, useSnackbar } from "notistack";
-import React, { MouseEventHandler, useCallback, useEffect, useState } from "react";
+import React, { MouseEventHandler, useCallback, useEffect, useMemo, useState } from "react";
 import ContentLoader, { IContentLoaderProps } from "react-content-loader";
 import './flat-track.css';
 import { StationTrack } from '@/app/shared-api/other/stations';
@@ -322,12 +322,14 @@ export function TrackCoverImage({ track, ...props }: ShowerMusicImage & { track:
 export function ModalFlatTrack(
     {
         trackId,
+        trackData,
         noPropIndex,
         removable,
         fromId,
-        fromType
+        fromType,
     }: {
         trackId?: TrackId,
+        trackData?: TrackDict,
         noPropIndex?: boolean,
         removable?: boolean,
         fromId?: MediaId,
@@ -336,11 +338,13 @@ export function ModalFlatTrack(
 {
     const { setView } = useSessionState();
     const [ trackNotFound, setTrackNotFound ] = useState<boolean>(false);
-    const [ track, setTrack ] = useState<TrackDict>();
+    const [ track, setTrack ] = useState<TrackDict | undefined>(trackData);
 
-    useEffect(() =>
+    useMemo(() =>
     {
         if (!trackId) { return; }
+        if (track) { return; }
+        console.log(`Getting single flat track info. ${trackId}`);
         getTrackInfo(trackId)
             .then((trackValue) =>
             {
@@ -350,7 +354,7 @@ export function ModalFlatTrack(
                 setTrackNotFound(true);
                 spotifileDownloadTrack(trackId);
             });
-    }, [ trackId, setTrackNotFound ]);
+    }, [ trackId, track, setTrackNotFound ]);
 
     const removalId = (track !== undefined) ? (
         (removable === true) ?
@@ -419,16 +423,58 @@ export function ModalFlatTrack(
 }
 
 export type TrackList = TrackId[] | PlaylistTrack[] | StationTrack[];
+type NormalizedTrack<T> =
+    [ T ] extends [ TrackList[ 0 ] ] ?
+    TrackId :
+    undefined;
+
+
 export function ModalFlatTracks({ tracks, noPropIndex, containerType, containerId, removable }: { tracks?: TrackList, noPropIndex?: boolean, containerType: ShowerMusicObjectType, containerId: string | undefined, removable?: boolean; })
 {
-    const mappingTracks = tracks ?? [ undefined, undefined, undefined, undefined ];
+    const { enqueueSnackbar } = useSnackbar();
+    const [ allTracksData, setAllTracksData ] = useState<{ [ x: TrackId ]: TrackDict; } | undefined | null>(undefined);
+
+    function normalizeTrackId<T extends TrackList[ 0 ] | undefined>(track: T): NormalizedTrack<T>
+    {
+        return (
+            typeof track !== 'undefined' &&
+            track !== undefined &&
+            typeof track === 'object' &&
+            'trackId' in track &&
+            typeof track.trackId === 'string'
+        ) ?
+            track.trackId as NormalizedTrack<T> :
+            typeof track === 'undefined' ?
+                undefined as NormalizedTrack<T> :
+                track as NormalizedTrack<T>;
+    }
+
+    useMemo(() =>
+    {
+        if (!tracks) { return; }
+        getMultipleTracksInfo(tracks.map((q) => normalizeTrackId(q)))
+            .then((tracks) =>
+            {
+                const newFullTrackInfoDictionary: typeof allTracksData = {};
+                tracks.map((v) =>
+                {
+                    newFullTrackInfoDictionary[ v.id ] = v;
+                });
+                setAllTracksData(newFullTrackInfoDictionary);
+            })
+            .catch((error) =>
+            {
+                setAllTracksData(null);
+                enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to load tracks' data!`, error);
+            });
+    }, [ tracks, setAllTracksData, enqueueSnackbar ]);
+
+
+    const mappingTracks = ((allTracksData !== undefined) ? tracks : null) ?? [ undefined, undefined, undefined, undefined ];
     const trackItems = mappingTracks.map(
         (track, index) =>
         {
-            const trackId: TrackId | undefined = track ?
-                (
-                    (typeof (track) === 'object' && 'trackId' in track) ? track.trackId : track
-                ) : track;
+            const trackId: TrackId | undefined = normalizeTrackId(track);
 
             const playlistTrackId: string | number = track ?
                 (
@@ -438,6 +484,7 @@ export function ModalFlatTracks({ tracks, noPropIndex, containerType, containerI
             return <ModalFlatTrack
                 key={ playlistTrackId ?? index }
                 trackId={ trackId }
+                trackData={ (allTracksData && trackId) ? allTracksData[ trackId ] : undefined }
                 noPropIndex={ noPropIndex }
                 fromId={ containerId }
                 fromType={ containerType }

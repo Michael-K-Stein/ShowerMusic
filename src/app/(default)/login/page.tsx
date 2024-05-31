@@ -1,7 +1,7 @@
 'use client';
 import { ShowerMusicGenericHeader } from '@/app/components/other/generic-header';
 import './login.css';
-import { Box, Button, TextField } from '@mui/material';
+import { Box, Button, FormControl, Hidden, TextField } from '@mui/material';
 import { useSearchParams } from 'next/navigation';
 
 export default function LoginPage()
@@ -38,20 +38,22 @@ export default function LoginPage()
                         margin='normal'
                         autoComplete='password'
                     />
-                    <TextField
-                        name='from'
-                        type='hidden'
-                        value={ fromReferer }
-                        hidden={ true }
-                        aria-hidden={ true }
-                        hiddenLabel={ true }
-                    />
                     <Button
                         type='submit'
                         variant='outlined'
                     >
                         Login
                     </Button>
+                    <Hidden>
+                        <TextField
+                            name='from'
+                            type='hidden'
+                            value={ fromReferer }
+                            hidden={ true }
+                            aria-hidden={ true }
+                            hiddenLabel={ true }
+                        />
+                    </Hidden>
                 </Box>
             </div>
         </div>

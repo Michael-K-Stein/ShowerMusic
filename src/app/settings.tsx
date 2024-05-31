@@ -1,8 +1,17 @@
 export * from "@/session-server/src/common";
 
-export const MAX_STREAM_BUFFER_SIZE = 128000;
+export const SHOWERMUSIC_WEB_TITLE = 'ShowerMusic';
 
-const SECONDS_IN_A_DAY = 86400;
+export function buildShowermusicWebTitle(currentlyPlayingTrackTitle: string): string
+{
+    return `${SHOWERMUSIC_WEB_TITLE} | ${currentlyPlayingTrackTitle}`;
+}
+export const MAX_STREAM_BUFFER_SIZE = 128000 * 8;
+
+const SECONDS_IN_AN_HOUR = 3600;
+const HOURS_IN_A_DAY = 24;
+const SECONDS_IN_A_DAY = SECONDS_IN_AN_HOUR * HOURS_IN_A_DAY;
+const DAYS_IN_A_WEEK = 7;
 export const USER_RECOMMENDATIONS_INVALIDATION_TIME = SECONDS_IN_A_DAY;
 
 export const STATION_TRACK_CHANGE_TIME_EXPECTATION_MISS_MAX_MS = 1000 * 2; // 2 Seconds 
@@ -11,6 +20,22 @@ export const USER_AUTH_COOKIE_NAME = 'auth';
 
 export const USE_LDAP_AUTHENTICATION = false;
 export const LDAP_DISPLAY_NAME_FIELD = 'sn';
+
+// HTTP Caching
+export const CACHE_CONTROL_HTTP_HEADER = 'Cache-Control';
+// 28 days
+export const IMMUTABLE_CACHE_MAX_TTL = SECONDS_IN_A_DAY * DAYS_IN_A_WEEK * 4;
+export const TRACKS_API_CACHE_TTL = SECONDS_IN_A_DAY;
+// If an artist changes their name and/or releases new albums
+export const ARTISTS_API_CACHE_TTL = SECONDS_IN_A_DAY;
+export const ALBUMS_API_CACHE_TTL = 'immutable';
+export const CATEGORIES_API_CACHE_TTL = SECONDS_IN_A_DAY * DAYS_IN_A_WEEK;
+// When viewing a station, the client requests their access rights a lot of times.
+//  Cache this to avoid this sudden burst of requests.
+export const STATION_ACCESS_CACHE_TTL = 5;
+export const TOP_ARTISTS_CACHE_TTL = SECONDS_IN_A_DAY * DAYS_IN_A_WEEK;
+export const TOP_ALBUMS_CACHE_TTL = SECONDS_IN_A_DAY * DAYS_IN_A_WEEK;
+export const USER_INFO_API_CACHE_TTL = SECONDS_IN_AN_HOUR;
 
 export function getJwtSecret()
 {

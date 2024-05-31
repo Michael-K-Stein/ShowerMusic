@@ -16,7 +16,7 @@ import { ModalPageLoader } from '@/app/components/pages/modal-page/modal-page';
 import { commandUserStationAccess } from '@/app/client-api/stations/get-station-specific';
 import RadioTowerGlyph from '@/app/components/glyphs/radio-tower';
 import { convertPlaylistToStationClickHandlerFactory } from '@/app/components/pages/playlist-page/playlist-callback-factories';
-import { UserId, useUserPreferedName } from '@/app/shared-api/user-objects/users';
+import { UserId, getUserPreferedName } from '@/app/shared-api/user-objects/users';
 import { MessageTypes } from '@/app/settings';
 
 function PlaylistMembers({ playlist }: { playlist?: Playlist; })
@@ -171,7 +171,7 @@ export function ObjectCreatorTitleContainer(
         commandGetUserById(playlistCreatorId as unknown as string)
             .then((creatorInfo) =>
             {
-                setPlaylistCreatorName(`Created by ${useUserPreferedName(creatorInfo)}`);
+                setPlaylistCreatorName(`Created by ${getUserPreferedName(creatorInfo)}`);
             }).catch((_error) =>
             {
                 setPlaylistCreatorName(`Created by ShowerMusic`);

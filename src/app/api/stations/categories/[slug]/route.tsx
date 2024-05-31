@@ -1,5 +1,6 @@
 import { ApiSuccess, catchHandler } from "@/app/api/common";
 import { DbObjects } from "@/app/server-db-services/db-objects";
+import { CATEGORIES_API_CACHE_TTL } from "@/app/settings";
 import { CategoryNotFoundError } from "@/app/shared-api/other/errors";
 import { CategoryId } from "@/app/shared-api/other/stations";
 import { NextRequest } from "next/server";
@@ -18,7 +19,7 @@ export async function GET(
         {
             throw new CategoryNotFoundError();
         }
-        return ApiSuccess(categories[ 0 ]);
+        return ApiSuccess(categories[ 0 ], CATEGORIES_API_CACHE_TTL);
     }
     catch (e)
     {

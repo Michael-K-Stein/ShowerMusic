@@ -9,7 +9,7 @@ export async function GET(request: NextRequest)
     try
     {
         const fullUserData = await getUser();
-        return ApiSuccess(fullUserData);
+        return ApiSuccess(fullUserData, 'no-store');
     }
     catch (e)
     {

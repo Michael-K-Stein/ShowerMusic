@@ -35,7 +35,7 @@ export async function OPTIONS(
         try
         {
             await DbObjects.MediaObjects.Tracks.getLyrics(id, { projection: { id: 1 } });
-            return ApiSuccess(true);
+            return ApiSuccess(true, 'immutable');
         }
         catch (e: unknown)
         {
@@ -43,7 +43,7 @@ export async function OPTIONS(
             {
                 throw e;
             }
-            return ApiSuccess(false);
+            return ApiSuccess(false, 'must-revalidate');
         }
     }
     catch (e)

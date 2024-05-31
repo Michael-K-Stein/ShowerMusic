@@ -1,5 +1,6 @@
 import { ApiSuccess, catchHandler } from "@/app/api/common";
 import { DbObjects } from "@/app/server-db-services/db-objects";
+import { USER_INFO_API_CACHE_TTL } from "@/app/settings";
 import { ClientApiError } from "@/app/shared-api/other/errors";
 import { BSONError } from 'bson';
 import { NextRequest } from "next/server";
@@ -16,7 +17,7 @@ export async function GET(
         try
         {
             const publicUserInfo = await DbObjects.Users.getPublicInfo(targetUserId);
-            return ApiSuccess(publicUserInfo);
+            return ApiSuccess(publicUserInfo, USER_INFO_API_CACHE_TTL);
         } catch (e)
         {
             if (e instanceof BSONError)

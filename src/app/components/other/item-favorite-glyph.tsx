@@ -49,6 +49,7 @@ export default function ItemFavoriteGlyph(
             style={ { color: itemInUserFavorites ? 'cyan' : 'inherit' } }
         >
             <LoveCircledGlyph
+                className="min-h-full min-w-full max-h-full max-w-full w-full h-full"
                 tabIndex={ tabIndex !== undefined ? tabIndex : 0 }
                 glyphTitle={ glyphTitle !== undefined ? glyphTitle : (itemInUserFavorites ? "Unfavorite" : "Favorite") }
                 placement={ placement }

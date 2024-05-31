@@ -17,6 +17,7 @@ import { ArtistList, TrackCoverImage } from '@/app/components/providers/global-p
 import StreamBarExtraControls from '@/app/components/stream-bar/stream-bar-extra-controls';
 import { commandUserStationAccess } from '@/app/client-api/stations/get-station-specific';
 import { PauseState } from '@/app/shared-api/user-objects/users';
+import { buildShowermusicWebTitle, SHOWERMUSIC_WEB_TITLE } from '@/app/settings';
 
 function StreamBarSongControls({ userCanSeek }: { userCanSeek: boolean; })
 {
@@ -120,9 +121,21 @@ export default function StreamBar()
 {
     const { streamMediaId, streamType, setView } = useSessionState();
     const { playingNextModalHiddenState } = useMediaControls();
-    const { Muse, currentlyPlayingTrack, trackDurationFillBar, seek } = useSessionMuse();
+    const { Muse, currentlyPlayingTrack, trackDurationFillBar, trackDurationFillBarWidth, seek } = useSessionMuse();
 
     const [ userCanSeek, setUserCanSeek ] = useState<boolean>(true);
+
+    useMemo(() =>
+    {
+        // Client only code
+        if (typeof document === 'undefined' || !document) { return; }
+        if (!currentlyPlayingTrack)
+        {
+            document.title = SHOWERMUSIC_WEB_TITLE;
+            return;
+        }
+        document.title = buildShowermusicWebTitle(currentlyPlayingTrack.name);
+    }, [ currentlyPlayingTrack ]);
 
     useMemo(() =>
     {
@@ -176,7 +189,7 @@ export default function StreamBar()
                                     id="stream-bar-track-duration-fill-bar"
                                     ref={ trackDurationFillBar }
                                     className="duration-fill-bar"
-                                    style={ { width: `0%` } }
+                                    style={ { width: `${trackDurationFillBarWidth}%` } }
                                 >
                                 </div>
                             </div>

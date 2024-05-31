@@ -11,7 +11,8 @@ import { queryStationCurrentlyPlayingTrack } from "@/app/components/providers/st
 import useUserSession from "@/app/components/providers/user-provider/user-session";
 import { MessageTypes, ShowerMusicObjectType } from "@/app/settings";
 import { TrackDict, TrackId } from "@/app/shared-api/media-objects/tracks";
-import { LoopState, PauseState } from "@/app/shared-api/user-objects/users";
+import { isValidPauseState, LoopState, PauseState } from "@/app/shared-api/user-objects/users";
+import assert from "assert";
 import { useSnackbar } from "notistack";
 import React, { Dispatch, MutableRefObject, SetStateAction, createContext, useCallback, useContext, useLayoutEffect, useMemo } from "react";
 import { useEffect, useRef, useState } from "react";
@@ -24,6 +25,7 @@ type SessionMuseType = {
     Muse: HTMLAudioElement | undefined;
     museLoadingState: boolean;
     trackDurationFillBar: MutableRefObject<HTMLDivElement | null> | undefined;
+    trackDurationFillBarWidth: number;
     currentlyPlayingTrack: TrackDict | undefined;
     musePausedState: MusePausedState;
     setPauseState: SetPausedState;
@@ -57,6 +59,7 @@ export const SessionMuseContext = createContext<SessionMuseType>(
         Muse: undefined,
         museLoadingState: true,
         trackDurationFillBar: undefined,
+        trackDurationFillBarWidth: 0,
         currentlyPlayingTrack: undefined,
         musePausedState: PauseState.Paused,
         setPauseState: () => { },
@@ -77,6 +80,7 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
 
     const _Muse = useRef<HTMLAudioElement>();
     const trackDurationFillBar = useRef<HTMLDivElement>(null);
+    const [ trackDurationFillBarWidth, setTrackDurationFillBarWidth ] = useState<number>(0);
     const [ currentlyPlayingTrack, setCurrentlyPlayingTrack ] = useState<TrackDict>();
     const [ currentlyPlayingTrackId, setCurrentlyPlayingTrackId ] = useState<TrackId | null>();
     const [ preloadTrackId, setPreloadTrackId ] = useState<TrackId | null>();
@@ -121,41 +125,54 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
 
     const tryStartPlaying = useCallback(() =>
     {
-
-        if (!_Muse.current) { return; }
-        _Muse.current.pause();
-        _Muse.current.play()
-            .catch((reason) =>
-            {
-                setMuseLoadingState(true);
-                try
+        try
+        {
+            if (!_Muse.current) { return; }
+            _Muse.current.pause();
+            _Muse.current.play()
+                .catch((reason) =>
                 {
-                    if ((reason.message as string).includes('DOMException: The play() request was interrupted by a new load request'))
+                    console.log(`Reason: `, reason);
+                    setMuseLoadingState(true);
+                    try
                     {
-                        return;
+                        if ((reason.message as string).includes('DOMException: The play() request was interrupted by a new load request'))
+                        {
+                            // The page is reloading, the next load will take care of this
+                            return;
+                        }
+                        if ((reason.message as string).includes('DOMException: The play() request was interrupted by a call to pause()'))
+                        {
+                            // Wait a little and try again
+                            setTimeout(tryStartPlaying, 100);
+                            return;
+                        }
+                        if (!((reason.message as string).includes(`failed because the user didn't interact with the document first`)))
+                        {
+                            // Unknown error
+                            throw reason;
+                        }
+
+                        promptUserAutoplayConsent(
+                            setGenericModalData,
+                            setGenericModalOpen,
+                            setModalCloseCallback,
+                            modalCloseCallback
+                        );
                     }
-                    if (!((reason.message as string).includes(`failed because the user didn't interact with the document first`)))
+                    catch
                     {
                         throw reason;
                     }
-
-                    promptUserAutoplayConsent(
-                        setGenericModalData,
-                        setGenericModalOpen,
-                        setModalCloseCallback,
-                        modalCloseCallback
-                    );
-                }
-                catch
+                    return;
+                }).then((v) =>
                 {
-                    throw reason;
-                }
-                return;
-            }).then((v) =>
-            {
-                // Do something ?
-            });
+                    // Do something ?
+                });
+        } catch (e: unknown) { console.log(e); }
     }, [ modalCloseCallback, setGenericModalData, setGenericModalOpen, setModalCloseCallback ]);
+
+    assert(isValidPauseState(musePausedState));
 
     useEffect(() =>
     {
@@ -169,6 +186,10 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
         else if (musePausedState === PauseState.Playing)
         {
             tryStartPlaying();
+        }
+        else
+        {
+            assert(false, `Muse paused state: ${musePausedState}`);
         }
     }, [ musePausedState, museLoadingState, tryStartPlaying ]);
 
@@ -267,33 +288,36 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
             });
     }, []);
 
+    const updatePlayingSongTimeFillBar = useCallback(() =>
+    {
+        const currentMuse = _Muse.current;
+        if (!currentMuse) { return; }
+        const fillBar = trackDurationFillBar.current;
+        if (!fillBar) { return; };
+        setTrackDurationFillBarWidth(currentMuse.currentTime * 100 / currentMuse.duration);
+        // fillBar.style.width = `${currentMuse.currentTime * 100 / currentMuse.duration}%`;
+    }, [ setTrackDurationFillBarWidth ]);
+
+    const museTimeUpdate = useCallback(() =>
+    {
+        updatePlayingSongTimeFillBar();
+        const currentMuse = _Muse.current;
+        if (!currentMuse) { return; }
+        if (currentMuse.duration - currentMuse.currentTime < 5)
+        {
+            // Preload the next song
+            preloadNextTrack();
+        }
+    }, [ updatePlayingSongTimeFillBar, preloadNextTrack ]);
+
     useEffect(() =>
     {
-        const museTimeUpdate = () =>
-        {
-            if (!_Muse.current) { return; }
-            if (_Muse.current.duration - _Muse.current.currentTime < 5)
-            {
-                // Preload the next song
-                preloadNextTrack();
-            }
-            updatePlayingSongTimeFillBar();
-        };
-
-        const updatePlayingSongTimeFillBar = () =>
-        {
-            if (!_Muse.current) { return; }
-            let fillBar = trackDurationFillBar.current;
-            if (!fillBar) { return; };
-            fillBar.style.width = `${_Muse.current.currentTime * 100 / _Muse.current.duration}%`;
-        };
-
         if (!_Muse.current) { return; }
         _Muse.current.ontimeupdate = museTimeUpdate;
         _Muse.current.ondurationchange = updatePlayingSongTimeFillBar;
         _Muse.current.onended = () => updatePlayingSongEnded();
         _Muse.current.oncanplay = () => { trackPlayingReady(); };
-    }, [ setMuseLoadingState, setCurrentlyPlayingTrackId, preloadNextTrack, trackPlayingReady, updatePlayingSongEnded ]);
+    }, [ _Muse.current, setMuseLoadingState, setCurrentlyPlayingTrackId, trackPlayingReady, updatePlayingSongEnded, museTimeUpdate, updatePlayingSongTimeFillBar ]);
 
     const reloadCurrentlyPlaying = useCallback(async () =>
     {
@@ -403,7 +427,7 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
 
     const setPauseState = useCallback((newState: PauseState) =>
     {
-        if (newState !== PauseState.Playing && newState !== PauseState.Paused) { return; }
+        if (!isValidPauseState(newState)) { return; }
 
         // Satisfy local user ASAP. 
         // If this was a sync opperation and the user doesn't have proper access
@@ -495,6 +519,7 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
                 isDefault: false,
                 Muse: _Muse.current,
                 trackDurationFillBar,
+                trackDurationFillBarWidth,
                 museLoadingState,
                 currentlyPlayingTrack,
                 musePausedState, setPauseState,

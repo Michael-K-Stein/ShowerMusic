@@ -1,4 +1,4 @@
-import { getClientSideObjectId } from '@/app/client-api/common-utils';
+import { addAnyToArbitraryClickHandlerFactory, getClientSideObjectId } from '@/app/client-api/common-utils';
 import { getAlbumInfo } from '@/app/client-api/get-album';
 import { getArtistInfo } from '@/app/client-api/get-artist';
 import { getPlaylist } from '@/app/client-api/get-playlist';
@@ -8,7 +8,7 @@ import PlayGlyph from '@/app/components/glyphs/play';
 import { gotoArbitraryPlayableMediaPageCallbackFactory } from '@/app/components/media-modals/card-modal/card-modal';
 import { GenericCoverLoader } from '@/app/components/pages/artist-page/artist-page';
 import { PlaylistImage, StationCoverImage } from '@/app/components/pages/playlist-page/playlist-cover-image';
-import { playArbitraryClickHandlerFactory } from '@/app/components/providers/global-props/arbitrary-click-handler-factories';
+import { addArbitraryToQueueClickHandler, playArbitraryClickHandlerFactory } from '@/app/components/providers/global-props/arbitrary-click-handler-factories';
 import { ArtistList, enqueueApiErrorSnackbar } from '@/app/components/providers/global-props/global-modals';
 import { useSessionState } from '@/app/components/providers/session/session';
 import useUserSession from '@/app/components/providers/user-provider/user-session';
@@ -18,13 +18,16 @@ import { TrackDict } from '@/app/shared-api/media-objects/tracks';
 import { ShowerMusicPlayableMediaDict } from '@/app/shared-api/other/common';
 import Playlist from '@/app/shared-api/other/playlist';
 import { Station } from '@/app/shared-api/other/stations';
-import { ShowerMusicPlayableMediaId, UserListenHistoryRecentsMediaItem } from "@/app/shared-api/user-objects/users";
+import { ShowerMusicNamedResolveableItem, ShowerMusicPlayableMediaId, ShowerMusicResolveableItem, UserListenHistoryRecentsMediaItem } from "@/app/shared-api/user-objects/users";
 import { ShowerMusicObjectType, ShowerMusicPlayableMediaType } from '@/app/showermusic-object-types';
 import { Typography } from '@mui/material';
 import Image from 'next/image';
 import { EnqueueSnackbar, useSnackbar } from 'notistack';
-import { MouseEventHandler, Suspense, useCallback, useMemo, useState } from 'react';
+import React, { MouseEventHandler, Suspense, useCallback, useMemo, useState } from 'react';
 import './home-page-playlists.css';
+import AddGlyph from '@/app/components/glyphs/add';
+import AddSongGlyph from '@/app/components/glyphs/add-song';
+import ItemFavoriteGlyph from '@/app/components/other/item-favorite-glyph';
 
 type ImageType = (typeof Image)[ 'defaultProps' ];
 export type ShowerMusicImage = Partial<ImageType>;
@@ -153,11 +156,18 @@ function RecentUserPlayedItem({ item }: { item: UserListenHistoryRecentsMediaIte
 
     return (
         <div className='group played-item relative overflow-hidden' onClick={ onClickHandlerFactory() }>
+            <UserRecentlyPlayedItemControlBar
+                keyboardNavigationEnabled={ true }
+                item={ item }
+                itemType={ item.type }
+                className='absolute box-border p-4 z-[2] '
+            />
             <div className='played-item-image absolute top-0 left-0'>
-                <PlayGlyph
+                {/* <PlayGlyph
                     onClick={ (e) => { e.stopPropagation(); e.preventDefault(); playArbitraryClickHandlerFactory(itemData as ShowerMusicPlayableMediaDict, item.type, setStream, enqueueSnackbar)(); } }
                     glyphTitle='Play'
-                    className='absolute box-border p-4 opacity-45 group-hover:opacity-95 z-[2]' />
+                    className='absolute box-border p-4 opacity-45 group-hover:opacity-95 z-[2]'
+                /> */}
                 <ArbitraryPlayableMediaImage data={ itemData } quality={ 40 } width={ 128 } height={ 128 } className='w-full h-full' />
             </div>
             <div className='m-0 ml-[3em] p-0'>
@@ -196,3 +206,73 @@ export default function UserRecentlyPlayed()
         </div>
     );
 }
+
+
+export function UserRecentlyPlayedItemControlBar(
+    {
+        item,
+        itemType,
+        keyboardNavigationEnabled,
+        className,
+        ...props
+    }: {
+        item?: ShowerMusicPlayableMediaDict | ShowerMusicNamedResolveableItem | ShowerMusicResolveableItem,
+        itemType?: ShowerMusicPlayableMediaType,
+        keyboardNavigationEnabled: boolean;
+    } & React.HTMLAttributes<HTMLDivElement>
+)
+{
+    const { enqueueSnackbar } = useSnackbar();
+    const { setAddToArbitraryModalState, setStream } = useSessionState();
+
+    if (!item || !itemType) { return; }
+
+    if (!('name' in item)) { (item as ShowerMusicNamedResolveableItem).name = ''; }
+
+    return (
+        <div
+            className={ `recently-played-modal-controls-parent absolute top-2 flex flex-col ${className ?? ''}` }
+            onClick={
+                (event) =>
+                {
+                    event.stopPropagation();
+                }
+            }
+            tabIndex={ -1 }
+        >
+            <div className='recently-played-modal-controls'>
+                <PlayGlyph
+                    className='recently-played-modal-glyph'
+                    glyphTitle='Play'
+                    placement='bottom'
+                    onClick={ playArbitraryClickHandlerFactory(item as (ShowerMusicPlayableMediaDict | ShowerMusicNamedResolveableItem), itemType, setStream, enqueueSnackbar) }
+                    tabIndex={ keyboardNavigationEnabled ? 0 : -1 }
+                />
+
+                <AddSongGlyph
+                    className='recently-played-modal-glyph'
+                    glyphTitle='Add to queue'
+                    placement='bottom'
+                    onClick={ addArbitraryToQueueClickHandler(item as (ShowerMusicPlayableMediaDict | ShowerMusicNamedResolveableItem), itemType, enqueueSnackbar) }
+                    tabIndex={ keyboardNavigationEnabled ? 0 : -1 }
+                />
+
+                <AddGlyph
+                    className='recently-played-modal-glyph'
+                    glyphTitle='Add to'
+                    placement='bottom'
+                    onClick={ addAnyToArbitraryClickHandlerFactory(item as (ShowerMusicPlayableMediaDict | ShowerMusicNamedResolveableItem), itemType, setAddToArbitraryModalState) }
+                    tabIndex={ keyboardNavigationEnabled ? 0 : -1 }
+                />
+
+                <ItemFavoriteGlyph
+                    item={ item as (ShowerMusicPlayableMediaDict | ShowerMusicNamedResolveableItem) }
+                    itemType={ itemType }
+                    className='recently-played-modal-glyph'
+                    placement='bottom'
+                    tabIndex={ keyboardNavigationEnabled ? 0 : -1 }
+                />
+            </div>
+        </div >
+    );
+};

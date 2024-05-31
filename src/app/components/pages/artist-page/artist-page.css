@@ -1,12 +1,12 @@
 @import url('./../../modal-page.css');
 
-.artist-page-container
+.modal-page-container.artist-page-container
 {
     display: grid;
     grid-template-columns: 16em calc(100% - 16em);
 }
 
-.artist-page-container .artist-page-info-container
+.modal-page-container.artist-page-container .artist-page-info-container
 {
     position: relative;
     display: flex;
@@ -17,7 +17,7 @@
     max-width: 16em;
 }
 
-.artist-page-container .artist-cover-art
+.modal-page-container.artist-page-container .artist-cover-art
 {
     position: relative;
     left: 0;
@@ -48,7 +48,7 @@
     opacity: 0.4;
 }
 
-.artist-page-container .artist-page-albums-container
+.modal-page-container.artist-page-container .artist-page-albums-container
 {
     box-sizing: border-box;
     bottom: 0;
@@ -200,7 +200,7 @@
     transition: all 0.15s cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
-.artist-page-container .singles-container-parent
+.modal-page-container.artist-page-container .singles-container-parent
 {
     position: absolute;
     box-sizing: border-box;
@@ -209,19 +209,21 @@
     width: calc(100% + 0em);
     padding: 0em;
     transition: all 0.6s cubic-bezier(0.76, 0.12, 0.29, 0.98);
+    transform: translateY(0);
     border-radius: 2em;
     z-index: 20;
     backdrop-filter: blur(30px);
     height: 100%;
 }
 
-.artist-page-container .singles-container-parent:hover
+.modal-page-container.artist-page-container .singles-container-parent:hover
 {
-    transform: translateY(-50%);
+    /* transform: translateY(-50%); */
     background-color: rgba(20, 20, 30, 0.30);
     left: -2em;
     width: calc(250% + 4em);
     padding: 2em;
+    bottom: -0.8em;
 }
 
 /* 

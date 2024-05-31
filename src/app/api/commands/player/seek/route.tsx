@@ -9,7 +9,7 @@ export async function GET(request: NextRequest)
     {
         const userId = await getUserId();
         const seekTime = await DbObjects.Users.Player.getSeekTime(userId);
-        return ApiSuccess(seekTime);
+        return ApiSuccess(seekTime, 'no-store');
     }
     catch (e)
     {

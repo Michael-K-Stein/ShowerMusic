@@ -8,7 +8,7 @@ export async function GET(request: NextRequest)
     try
     {
         const categories = await DbObjects.Categories.getAll();
-        return ApiSuccess(categories);
+        return ApiSuccess(categories, 'immutable');
     }
     catch (e)
     {

@@ -1,25 +1,25 @@
 'use client';
 import './artist-page.css';
-import { ArtistAlbumsSearchOptions, ArtistDict, ArtistId } from '@/app/shared-api/media-objects/artists';
-import { useSessionState } from '@/app/components/providers/session/session';
-import { useSnackbar } from 'notistack';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArtistList, GenericControlBar, enqueueApiErrorSnackbar, enqueueSnackbarWithSubtext } from '@/app/components/providers/global-props/global-modals';
-import { commandPlayerSetCurrentlyPlayingTrack } from '@/app/client-api/player';
+//
+import { getAlbumInfo } from '@/app/client-api/get-album';
 import { getArtistAlbums, getArtistInfo } from '@/app/client-api/get-artist';
+import { commandPlayerSetCurrentlyPlayingTrack } from '@/app/client-api/player';
 import PlayGlyph from '@/app/components/glyphs/play';
+import { ModalPageBase } from '@/app/components/pages/modal-page/modal-page';
+import SuperMiniTrackControls from '@/app/components/pages/super-mini-track-controls';
+import { ArtistList, GenericControlBar, enqueueApiErrorSnackbar, enqueueSnackbarWithSubtext } from '@/app/components/providers/global-props/global-modals';
+import { useSessionState } from '@/app/components/providers/session/session';
+import { ShowerMusicObjectType } from '@/app/settings';
+import { AlbumDict, MinimalAlbumDict } from '@/app/shared-api/media-objects/albums';
+import { ArtistAlbumsSearchOptions, ArtistDict, ArtistId } from '@/app/shared-api/media-objects/artists';
+import { spotifileDownloadArtist } from '@/app/spotifile-utils/spotifile';
 import { Box, Typography } from '@mui/material';
 import assert from 'assert';
-import React from 'react';
-import ContentLoader, { IContentLoaderProps } from 'react-content-loader';
 import Image from 'next/image';
-import { AlbumDict, MinimalAlbumDict } from '@/app/shared-api/media-objects/albums';
+import { useSnackbar } from 'notistack';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import ContentLoader, { IContentLoaderProps } from 'react-content-loader';
 import { gotoAlbumCallbackFactory } from '../goto-callback-factory';
-import { getAlbumInfo } from '@/app/client-api/get-album';
-import SuperMiniTrackControls from '@/app/components/pages/super-mini-track-controls';
-import { ShowerMusicObjectType } from '@/app/settings';
-import { spotifileDownloadArtist } from '@/app/spotifile-utils/spotifile';
-import { ModalPageBase } from '@/app/components/pages/modal-page/modal-page';
 
 function ArtistControlBar({ artistData }: { artistData: ArtistDict | undefined; })
 {
