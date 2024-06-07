@@ -81,7 +81,7 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
     const _Muse = useRef<HTMLAudioElement>();
     const trackDurationFillBar = useRef<HTMLDivElement>(null);
     const [ trackDurationFillBarWidth, setTrackDurationFillBarWidth ] = useState<number>(0);
-    const [ currentlyPlayingTrack, setCurrentlyPlayingTrack ] = useState<TrackDict>();
+    const [ currentlyPlayingTrack, setCurrentlyPlayingTrack ] = useState<TrackDict | undefined>();
     const [ currentlyPlayingTrackId, setCurrentlyPlayingTrackId ] = useState<TrackId | null>();
     const [ preloadTrackId, setPreloadTrackId ] = useState<TrackId | null>();
     const [ museLoadingState, setMuseLoadingState ] = useState<boolean>(true);
@@ -201,6 +201,7 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
         if (!currentlyPlayingTrackId)
         {
             _Muse.current.src = '';
+            setCurrentlyPlayingTrack(undefined);
             return;
         }
 
@@ -317,7 +318,7 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
         _Muse.current.ondurationchange = updatePlayingSongTimeFillBar;
         _Muse.current.onended = () => updatePlayingSongEnded();
         _Muse.current.oncanplay = () => { trackPlayingReady(); };
-    }, [ _Muse.current, setMuseLoadingState, setCurrentlyPlayingTrackId, trackPlayingReady, updatePlayingSongEnded, museTimeUpdate, updatePlayingSongTimeFillBar ]);
+    }, [ setMuseLoadingState, trackPlayingReady, updatePlayingSongEnded, museTimeUpdate, updatePlayingSongTimeFillBar ]);
 
     const reloadCurrentlyPlaying = useCallback(async () =>
     {

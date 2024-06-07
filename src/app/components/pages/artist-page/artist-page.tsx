@@ -17,7 +17,7 @@ import { Box, Typography } from '@mui/material';
 import assert from 'assert';
 import Image from 'next/image';
 import { useSnackbar } from 'notistack';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import ContentLoader, { IContentLoaderProps } from 'react-content-loader';
 import { gotoAlbumCallbackFactory } from '../goto-callback-factory';
 
@@ -278,7 +278,6 @@ export default function ArtistPage({ artistData }: { artistData?: ArtistDict; })
     const [ fontSize, setFontSize ] = useState<string>(`3em`);
     useEffect(() =>
     {
-
         let fontSizeValue = (artistData !== undefined) ? (artistData.name.length > 10 ? 3 : 5) : 5;
         let lengthToSpaceRatio = (artistData !== undefined) ? (artistData.name.length / (artistData.name.split(' ').length ?? 1)) : 1;
         if (lengthToSpaceRatio > 4)

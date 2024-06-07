@@ -103,7 +103,7 @@ export default function StreamBarExtraControls({ track, userCanSeek }: { track?:
     }, [ lyricsAvailable, setView ]);
 
     return (
-        <div className="absolute top-0 flex flex-row items-center justify-center float-right right-3 mt-3">
+        <div className="absolute top-0 flex flex-row items-center justify-center float-right right-3 mt-3" aria-disabled={ track === undefined }>
             <AddGlyph glyphTitle={ "Add to" } className="w-7 h-7 m-1 clickable" onClick={ addTrackToArbitraryClickHandlerFactory(setAddToArbitraryModalState, track) } />
             <ItemFavoriteGlyph
                 item={ track }

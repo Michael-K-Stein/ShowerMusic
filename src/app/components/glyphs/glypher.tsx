@@ -1,6 +1,7 @@
 import KeyboardNavigation from "@/app/components/keyboard-navigation";
 import { Tooltip, TooltipProps } from "@mui/material";
 import React, { KeyboardEvent, useCallback } from "react";
+import './glyphs.css';
 
 export default function Glypher({ children, glyphTitle, placement, className, onClick, tabIndex, ...props }: { children: React.ReactElement<any, any>, glyphTitle: string, placement?: TooltipProps[ 'placement' ]; } & React.HTMLAttributes<HTMLDivElement>)
 {

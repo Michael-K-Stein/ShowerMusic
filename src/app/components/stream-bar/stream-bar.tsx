@@ -21,7 +21,7 @@ import { buildShowermusicWebTitle, SHOWERMUSIC_WEB_TITLE } from '@/app/settings'
 
 function StreamBarSongControls({ userCanSeek }: { userCanSeek: boolean; })
 {
-    const { museLoadingState, musePausedState, setPauseState, skipTrack, rewindTrack } = useSessionMuse();
+    const { museLoadingState, musePausedState, setPauseState, skipTrack, rewindTrack, currentlyPlayingTrack } = useSessionMuse();
 
     const pauseTrack = useCallback(() =>
     {
@@ -49,7 +49,7 @@ function StreamBarSongControls({ userCanSeek }: { userCanSeek: boolean; })
 
 
     return (
-        <div className="absolute top-0 flex flex-row min-w-full max-w-full items-center justify-center mt-3">
+        <div className="absolute top-0 flex flex-row min-w-full max-w-full items-center justify-center mt-3" aria-disabled={ currentlyPlayingTrack === undefined }>
             { userCanSeek &&
                 <RewindGlyph glyphTitle={ "Rewind" } className="w-10 m-1 clickable" onClick={ rewindTrackHandler } />
             }
@@ -178,11 +178,9 @@ export default function StreamBar()
     if (!currentlyPlayingTrack)
     {
         return (
-            <div className="stream-bar" playing-next-hidden={ playingNextModalHiddenState ? 'true' : 'false' }>
+            <div className="stream-bar" data-currently-playing-track={ 'none' } playing-next-hidden={ playingNextModalHiddenState ? 'true' : 'false' }>
                 <div>
                     {
-                        // If there is a track playing, we know that the stream state is "playing"
-
                         <>
                             <div className="duration-fill-bar-container">
                                 <div
@@ -207,7 +205,7 @@ export default function StreamBar()
     }
 
     return (
-        <div className="stream-bar" playing-next-hidden={ playingNextModalHiddenState ? 'true' : 'false' }>
+        <div className="stream-bar" data-currently-playing-track={ currentlyPlayingTrack.id } playing-next-hidden={ playingNextModalHiddenState ? 'true' : 'false' }>
             <div>
                 {
                     // If there is a track playing, we know that the stream state is "playing"
@@ -224,7 +222,7 @@ export default function StreamBar()
                                 key={ currentlyPlayingTrack.id }
                                 id="stream-bar-track-duration-fill-bar"
                                 className="duration-fill-bar"
-                                style={ { width: `0%` } }
+                                style={ { width: `${trackDurationFillBarWidth}%` } }
                             >
                             </div>
                         </div>

@@ -48,6 +48,7 @@ class ElasticApi
         return {
             'song-name-completions': suggestions[ 'track-names-completion' ],
             'artist-name-suggestions': suggestions[ 'artist-names' ],
+            'artist-localized-name-suggestions': suggestions[ 'artist-names-localized' ],
             'album-name-suggestions': suggestions[ 'album-names' ],
         };
     }
@@ -57,6 +58,7 @@ class ElasticApi
         const searchSuggesterData: SearchSuggester = {
             "track-names-completion": this.constructTrackNamesCompletionSuggester(query),
             "artist-names": this.constructArtistNamesCompletionSuggester(query),
+            "artist-names-localized": this.constructArtistNamesCompletionSuggester(query, 'localized_name'),
             'album-names': this.constructAlbumNamesCompletionSuggester(query),
         };
         return searchSuggesterData;
@@ -159,12 +161,12 @@ class ElasticApi
 
         return { contexts: context, contextFieldName };
     }
-    constructArtistNamesCompletionSuggester(query: ComplexQuery): SearchFieldSuggester
+    constructArtistNamesCompletionSuggester(query: ComplexQuery, field_name: string = 'name'): SearchFieldSuggester
     {
         const queryData: SearchFieldSuggester = {
             "prefix": query.queryString,
             "completion": {
-                "field": "artists.name.raw",
+                "field": `artists.${field_name}.raw`,
                 "size": 5,
                 "fuzzy": {
                     "fuzziness": "AUTO",
@@ -322,3 +324,5 @@ class ElasticApi
 }
 
 export default ElasticApi;
+export type AutoCompleteResults = Awaited<ReturnType<ElasticApi[ 'onAutocomplete' ]>>;
+export type AutoCompleteResultKey = keyof Awaited<ReturnType<ElasticApi[ 'onAutocomplete' ]>>;

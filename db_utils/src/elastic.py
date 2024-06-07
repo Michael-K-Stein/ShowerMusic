@@ -11,6 +11,7 @@ mongodb: pymongo.MongoClient = pymongo.MongoClient(
     "mongodb://admin:Pa%24%24word2024@localhost:27017/?authSource=showermusic"
 )
 tracksdb = mongodb.showermusic.tracks
+artistsdb = mongodb.showermusic.artists
 
 # Assuming 'client' is your Elasticsearch client
 es = client = Elasticsearch(
@@ -154,6 +155,14 @@ def create_index_mapping():
                             },
                         },
                     },
+                    "localized_name": {
+                        "type": "text",
+                        "fields": {
+                            "raw": {
+                                "type": "completion",
+                            },
+                        },
+                    },
                     "id": {"type": "keyword"},
                 },
             },
@@ -188,6 +197,40 @@ def create_index_mapping():
     }
 
     client.indices.create(index=index_name, mappings=mappings)
+
+
+def copy_artist_localized_names_to_track_info():
+    filter_query = {"localized_name": {"$ne": None}}
+    total = artistsdb.count_documents(filter_query)
+    for artist in tqdm.tqdm(artistsdb.find(filter_query), total=total):
+        artist_id = artist["id"]  # "17pbOSPIn3lmY0vHhOlKGL"
+        artist_localized_name = artist["localized_name"]  # "17pbOSPIn3lmY0vHhOlKGL"
+        tracks_by_artist_iterator = tracksdb.find({"artists.id": artist_id})
+        for track_by_artist in tracks_by_artist_iterator:
+            track_id = track_by_artist["id"]
+            track_name = track_by_artist["name"]
+            track_artists: list[Any] = track_by_artist["artists"]
+            # Find the index of this artist in the track's artist list
+            for i, a in enumerate(track_artists):
+                if a["id"] != artist_id:
+                    continue
+                break
+            artist_index = i
+            # tqdm.tqdm.write(
+            #     f"Updating track {track_name} [{track_id}] for artist {artist_localized_name} [{artist_id}]"
+            # )
+            tracksdb.update_one(
+                {"id": track_id},
+                {
+                    "$set": {
+                        f"artists.{artist_index}.localized_name": artist_localized_name
+                    }
+                },
+            )
+
+
+# copy_artist_localized_names_to_track_info()
+# exit(0)
 
 
 try:

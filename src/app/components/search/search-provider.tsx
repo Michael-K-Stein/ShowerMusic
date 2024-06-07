@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect, Dispatch, SetSta
 import { PoppedState, useSessionState } from '@/app/components/providers/session/session';
 import { ViewportType } from "@/app/shared-api/other/common";
 import { TrackDict } from '@/app/shared-api/media-objects/tracks';
-import ElasticApi from '@/app/client-api/search/elastic';
+import ElasticApi, { AutoCompleteResultKey } from '@/app/client-api/search/elastic';
 import { ShowerMusicObjectType, ShowerMusicPlayableMediaType } from '@/app/showermusic-object-types';
 import { ShowerMusicNamedResolveableItem, ShowerMusicPlayableMediaId } from '@/app/shared-api/user-objects/users';
 import { randomBytes } from 'crypto';
@@ -217,7 +217,7 @@ export function SearchProvider({ children }: { children: React.ReactNode; }): Re
         };
 
         const result: any = await elasticApi.current.onAutocomplete(complexQuery);
-        const refineResults = <T extends SearchToken = SearchToken>(fieldName: string, itemType: ShowerMusicPlayableMediaType): T[] =>
+        const refineResults = <T extends SearchToken = SearchToken>(fieldName: AutoCompleteResultKey, itemType: ShowerMusicPlayableMediaType): T[] =>
         {
             return result[ fieldName ][ 0 ][ 'options' ].map(
                 (v: any): SearchToken =>
@@ -242,10 +242,11 @@ export function SearchProvider({ children }: { children: React.ReactNode; }): Re
         };
         const trackNamesSearchTokens: TrackSearchToken[] = refineResults<TrackSearchToken>('song-name-completions', ShowerMusicObjectType.Track);
         const artistNamesSearchTokens: SearchToken[] = refineResults('artist-name-suggestions', ShowerMusicObjectType.Artist);
+        const artistLocalizedNamesSearchTokens: SearchToken[] = refineResults('artist-localized-name-suggestions', ShowerMusicObjectType.Artist);
         const albumNamesSearchTokens: SearchToken[] = refineResults('album-name-suggestions', ShowerMusicObjectType.Album);
         return {
             trackNameTokens: trackNamesSearchTokens,
-            artistNameTokens: artistNamesSearchTokens,
+            artistNameTokens: [ ...artistNamesSearchTokens, ...artistLocalizedNamesSearchTokens ],
             albumNameTokens: albumNamesSearchTokens,
         };
     }, [ searchTokens ]);
