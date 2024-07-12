@@ -1,27 +1,15 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRef } from 'react';
 import './page-toolbar.css';
-import Drawer from '@mui/material/Drawer';
 import React from 'react';
 import RadioTowerGlyph from '@/glyphs/radio-tower';
 import HomeGlyph from '@/glyphs/home';
 import { SetView, useSessionState } from '@/app/components/providers/session/session';
 import { ViewportType } from "@/app/shared-api/other/common";
 import assert from 'assert';
-import { Paper } from '@mui/material';
 import ToolbarUserFavorites from '@/app/components/toolbar-user-favorites';
-
-function MenuBurgerRoundedGlyph()
-{
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-            <path fill="none" stroke="#FFFFFF" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M36,27.486c1.933,0,3.5-1.567,3.5-3.5c0-1.933-1.567-3.5-3.5-3.5H12c-1.933,0-3.5,1.567-3.5,3.5c0,1.933,1.567,3.5,3.5,3.5H36z" />
-            <path fill="none" stroke="#FFFFFF" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M36,15.486c1.933,0,3.5-1.567,3.5-3.5c0-1.933-1.567-3.5-3.5-3.5H12c-1.933,0-3.5,1.567-3.5,3.5c0,1.933,1.567,3.5,3.5,3.5H36z" />
-            <path fill="none" stroke="#FFFFFF" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M36,39.486c1.933,0,3.5-1.567,3.5-3.5c0-1.933-1.567-3.5-3.5-3.5H12c-1.933,0-3.5,1.567-3.5,3.5c0,1.933,1.567,3.5,3.5,3.5H36z" />
-        </svg>
-    );
-};
+import { Typography } from '@mui/material';
 
 /**
  * ToolbarItemProps interface for ToolbarItem component
@@ -79,7 +67,6 @@ const TOOLBAR_MENU_ITEMS: ToolbarItemProps[] = [
 
 export default function PageToolbar()
 {
-    let pageToolbarState = useRef(true);
     const { setView } = useSessionState();
 
     const toolbarMenuItems = TOOLBAR_MENU_ITEMS.map((item) =>

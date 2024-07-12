@@ -1,3 +1,8 @@
+.landing-page-credit
+{
+    cursor: url('/cursors/music_heart.svg'), url('/cursors/music_heart_32px.png') 16 16, pointer;
+}
+
 :not([data-no-animation=true]) > .landing-page-title
 {
     animation: landing-page-title-anim 1.2s cubic-bezier(0.075, 0.82, 0.165, 1) 0.5s 1 normal forwards;
@@ -18,6 +23,13 @@
     opacity: 0;
 }
 
+:not([data-no-animation=true]) > .landing-page-credit
+{
+    animation: landing-page-credit-anim 0.55s cubic-bezier(0.075, 0.82, 0.165, 1) 1.0s 1 normal forwards;
+    opacity: 0;
+    transform: translateX(-20%) translateY(1em);
+}
+
 [data-no-animation=true] > .landing-page-title
 {
     transform: translateY(0);
@@ -35,6 +47,12 @@
     opacity: 1;
 }
 
+[data-no-animation=true] > .landing-page-credit
+{
+    opacity: 1;
+    transform: translateY(1em);
+    width: 100%;
+}
 
 @keyframes landing-page-title-anim
 {
@@ -61,5 +79,22 @@
     100%
     {
         width: 85%;
+    }
+}
+
+@keyframes landing-page-credit-anim
+{
+    0%
+    {
+        width: 0;
+        opacity: 0;
+        transform: translateX(-20%) translateY(1em);
+    }
+
+    100%
+    {
+        width: 100%;
+        opacity: 1;
+        transform: translateX(0) translateY(1em);
     }
 }

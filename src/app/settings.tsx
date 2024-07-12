@@ -6,6 +6,10 @@ export function buildShowermusicWebTitle(currentlyPlayingTrackTitle: string): st
 {
     return `${SHOWERMUSIC_WEB_TITLE} | ${currentlyPlayingTrackTitle}`;
 }
+
+export const CONTACT_LINK = 'http://mattermost.dother.mil/@980michaelks';
+export const CONTANT_DISPLAY_TEXT = '@980michaelks';
+
 export const MAX_STREAM_BUFFER_SIZE = 128000 * 8;
 
 const SECONDS_IN_AN_HOUR = 3600;
@@ -18,7 +22,7 @@ export const STATION_TRACK_CHANGE_TIME_EXPECTATION_MISS_MAX_MS = 1000 * 2; // 2 
 
 export const USER_AUTH_COOKIE_NAME = 'auth';
 
-export const USE_LDAP_AUTHENTICATION = false;
+export const USE_LDAP_AUTHENTICATION = true;
 export const LDAP_DISPLAY_NAME_FIELD = 'sn';
 
 // HTTP Caching

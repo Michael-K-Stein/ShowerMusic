@@ -1,26 +1,28 @@
 export const dynamic = "force-dynamic";
 
 import jwt from 'jsonwebtoken';
-import { loginUser } from '@/app/server-db-services/user-objects/user-object';
 import { NextRequest, NextResponse } from 'next/server';
-import { catchHandler } from '@/app/api/common';
-import { cookies, headers } from 'next/headers';
+import { cookies } from 'next/headers';
 import { JWTUserData } from '@/app/shared-api/user-objects/users';
 import { DbObjects } from '@/app/server-db-services/db-objects';
 import { getJwtSecret, USER_AUTH_COOKIE_NAME } from '@/app/settings';
+import { friendlyRedirectToLogin } from '@/app/api/users/login/redirect-to-login';
 
 export async function POST(
     request: NextRequest
 )
 {
     const jwtSecret = getJwtSecret();
+    let fromReferer = '/stream';
+    let failedLoginAttempts = 0;
 
     try
     {
         const formData = await request.formData();
         const username = formData.get('username');
         const password = formData.get('password');
-        const fromReferer = formData.get('from') ? formData.get('from') : '/stream';
+        fromReferer = formData.get('from') ? (formData.get('from') as string) : '/stream';
+        failedLoginAttempts = parseInt(formData.get('failedLoginAttempts')?.toString() ?? '0');
 
         if (!username || !password || !fromReferer)
         {
@@ -34,7 +36,7 @@ export async function POST(
 
         const user = await DbObjects.Users.login(username, password);
         const url = new URL(fromReferer, request.url);
-        let res = NextResponse.redirect(url, 303);
+        const res = NextResponse.redirect(url, 303);
 
         const userJWTData: JWTUserData = {
             username: user.username,
@@ -57,9 +59,9 @@ export async function POST(
         });
 
         return res;
-
-    } catch (e)
+    }
+    catch (e)
     {
-        return catchHandler(request, e);
+        return friendlyRedirectToLogin(request, fromReferer, failedLoginAttempts + 1);
     }
 }
