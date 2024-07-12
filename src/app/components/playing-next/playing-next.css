@@ -17,7 +17,8 @@
 
 .playing-next-parent-container .track-container
 {
-    overflow: scroll;
+    overflow-y: scroll;
+    overflow-x: hidden;
 }
 
 .playing-next-track-entry

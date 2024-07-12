@@ -6,6 +6,7 @@ import { StreamStateType } from "@/app/shared-api/other/common";
 import { ShowerMusicPlayableMediaDict } from "@/app/shared-api/other/common";
 import { ShowerMusicNamedResolveableItem } from "@/app/shared-api/user-objects/users";
 import { ShowerMusicPlayableMediaType, ShowerMusicObjectType } from "@/app/showermusic-object-types";
+import assert from "assert";
 import { EnqueueSnackbar } from "notistack";
 import { MouseEventHandler } from "react";
 
@@ -85,6 +86,9 @@ export function playArbitraryClickHandlerFactory(
         case ShowerMusicObjectType.Track:
             newStreamState = StreamStateType.SingleTrack;
             break;
+        default:
+            assert(false, `Invalid item type: ${itemType} !`);
+            break;
     }
 
     return () =>
@@ -94,7 +98,7 @@ export function playArbitraryClickHandlerFactory(
             .then(() =>
             {
 
-                enqueueSnackbar(`Set queue to ${itemData.name}!`, { variant: 'success' });
+                enqueueSnackbar(`Set queue to ${itemData.name ? itemData.name : itemData.id}!`, { variant: 'success' });
                 setStream(newStreamState, itemData.id);
                 commandPlayerSkipCurrentTrack()
                     .catch((e: any) =>

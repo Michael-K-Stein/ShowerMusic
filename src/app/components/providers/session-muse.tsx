@@ -1,3 +1,4 @@
+import { safeApiFetcher } from "@/app/client-api/common-utils";
 import { getTrackInfo } from "@/app/client-api/get-track";
 import { commandPlayerSkipCurrentTrack, queryCurrentlyPlayingTrack } from "@/app/client-api/player";
 import { commandGetUserPlayPauseState, commandSetUserPlayPauseState } from "@/app/client-api/player/pause";
@@ -193,6 +194,17 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
         }
     }, [ musePausedState, museLoadingState, tryStartPlaying ]);
 
+    const checkTrackMediaAvailability = useCallback((trackId: TrackId) =>
+    {
+        if (!trackId) { return; }
+        const sourceFile = `/api/tracks/${trackId}/raw`;
+        safeApiFetcher(sourceFile, { method: 'OPTIONS' })
+            .catch((reason) =>
+            {
+                enqueueApiErrorSnackbar(enqueueSnackbar, `Track ${trackId} not found!`, reason);
+            });
+    }, [ enqueueSnackbar ]);
+
     useEffect(() =>
     {
         setMuseLoadingState(true);
@@ -205,6 +217,7 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
             return;
         }
 
+        checkTrackMediaAvailability(currentlyPlayingTrackId);
         _Muse.current.src = '';
         const sourceFile = `/api/tracks/${currentlyPlayingTrackId}/raw`;
         _Muse.current.src = sourceFile;
@@ -218,7 +231,7 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
                 console.log(`Failed to load track data for ${currentlyPlayingTrackId}`);
                 enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to load track data for ${currentlyPlayingTrackId}`, reason);
             });
-    }, [ currentlyPlayingTrackId, setCurrentlyPlayingTrack, enqueueSnackbar ]);
+    }, [ currentlyPlayingTrackId, checkTrackMediaAvailability, setCurrentlyPlayingTrack, enqueueSnackbar ]);
 
     useEffect(() =>
     {

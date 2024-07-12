@@ -63,6 +63,7 @@ export class ApiNotImplementedError extends ClientApiError
         this.name = 'ApiNotImplementedError';
     }
 };
+
 export class TrackApiError extends ClientApiError
 {
     constructor(message?: string)
@@ -80,6 +81,17 @@ export class TrackNotFoundError extends TrackApiError
         this.name = 'TrackNotFoundError';
     }
 }
+
+
+export class TrackMediaFileNotFoundError extends TrackNotFoundError
+{
+    constructor(message?: string)
+    {
+        super(message);
+        this.name = 'TrackMediaFileNotFoundError';
+    }
+};
+
 
 export class AlbumApiError extends ClientApiError
 {
