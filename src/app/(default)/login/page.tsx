@@ -38,7 +38,7 @@ export default function LoginPage()
                                 { CONTANT_DISPLAY_TEXT }
                             </Link>
                             <Box sx={ { width: '0.1em' } } />
-                            and I'll see what I can do
+                            and I&apos;ll see what I can do
                         </Typography>
                     </div>
                 </div>
