@@ -86,7 +86,7 @@
     box-sizing: border-box;
     background-color: rgba(27, 20, 31, 0.2);
     height: 100%;
-    padding: 0.1em;
+    padding: 0.1rem;
     border-radius: 0.3em;
     transition: transform 0.3s cubic-bezier(0.23, 1, 0.320, 1), background-color 0.15s cubic-bezier(0.23, 1, 0.320, 1), backdrop-filter 0.5s cubic-bezier(0.23, 1, 0.320, 1);
     transform: translateX(-110%);
@@ -108,11 +108,13 @@
 
 .played-item .recently-played-modal-glyph
 {
+    box-sizing: border-box;
     opacity: 0.1;
     transition: all 0.15s cubic-bezier(0.23, 1, 0.320, 1);
     transform-origin: 50% 50%;
-    max-height: 2em;
-    max-width: 2em;
+    max-height: 1.8rem;
+    max-width: 1.8rem;
+    padding: 0.1rem;
 }
 
 .played-item[data-keyboard-navigation-enabled=true]:focus-visible .recently-played-modal-glyph,

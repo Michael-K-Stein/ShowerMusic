@@ -50,9 +50,11 @@
 
 .card-modal .card-modal-add-glyph
 {
+    box-sizing: border-box;
     opacity: 0.1;
     transition: all 0.15s cubic-bezier(0.23, 1, 0.320, 1);
     transform-origin: 50% 50%;
+    padding: 0.1rem;
 }
 
 .card-modal[data-keyboard-navigation-enabled=true]:focus-visible .card-modal-add-glyph,
