@@ -6,7 +6,7 @@ import { ModalNameRectangleLoaderSkeleton, enqueueApiErrorSnackbar } from '@/app
 import Playlist, { PlaylistAndStationBaseInterface, PlaylistId } from '@/app/shared-api/other/playlist';
 import { commandRenamePlaylist, getPlaylist } from '@/app/client-api/get-playlist';
 import { ShowerMusicObjectType } from '@/app/shared-api/other/common';
-import SharedSyncObjectProvider, { useSharedSyncObject } from '@/app/components/providers/shared-sync-object-provides';
+import SharedSyncObjectProvider, { useSharedSyncObject } from '@/app/components/providers/shared-sync-object-provider';
 import RenameGlyph from '@/app/components/glyphs/rename';
 import { Box, Button, capitalize, FormControl, FormGroup, TextField, Typography } from '@mui/material';
 import useGlobalProps from '@/app/components/providers/global-props/global-props';
@@ -49,8 +49,8 @@ export function RenameableTitleContainer(
     { itemId, itemName, itemType = ShowerMusicObjectType.Playlist, children }:
         {
             itemId?: PlaylistId,
-            itemName?: React.JSX.Element | string,
-            itemType?: ShowerMusicObjectType.Playlist | ShowerMusicObjectType.Station,
+            itemName: React.JSX.Element | string | undefined,
+            itemType: ShowerMusicObjectType.Playlist | ShowerMusicObjectType.Station,
             children?: React.ReactNode;
         })
 {
@@ -194,7 +194,7 @@ function PlaylistPageInsideSync({ playlistId }: { playlistId: PlaylistId; })
             itemType={ ShowerMusicObjectType.Playlist }
             itemData={ playlistData }
             customTitle={
-                <RenameableTitleContainer itemId={ playlistId }   >
+                <RenameableTitleContainer itemId={ playlistId } itemName={ playlistData?.name } itemType={ ShowerMusicObjectType.Playlist }  >
                     <ObjectCreatorTitleContainer itemData={ playlistData } />
                     <PlaylistSpecificSubInfo playlist={ playlistData as Playlist } />
                 </RenameableTitleContainer> }

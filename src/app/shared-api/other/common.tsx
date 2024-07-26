@@ -77,6 +77,36 @@ export function getKeysOfObject<T extends object>(obj: T): Keys<T>[]
 {
     return Object.keys(obj) as Keys<T>[];
 }
+
+const URL_PARAMS = {
+    'viewportType': 'vt',
+    'viewMediaId': 'vi',
+    'streamStateType': 'st',
+    'streamMediaId': 'si',
+};
+
+const VALID_URL_KEYS = getKeysOfObject(URL_PARAMS);
+type ValidUrlKey = typeof VALID_URL_KEYS[ 0 ];
+
+const URL_PARAMS_REVERSE_LOOKUP_MAP = VALID_URL_KEYS.reduce((acc, key) =>
+{
+    acc[ URL_PARAMS[ key ] ] = key;
+    return acc;
+}, {} as Record<string, keyof typeof URL_PARAMS>);
+const VALID_URL_ENCODED_KEYS = getKeysOfObject(URL_PARAMS_REVERSE_LOOKUP_MAP);
+type ValidUrlEncodedKey = typeof VALID_URL_ENCODED_KEYS[ 0 ];
+
+export function encodeUrlParamName(paramName: ValidUrlKey): ValidUrlEncodedKey
+{
+    return URL_PARAMS[ paramName ];
+}
+
+export function decodeUrlParamName(paramEncodedKey: ValidUrlEncodedKey): ValidUrlKey
+{
+    if (!(paramEncodedKey in URL_PARAMS_REVERSE_LOOKUP_MAP)) { throw Error(`Invalid param encoded key ${paramEncodedKey} !`); }
+    return URL_PARAMS_REVERSE_LOOKUP_MAP[ paramEncodedKey ];
+}
+
 export function buildUrlForState({
     newViewMediaId, newViewportType, newStreamMediaId, newStreamStateType, givenUrl,
 }: {
@@ -92,22 +122,22 @@ export function buildUrlForState({
 
     if (newViewMediaId !== undefined)
     {
-        url.searchParams.set('viewMediaId', newViewMediaId);
+        url.searchParams.set(encodeUrlParamName('viewMediaId'), newViewMediaId);
     }
 
     if (newViewportType !== undefined)
     {
-        url.searchParams.set('viewportType', JSON.stringify(newViewportType));
+        url.searchParams.set(encodeUrlParamName('viewportType'), JSON.stringify(newViewportType));
     }
 
     if (newStreamMediaId !== undefined)
     {
-        url.searchParams.set('streamMediaId', newStreamMediaId);
+        url.searchParams.set(encodeUrlParamName('streamMediaId'), newStreamMediaId);
     }
 
     if (newStreamStateType !== undefined)
     {
-        url.searchParams.set('streamStateType', JSON.stringify(newStreamStateType));
+        url.searchParams.set(encodeUrlParamName('streamStateType'), JSON.stringify(newStreamStateType));
     }
     return url;
 }

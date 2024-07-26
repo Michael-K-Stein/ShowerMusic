@@ -110,9 +110,24 @@ function dispatchMessageToTargets(message, targets, data) {
     });
 }
 ;
+function validateServerMessage(data) {
+    if (!('authKey' in data)) {
+        throw Error("Missing \"authKey\" in server data!");
+    }
+    if (data['authKey'] !== common_1.WEBSOCKET_SESSION_SERVER_SENDER_AUTH_KEY) {
+        throw Error("Invalid \"authKey\" in server data!");
+    }
+    ;
+}
 function handleServerMessage(data) {
-    console.log("Server message ".concat(data['type']));
-    dispatchMessageToTargets(data['type'], data['targets'], data);
+    try {
+        validateServerMessage(data);
+        console.log("Server message ".concat(data['type']));
+        dispatchMessageToTargets(data['type'], data['targets'], data);
+    }
+    catch (e) {
+        console.error('Server message error: ', e);
+    }
 }
 ;
 wss.on('connection', function (ws) {
@@ -121,7 +136,7 @@ wss.on('connection', function (ws) {
     ws.on('message', function (dataString) {
         console.log("[WebSocket] : Data: ".concat(dataString));
         var data = JSON.parse(dataString.toString());
-        if (data['sender'] === 'server') {
+        if (data['sender'] === common_1.WEBSOCKET_SESSION_SERVER_SENDER_SERVER_MAGIC) {
             handleServerMessage(data);
         }
         if (data['type'] === common_1.MessageTypes.REGISTER_SESSION) {

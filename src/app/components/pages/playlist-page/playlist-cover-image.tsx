@@ -1,7 +1,7 @@
 import { getTrackInfo } from "@/app/client-api/get-track";
 import RadioTowerGlyph from "@/app/components/glyphs/radio-tower";
 import { enqueueApiErrorSnackbar } from "@/app/components/providers/global-props/global-modals";
-import { useSharedSyncObject } from "@/app/components/providers/shared-sync-object-provides";
+import { useSharedSyncObject } from "@/app/components/providers/shared-sync-object-provider";
 import { TrackDict } from "@/app/shared-api/media-objects/tracks";
 import { TrackNotFoundError } from "@/app/shared-api/other/errors";
 import Playlist, { MinimalPlaylist, PlaylistId, PlaylistTrack } from "@/app/shared-api/other/playlist";

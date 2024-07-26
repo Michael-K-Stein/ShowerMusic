@@ -7,6 +7,8 @@ import { ClickAwayListener, Typography } from '@mui/material';
 import assert from 'assert';
 import { SongSearchBarBubbles } from '@/app/components/search/song-search-bar/song-search-bubble';
 import { SongSearchBarInlineSuggestions, SongSearchBarSuggestions, chooseMostRelevantSuggestion } from './search-bar-suggestions';
+import useKeybinds, { KeybindClickCallback } from '@/app/components/providers/global-props/keybinds-provider';
+import KeybindHint from '@/app/components/other/keybind-hint';
 
 function SearchGlyph()
 {
@@ -28,6 +30,7 @@ export default function SongSearchBar()
         mostReleventSuggestion,
         searchTokens,
     } = useSearch();
+    const { registerKeybind } = useKeybinds();
     const [ suggestedSearchTokens, setSuggestedSearchTokens ] = useState<SuggestionGenerationResponse>();
 
     const [ lastQueryString, setLastQueryString ] = useState<string>('');
@@ -55,61 +58,16 @@ export default function SongSearchBar()
         setMostRelevantSuggestion(chooseMostRelevantSuggestion(searchTokens, suggestedSearchTokens));
     }, [ searchTokens, suggestedSearchTokens, setMostRelevantSuggestion ]);
 
-    /* 
-    const handleArrowEvent = useCallback(async (event: React.KeyboardEvent<HTMLInputElement>) =>
+    const keybindClickCallback: KeybindClickCallback = useCallback(async () =>
     {
-        assert(event.key === 'ArrowUp' || event.key === 'ArrowDown' || event.key === 'ArrowLeft' || event.key === 'ArrowRight');
+        inputField.current?.focus();
+    }, []);
 
-        const inSuggestionsRangeX = (v: number) =>
-        {
-            if (!autoCorrections) { return 0; }
-            if (autoCorrections.artistNameTokens.length === 0) { return 1; }
-            if (autoCorrections.trackNameTokens.length === 0) { return 0; }
-            return (v + 2) % 2;
-        };
-
-        const inSuggestionsRangeY = (v: number) =>
-        {
-            if (!autoCorrections) { return 0; }
-            const arr = suggestionIndexX === 0 ? autoCorrections.artistNameTokens : autoCorrections.trackNameTokens;
-            if (arr.length === 0) { return 0; }
-            return (v + arr.length) % arr.length;
-        };
-
-        switch (event.key)
-        {
-            case 'ArrowUp':
-                setSuggestionIndexY(value => inSuggestionsRangeY(value - 1));
-                break;
-            case 'ArrowDown':
-                setSuggestionIndexY(value => inSuggestionsRangeY(value + 1));
-                break;
-            case 'ArrowLeft':
-                setSuggestionIndexX(value => inSuggestionsRangeX(value - 1));
-                break;
-            case 'ArrowRight':
-                setSuggestionIndexX(value => inSuggestionsRangeX(value + 1));
-                break;
-        }
-    }, [ autoCorrections, setSuggestionIndexX, setSuggestionIndexY, suggestionIndexX ]);
-
-    Doesn't really look that good
-    const attemptToAppendSearchTokenOnEnter = useCallback(async (event: React.KeyboardEvent<HTMLInputElement>) =>
+    useMemo(() =>
     {
-        // No suggestions to handle
-        if (!autoCorrections) { return; }
-
-        const arr = suggestionIndexX === 0 ? autoCorrections.artistNameTokens : autoCorrections.trackNameTokens;
-        if (suggestionIndexY >= arr.length || suggestionIndexY < 0) { return; }
-
-        appendSearchToken(arr[ suggestionIndexY ]);
-        clearTextSearch();
-        setAutoCorrections(undefined);
-
-        event.preventDefault();
-        event.stopPropagation();
-    }, [ autoCorrections, suggestionIndexX, suggestionIndexY, appendSearchToken, clearTextSearch, setAutoCorrections ]);
-    */
+        const removeHandler = registerKeybind({ keybind: '?', callback: keybindClickCallback });
+        return removeHandler;
+    }, [ registerKeybind, keybindClickCallback ]);
 
     const attempToAppendSearchTokenOnTab = useCallback((_event: React.KeyboardEvent<HTMLInputElement>) =>
     {
@@ -142,16 +100,6 @@ export default function SongSearchBar()
                 setSuggestedSearchTokens(undefined);
                 return;
             }
-            /*
-            else if (event.key.substring(0, 5) === 'Arrow')
-            {
-                return handleArrowEvent(event);
-            }
-            else if (event.key === 'Enter')
-            {
-                return attemptToAppendSearchTokenOnEnter(event);
-            }
-            */
 
             const target = event.target as HTMLInputElement;
             if (!target.value)
@@ -184,10 +132,7 @@ export default function SongSearchBar()
             handleBackspace,
             generateSearchSuggestions,
             setSuggestedSearchTokens,
-            /* handleArrowEvent,
-            attemptToAppendSearchTokenOnEnter, */
             setLastQueryString,
-            // performSearch
         ]
     );
 
@@ -236,6 +181,7 @@ export default function SongSearchBar()
                                     autoCorrect='on'
                                     list='search-bar-completions'
                                     accessKey='/'
+                                    autoFocus={ true }
                                 />
                                 <datalist id="search-bar-completions">
                                     { searchBarNativeCompletionOptions }
@@ -244,9 +190,7 @@ export default function SongSearchBar()
                             <div className='absolute' style={ { marginLeft: `${textWidth}px` } }>
                                 <SongSearchBarInlineSuggestions clearTextSearch={ clearTextSearch } suggestions={ suggestedSearchTokens } />
                             </div>
-                            {/* <div className='song-search-input-suggestions-container'>
-                                <SongSearchBarSuggestions suggestionSelectedIndex={ { suggestionIndexX, suggestionIndexY } } clearTextSearch={ clearTextSearch } suggestions={ autoCorrections } />
-                            </div> */}
+                            <KeybindHint className='flex flex-row items-center text-right justify-end me-4' fontSize={ 'inherit' } keybind={ '?' } importantHint={ true } />
                         </div>
                     </div>
                 </form>

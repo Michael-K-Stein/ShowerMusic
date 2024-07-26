@@ -117,7 +117,7 @@ export function SearchProvider({ children }: { children: React.ReactNode; }): Re
 
         if ((window.history.state as SearchProviderPoppedState).query === query)
         {
-            window.history.replaceState(state, '', `?query=${query}&resolved=true`);
+            window.history.replaceState(state, '', `?q=${query}&r=true`);
         }
     }, [ viewMediaId, viewportType, streamMediaId, streamType ]);
 
@@ -142,7 +142,7 @@ export function SearchProvider({ children }: { children: React.ReactNode; }): Re
         // If the page is being loaded through url params, we won't have a proper state
         if (state.searchParams !== undefined)
         {
-            const searchQueryString = state.searchParams.get('query');
+            const searchQueryString = state.searchParams.get('q');
             if (!searchQueryString) { return; }
             const complexQuery: ComplexQuery = {
                 queryString: searchQueryString,
@@ -179,7 +179,7 @@ export function SearchProvider({ children }: { children: React.ReactNode; }): Re
             },
         };
 
-        window.history.pushState(state, '', `?query=${queryString}`);
+        window.history.pushState(state, '', `?q=${queryString}`);
     }, [ searchTokens, viewMediaId, viewportType, streamMediaId, streamType ]);
 
     const performSearch = useCallback((data: FormData | string) =>

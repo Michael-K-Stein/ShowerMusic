@@ -20,6 +20,7 @@ interface ToolbarItemProps
     glyphGenerator: (glyphTitle: string) => JSX.Element;
     viewType: ViewportType;
     setView?: SetView;
+    accessKey?: React.HTMLAttributes<HTMLDivElement>[ 'accessKey' ];
 };
 
 /**
@@ -40,7 +41,7 @@ class ToolbarItem extends React.Component<ToolbarItemProps>
         assert(setView !== undefined);
 
         return (
-            <div onClick={ () => { setView(viewType); } }>
+            <div onClick={ () => { setView(viewType); } } accessKey={ this.props.accessKey }>
                 <div className="toolbar-item flex flex-col center text-center items-center justify-center content-center pt-4">
                     <div className='w-14 h-14'>
                         { glyphGenerator(name) }
@@ -57,6 +58,7 @@ const TOOLBAR_MENU_ITEMS: ToolbarItemProps[] = [
         name: 'Home',
         glyphGenerator: (_glyphTitle: string) => <HomeGlyph glyphTitle={ '' } />,
         viewType: ViewportType.Home,
+        accessKey: 'h',
     },
     {
         name: 'Stations',
@@ -71,7 +73,7 @@ export default function PageToolbar()
 
     const toolbarMenuItems = TOOLBAR_MENU_ITEMS.map((item) =>
     {
-        return (<ToolbarItem key={ item.name } name={ item.name } glyphGenerator={ item.glyphGenerator } viewType={ item.viewType } setView={ setView } />);
+        return (<ToolbarItem key={ item.name } name={ item.name } glyphGenerator={ item.glyphGenerator } viewType={ item.viewType } setView={ setView } accessKey={ item.accessKey } />);
     });
 
     return (

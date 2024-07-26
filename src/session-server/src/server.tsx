@@ -3,7 +3,9 @@ import
     ServerRequestTargets,
     MessageTypes,
     WEBSOCKET_SESSION_SERVER_PORT,
-    COMBO_DATA_KEY
+    COMBO_DATA_KEY,
+    WEBSOCKET_SESSION_SERVER_SENDER_SERVER_MAGIC,
+    WEBSOCKET_SESSION_SERVER_SENDER_AUTH_KEY
 } from './common';
 import { ShowerMusicObjectType } from '../../app/showermusic-object-types';
 import WebSocket from 'ws';
@@ -134,10 +136,23 @@ function dispatchMessageToTargets(message: MessageTypes, targets: ServerRequestT
     });
 };
 
+function validateServerMessage(data: { [ x: string ]: any; })
+{
+    if (!('authKey' in data)) { throw Error(`Missing "authKey" in server data!`); }
+    if (data[ 'authKey' ] !== WEBSOCKET_SESSION_SERVER_SENDER_AUTH_KEY) { throw Error(`Invalid "authKey" in server data!`); };
+}
+
 function handleServerMessage(data: { [ x: string ]: any; }) 
 {
-    console.log(`Server message ${data[ 'type' ]}`);
-    dispatchMessageToTargets(data[ 'type' ], data[ 'targets' ], data);
+    try
+    {
+        validateServerMessage(data);
+        console.log(`Server message ${data[ 'type' ]}`);
+        dispatchMessageToTargets(data[ 'type' ], data[ 'targets' ], data);
+    } catch (e: unknown)
+    {
+        console.error('Server message error: ', e);
+    }
 };
 
 wss.on('connection', (ws) =>
@@ -151,7 +166,7 @@ wss.on('connection', (ws) =>
 
         const data = JSON.parse(dataString.toString());
 
-        if (data[ 'sender' ] === 'server')
+        if (data[ 'sender' ] === WEBSOCKET_SESSION_SERVER_SENDER_SERVER_MAGIC)
         {
             handleServerMessage(data);
         }

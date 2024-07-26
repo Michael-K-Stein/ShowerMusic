@@ -1,11 +1,11 @@
 'use client';
 import { ShowerMusicGenericHeader } from '@/app/components/other/generic-header';
 import './login.css';
-import { Box, Button, Hidden, Link, TextField, Typography } from '@mui/material';
+import { Box, Button, Hidden, Input, Link, TextField, Typography } from '@mui/material';
 import { useSearchParams } from 'next/navigation';
 import { useMemo } from 'react';
 import { useGlobalProps } from '@/app/components/providers/global-props/global-props';
-import { CONTACT_LINK, CONTANT_DISPLAY_TEXT } from '@/app/settings';
+import { CONTACT_LINK, CONTACT_DISPLAY_TEXT } from '@/app/settings';
 
 export default function LoginPage()
 {
@@ -35,7 +35,7 @@ export default function LoginPage()
                                 target="_blank"
                                 rel="noopener"
                             >
-                                { CONTANT_DISPLAY_TEXT }
+                                { CONTACT_DISPLAY_TEXT }
                             </Link>
                             <Box sx={ { width: '0.1em' } } />
                             and I&apos;ll see what I can do
@@ -84,23 +84,22 @@ export default function LoginPage()
                         Login
                     </Button>
                     <Hidden>
-                        <TextField
+                        <Input
                             name='from'
                             type='hidden'
                             value={ fromReferer }
                             hidden={ true }
                             aria-hidden={ true }
-                            hiddenLabel={ true }
                         />
                     </Hidden>
                     <Hidden>
-                        <TextField
+                        <Input
                             name='failedLoginAttempts'
                             type='hidden'
                             value={ failedLoginAttempts }
                             hidden={ true }
                             aria-hidden={ true }
-                            hiddenLabel={ true }
+
                         />
                     </Hidden>
                     {

@@ -133,7 +133,6 @@ export function useSharedSyncObject<T>(
     {
         if (!id) { return; }
 
-        console.log('Calling ', apiDataGetter);
         apiDataGetter(id)
             .then(setData)
             .catch((e) =>

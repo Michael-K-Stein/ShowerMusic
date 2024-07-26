@@ -8,7 +8,7 @@ export function buildShowermusicWebTitle(currentlyPlayingTrackTitle: string): st
 }
 
 export const CONTACT_LINK = 'http://mattermost.dother.mil/@980michaelks';
-export const CONTANT_DISPLAY_TEXT = '@980michaelks';
+export const CONTACT_DISPLAY_TEXT = '@980michaelks';
 
 export const MAX_STREAM_BUFFER_SIZE = 128000 * 8;
 
@@ -72,4 +72,3 @@ export async function getSymetricalEncyptionKey()
     }
     return _encryptionKey;
 }
-

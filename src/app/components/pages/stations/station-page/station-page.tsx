@@ -10,7 +10,7 @@ import { ObjectCreatorTitleContainer, RenameableTitleContainer } from "@/app/com
 import { enqueueApiErrorSnackbar } from "@/app/components/providers/global-props/global-modals";
 import { ViewportType } from "@/app/shared-api/other/common";
 import { buildUrlForState } from "@/app/shared-api/other/common";
-import SharedSyncObjectProvider, { useSharedSyncObject } from "@/app/components/providers/shared-sync-object-provides";
+import SharedSyncObjectProvider, { useSharedSyncObject } from "@/app/components/providers/shared-sync-object-provider";
 import { PrivateStation, PublicStation, Station, StationId, StationParticipant } from "@/app/shared-api/other/stations";
 import { ShowerMusicObjectType } from "@/app/showermusic-object-types";
 import { Box, CircularProgress, Tooltip, Typography } from "@mui/material";

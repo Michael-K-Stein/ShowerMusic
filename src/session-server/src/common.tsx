@@ -1,10 +1,15 @@
 import { ObjectId } from 'mongodb';
 import { ShowerMusicObjectType } from '../../app/showermusic-object-types';
+import assert from 'assert';
 export { ShowerMusicObjectType as ShowerMusicObjectType };
 
 export const WEBSOCKET_SESSION_SERVER_PORT = 8088;
 export const WEBSOCKET_SESSION_SERVER_HOST = '127.0.0.1';
 export const WEBSOCKET_SESSION_SERVER_CONN_STRING = `ws://${WEBSOCKET_SESSION_SERVER_HOST}:${WEBSOCKET_SESSION_SERVER_PORT}/`;
+
+export const WEBSOCKET_SESSION_SERVER_SENDER_SERVER_MAGIC = 'server';
+export const WEBSOCKET_SESSION_SERVER_SENDER_AUTH_KEY = process.env.WEBSOCKET_SESSION_SERVER_SENDER_AUTH_KEY;
+// assert(WEBSOCKET_SESSION_SERVER_SENDER_AUTH_KEY, `WEBSOCKET_SESSION_SERVER_SENDER_AUTH_KEY must be set in environment variables!`);
 
 export enum MessageTypes 
 {

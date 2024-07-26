@@ -64,6 +64,7 @@ function StreamBarSongControls({ userCanSeek }: { userCanSeek: boolean; })
                         aria-disabled={ !userCanSeek }
                         glyphTitle={ "Play" }
                         data-static-glyph
+                        accessKey='p'
                     />
                     ||
                     <PauseGlyph
@@ -71,6 +72,7 @@ function StreamBarSongControls({ userCanSeek }: { userCanSeek: boolean; })
                         onClick={ pauseTrack }
                         aria-disabled={ !userCanSeek }
                         glyphTitle={ "Pause" }
+                        accessKey='p'
                     />
 
                 )

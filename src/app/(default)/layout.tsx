@@ -5,6 +5,7 @@ import { SnackbarProvider } from 'notistack';
 import { GlobalPropsProvider } from '@/app/components/providers/global-props/global-props';
 import '@/app/globals.css';
 import '@/app/fonts.css';
+import { KeybindsProvider } from '@/app/components/providers/global-props/keybinds-provider';
 
 
 const sfFonts = [
@@ -33,7 +34,9 @@ export default function GlobalProvidersRootLayout({
         <ThemeProvider theme={ theme }>
             <GlobalPropsProvider>
                 <SnackbarProvider>
-                    { children }
+                    <KeybindsProvider>
+                        { children }
+                    </KeybindsProvider>
                 </SnackbarProvider>
             </GlobalPropsProvider>
         </ThemeProvider>

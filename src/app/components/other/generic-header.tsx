@@ -1,4 +1,4 @@
-import { CONTACT_LINK, CONTANT_DISPLAY_TEXT } from '@/app/settings';
+import { CONTACT_LINK, CONTACT_DISPLAY_TEXT } from '@/app/settings';
 import './generic-header.css';
 import { Box, Link, Tooltip, Typography } from "@mui/material";
 
@@ -21,7 +21,7 @@ export function ShowerMusicGenericHeader({ noAnimation }: { noAnimation: boolean
                     rel="noopener"
                 >
                     <Typography>
-                        { CONTANT_DISPLAY_TEXT }
+                        { CONTACT_DISPLAY_TEXT }
                     </Typography>
                 </Link>
             } placement='right'>

@@ -116,8 +116,9 @@ export default function StreamBarExtraControls({ track, userCanSeek }: { track?:
                 className="w-7 h-7 m-1 clickable"
                 aria-disabled={ !lyricsAvailable }
                 onClick={ gotoLyrics }
+                accessKey='l'
             />
-            <LoungeMusicPlaylistGlyph glyphTitle={ "Playing Next" } className="w-7 h-7 m-1 clickable" onClick={ togglePlayingNextVisiblity } />
+            <LoungeMusicPlaylistGlyph glyphTitle={ "Playing Next" } accessKey='q' className="w-7 h-7 m-1 clickable" onClick={ togglePlayingNextVisiblity } />
         </div>
     );
 };

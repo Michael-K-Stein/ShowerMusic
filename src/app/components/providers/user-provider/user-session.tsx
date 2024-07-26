@@ -130,14 +130,13 @@ export const UserSessionProvider = ({ children }: { children: React.JSX.Element[
     useMemo(() =>
     {
         if (typeof window === 'undefined') { return; }
-        console.log(`Adding handler for user ${userId}`);
 
         reloadUserFavorites();
         reloadUserPlaylists();
         reloadUserRecents();
 
         addMessageHandler(onWebSocketMessage);
-    }, [ userId, addMessageHandler, onWebSocketMessage, reloadUserFavorites, reloadUserPlaylists, reloadUserRecents ]);
+    }, [ addMessageHandler, onWebSocketMessage, reloadUserFavorites, reloadUserPlaylists, reloadUserRecents ]);
 
     return (
         <UserSessionContext.Provider value={
@@ -164,11 +163,6 @@ export const useUserSession = () =>
     }
 
     return context;
-};
-
-export const isItemInUsersFavorites = (itemId: ShowerMusicPlayableMediaId, itemType: ShowerMusicPlayableMediaType) =>
-{
-
 };
 
 export default useUserSession;

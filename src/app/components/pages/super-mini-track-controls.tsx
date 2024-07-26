@@ -62,15 +62,16 @@ export default function SuperMiniTrackControls({ track }: { track: TrackDict | T
     };
 
     return (
-        <div className="flex flex-row items-center w-full">
-            <AddSongGlyph glyphTitle='Add to queue' className='super-mini-track-control' onClick={ clickDispatcher(addTrackToQueueClickHandler) } />
-            <PlayPropertyGlyph glyphTitle='Play next' className='super-mini-track-control' onClick={ clickDispatcher(setPlayNextTrackClickHandler) } />
-            <AddGlyph glyphTitle='Add to' className='super-mini-track-control' onClick={ addToArbitraryClickHandler } />
+        <div className="flex flex-row items-center w-full" tabIndex={ -1 }>
+            <AddSongGlyph glyphTitle='Add to queue' className='super-mini-track-control' onClick={ clickDispatcher(addTrackToQueueClickHandler) } tabIndex={ -1 } />
+            <PlayPropertyGlyph glyphTitle='Play next' className='super-mini-track-control' onClick={ clickDispatcher(setPlayNextTrackClickHandler) } tabIndex={ -1 } />
+            <AddGlyph glyphTitle='Add to' className='super-mini-track-control' onClick={ addToArbitraryClickHandler } tabIndex={ -1 } />
             <ItemFavoriteGlyph
                 item={ trackData as (ShowerMusicPlayableMediaDict | ShowerMusicNamedResolveableItem) }
                 itemType={ ShowerMusicObjectType.Track }
                 className='super-mini-track-control'
-                passThroughHtmlProps={ { className: 'flex flex-row items-center' } }
+                passThroughHtmlProps={ { className: 'flex flex-row items-center', tabIndex: -1 } }
+                tabIndex={ -1 }
             />
         </div >
     );

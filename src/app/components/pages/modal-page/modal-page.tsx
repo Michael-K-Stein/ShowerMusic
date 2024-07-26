@@ -8,7 +8,7 @@ import { TrackId } from "@/app/shared-api/media-objects/tracks";
 import { ShowerMusicPlayableMediaContainerFullDict, ShowerMusicPlayableMediaDict } from "@/app/shared-api/other/common";
 import { ShowerMusicPlayableMediaContainerId } from "@/app/shared-api/user-objects/users";
 import { ShowerMusicObjectType, ShowerMusicPlayableMediaContainerType } from "@/app/showermusic-object-types";
-import { Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import assert from "assert";
 import { useSnackbar } from "notistack";
 import React, { HTMLAttributes, SetStateAction, useMemo, useState } from "react";
@@ -128,8 +128,10 @@ function ModalPage(
                             <ArtistList artists={ itemData.artists } setView={ setView } />
                         </div>
                     }
-                    { 'release_date' in itemData && <div>
-                        <Typography fontWeight={ 400 }> Released: { itemData.release_date.toLocaleDateString() } </Typography>
+                    { 'release_date' in itemData && <div className="flex flex-row items-center">
+                        <Typography fontWeight={ 400 }>Released:</Typography>
+                        <Box sx={ { width: '0.3em' } } />
+                        <Typography fontWeight={ 500 }>{ itemData.release_date.toLocaleDateString('en', { month: 'long', year: 'numeric' }) }</Typography>
                     </div> }
                     { children }
                 </div>
