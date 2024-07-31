@@ -13,3 +13,20 @@ export async function getTrackInfo(trackId: TrackId, options?: FindOptions<Track
 
     return data;
 }
+
+export async function incrementTrackPlayCount(trackId: TrackId, incrementAmount?: number)
+{
+    if (incrementAmount === undefined) { incrementAmount = 1; }
+    const data = await databaseController.tracks.updateOne({ 'id': trackId }, {
+        '$inc': {
+            playCount: incrementAmount,
+        }
+    });
+
+    if (data.matchedCount === 0)
+    {
+        throw new TrackNotFoundError(trackId);
+    }
+
+    return data;
+}

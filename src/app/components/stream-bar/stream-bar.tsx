@@ -6,7 +6,7 @@ import PauseGlyph from "@/components/glyphs/pause";
 import PlayGlyph from "@/components/glyphs/play";
 import RewindGlyph from "@/components/glyphs/rewind";
 import FastForwardGlyph from "@/glyphs/fast-forward";
-import { Box, CircularProgress, Slide, SlideProps, Snackbar, Typography } from "@mui/material";
+import { Box, CircularProgress, Slide, SlideProps, Slider, Snackbar, Stack, Typography } from "@mui/material";
 import { useSessionState } from "@/app/components/providers/session/session";
 import { StreamStateType } from "@/app/shared-api/other/common";
 import { gotoAlbumCallbackFactory as gotoAlbumCallbackFactory } from '@/app/components/pages/goto-callback-factory';
@@ -18,6 +18,42 @@ import StreamBarExtraControls from '@/app/components/stream-bar/stream-bar-extra
 import { commandUserStationAccess } from '@/app/client-api/stations/get-station-specific';
 import { PauseState } from '@/app/shared-api/user-objects/users';
 import { buildShowermusicWebTitle, SHOWERMUSIC_WEB_TITLE } from '@/app/settings';
+import VolumeDown from '@mui/icons-material/VolumeDown';
+import VolumeUp from '@mui/icons-material/VolumeUp';
+import VolumeMute from '@mui/icons-material/VolumeOff';
+
+function StreamBarVolumeControls({ ...props }: React.HTMLAttributes<HTMLDivElement>)
+{
+    const { museVolume, setMuseVolume } = useSessionMuse();
+
+    const handleChange = useCallback((_event: Event, newValue: number | number[]) =>
+    {
+        setMuseVolume(newValue as number / 100);
+    }, [ setMuseVolume ]);
+
+    return (
+        <div { ...props }>
+            <Stack spacing={ 2 } direction="column-reverse" sx={ { mb: 1 } } alignItems="center">
+                {
+                    (museVolume === 0) &&
+                    <VolumeMute className='cursor-pointer' fontSize='small' /> ||
+                    <VolumeDown className='cursor-pointer' fontSize='small' onClick={ () => setMuseVolume(0) } />
+                }
+                <Slider
+                    aria-label="Volume"
+                    value={ museVolume * 100 }
+                    onChange={ handleChange }
+                    orientation='vertical'
+                    min={ 0 }
+                    max={ 100 }
+                    className='h-14'
+                    size='small'
+                />
+                <VolumeUp className='cursor-pointer' fontSize='small' onClick={ () => setMuseVolume(1) } />
+            </Stack>
+        </div>
+    );
+}
 
 function StreamBarSongControls({ userCanSeek }: { userCanSeek: boolean; })
 {
@@ -123,7 +159,7 @@ export default function StreamBar()
 {
     const { streamMediaId, streamType, setView } = useSessionState();
     const { playingNextModalHiddenState } = useMediaControls();
-    const { Muse, currentlyPlayingTrack, trackDurationFillBar, trackDurationFillBarWidth, seek } = useSessionMuse();
+    const { Muse, currentlyPlayingTrack, currentTime, duration, seek } = useSessionMuse();
 
     const [ userCanSeek, setUserCanSeek ] = useState<boolean>(true);
 
@@ -175,7 +211,12 @@ export default function StreamBar()
         );
     }, [ setView ]);
 
-    if (!trackDurationFillBar) { return; }
+    const handleSlide = useCallback((_event: Event, newValue: number | number[]) =>
+    {
+        if (!Muse || !userCanSeek) { return; }
+        const newTrackTime = newValue as number;
+        seek(newTrackTime, true);
+    }, [ userCanSeek, Muse, seek ]);
 
     if (!currentlyPlayingTrack)
     {
@@ -183,17 +224,18 @@ export default function StreamBar()
             <div className="stream-bar" data-currently-playing-track={ 'none' } playing-next-hidden={ playingNextModalHiddenState ? 'true' : 'false' }>
                 <div>
                     {
-                        <>
-                            <div className="duration-fill-bar-container">
-                                <div
-                                    id="stream-bar-track-duration-fill-bar"
-                                    ref={ trackDurationFillBar }
-                                    className="duration-fill-bar"
-                                    style={ { width: `${trackDurationFillBarWidth}%` } }
-                                >
-                                </div>
-                            </div>
-                        </>
+                        <div className='relative' >
+                            <Slider
+                                accessKey='t'
+                                size='medium'
+                                value={ currentTime }
+                                min={ 0 }
+                                max={ duration }
+                                onChange={ handleSlide }
+                                className='duration-fill-bar-slider'
+                                disabled
+                            />
+                        </div>
                     }
 
                 </div>
@@ -211,24 +253,25 @@ export default function StreamBar()
             <div>
                 {
                     // If there is a track playing, we know that the stream state is "playing"
-                    <>
+                    <div className='relative'>
                         <div className="album-cover">
                             <TrackCoverImage track={ currentlyPlayingTrack } quality={ 100 } />
                         </div>
 
                         <TrackGenericInfo track={ currentlyPlayingTrack } />
 
-                        <div className="duration-fill-bar-container" onClick={ handleSeek }>
-                            <div
-                                ref={ trackDurationFillBar }
-                                key={ currentlyPlayingTrack.id }
-                                id="stream-bar-track-duration-fill-bar"
-                                className="duration-fill-bar"
-                                style={ { width: `${trackDurationFillBarWidth}%` } }
-                            >
-                            </div>
-                        </div>
-                    </>
+                        <Slider
+                            accessKey='t'
+                            size='medium'
+                            value={ currentTime }
+                            min={ 0 }
+                            max={ duration }
+                            onChange={ handleSlide }
+                            className='duration-fill-bar-slider'
+                        />
+
+                        <StreamBarVolumeControls className='absolute top-0 right-0 p-1 pr-2' accessKey='v' />
+                    </div>
                 }
 
             </div>

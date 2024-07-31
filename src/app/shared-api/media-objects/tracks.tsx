@@ -25,6 +25,7 @@ export interface TrackDict extends ShowerMusicObject
     popularity: number;
     track_number: number;
     file_path?: string;
+    playCount?: number; // Amount of times this track was played (estimated by amount of requests to get the media file data)
 };
 
 export interface QueuedTrackDict extends ShowerMusicObject

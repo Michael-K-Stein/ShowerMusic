@@ -95,10 +95,11 @@
 .stream-bar .duration-fill-bar-container
 {
     position: absolute;
-    top: 80%;
-    left: 2em;
+    top: 7.4rem;
+    --x-padding: 3rem;
+    left: var(--x-padding);
     background-color: rgba(50, 50, 50, 0.6);
-    width: calc(100% - 2em - 2em);
+    width: calc(100% - var(--x-padding) - var(--x-padding));
     height: 0.4em;
     border-radius: 10em;
     cursor: pointer;
@@ -106,8 +107,20 @@
     transition: all 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-.stream-bar[data-currently-playing-track=none] .duration-fill-bar-container
+.stream-bar .duration-fill-bar-slider
 {
+    position: absolute;
+    top: 6.7rem;
+    --x-padding: 3rem;
+    left: var(--x-padding);
+    width: calc(100% - var(--x-padding) - var(--x-padding));
+    transition: all 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.stream-bar[data-currently-playing-track=none] .duration-fill-bar-container,
+.stream-bar[data-currently-playing-track=none] .duration-fill-bar-slider
+{
+    --x-padding: 2rem;
     top: 3%;
 }
 

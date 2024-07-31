@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import './page-toolbar.css';
 import React from 'react';
 import RadioTowerGlyph from '@/glyphs/radio-tower';
@@ -88,9 +88,22 @@ export default function PageToolbar()
 
 function ToolbarSubItems()
 {
+    // const toolbarSubItemsContainer = useRef<HTMLDivElement | null>(null);
+
+    // const handleScroll = useCallback(() =>
+    // {
+    //     if (!toolbarSubItemsContainer.current) { return; }
+    //     toolbarSubItemsContainer.current.dataset.scroll = `${toolbarSubItemsContainer.current.scrollTop.toString(10)}px`;
+    // }, []);
+
     return (
-        <div className='toolbar-sub-items'>
+        <div
+            className='toolbar-sub-items'
+        // ref={ toolbarSubItemsContainer }
+        // onScroll={ handleScroll }
+        >
+            {/* <div className="overshadow" /> */ }
             <ToolbarUserFavorites />
-        </div>
+        </div >
     );
 }

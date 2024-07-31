@@ -11,17 +11,17 @@ export async function GET(
     { params }: { params: { slug: string; }; }
 )
 {
-    const id = params.slug;
+    const trackId = params.slug;
     try
     {
-        const trackData = await DbObjects.MediaObjects.Tracks.getInfo(id, { projection: { 'file_path': 1 } });
+        const trackData = await DbObjects.MediaObjects.Tracks.getInfo(trackId, { projection: { 'file_path': 1 } });
         const filePath = trackData[ 'file_path' ];
         if (!filePath)
         {
-            throw new TrackMediaFileNotFoundError(`File for track ${id} not found!\nThis track is queued to be imported in the future.`);
+            throw new TrackMediaFileNotFoundError(`File for track ${trackId} not found!\nThis track is queued to be imported in the future.`);
         }
 
-        console.log(`${id} : ${filePath}`);
+        console.log(`${trackId} : ${filePath}`);
 
         const { size: fileSize } = await stat(filePath);
         const range = request.headers.get('range') || '';
@@ -61,6 +61,9 @@ export async function GET(
             fd.close();
         }
 
+        const percentOfFileSent = (end - start) / fileSize;
+        DbObjects.MediaObjects.Tracks.incrementPlayCount(trackId, percentOfFileSent);
+
         return new NextResponse(buffer, {
             status: partial ? 206 : 200,
             headers: {
@@ -79,7 +82,7 @@ export async function GET(
             if (e.syscall === 'stat')
             {
                 // The file was not found in this case
-                e = new TrackMediaFileNotFoundError(`File for track ${id} not found!\nThis track is queued to be imported in the near future.`);
+                e = new TrackMediaFileNotFoundError(`File for track ${trackId} not found!\nThis track is queued to be imported in the near future.`);
             }
         }
         return catchHandler(request, e);

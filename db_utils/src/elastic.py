@@ -22,7 +22,7 @@ es = client = Elasticsearch(
 
 mongo_query: Any = {}
 # Chunk size
-chunk_size = 100  # Adjust as needed
+chunk_size = 10000  # Adjust as needed
 
 # Fetch data from MongoDB and index in chunks
 cursor = tracksdb.find(mongo_query).sort(
@@ -204,7 +204,8 @@ def copy_artist_localized_names_to_track_info():
     total = artistsdb.count_documents(filter_query)
     for artist in tqdm.tqdm(artistsdb.find(filter_query), total=total):
         artist_id = artist["id"]  # "17pbOSPIn3lmY0vHhOlKGL"
-        artist_localized_name = artist["localized_name"]  # "17pbOSPIn3lmY0vHhOlKGL"
+        # "17pbOSPIn3lmY0vHhOlKGL"
+        artist_localized_name = artist["localized_name"]
         tracks_by_artist_iterator = tracksdb.find({"artists.id": artist_id})
         for track_by_artist in tracks_by_artist_iterator:
             track_id = track_by_artist["id"]
@@ -276,7 +277,8 @@ for chunk in tqdm.tqdm(
 
         # Print the results or handle errors as needed
         tqdm.tqdm.write(
-            f"Successfully [status={success_status}] Indexed: {success}, Failed: {failed}, Updated: {updated}"
+            f"Successfully [status={success_status}] Indexed: {
+                success}, Failed: {failed}, Updated: {updated}"
         )
     except Exception as ex:
         tqdm.tqdm.write(f"Error: {str(ex)}")

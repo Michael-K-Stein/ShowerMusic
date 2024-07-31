@@ -20,21 +20,44 @@ import { useEffect, useRef, useState } from "react";
 
 export type MusePausedState = PauseState;
 export type SetPausedState = (newState: PauseState) => void;
+export type MuseVolume = number;
+export type SetMuseVolume = Dispatch<SetStateAction<MuseVolume>>;
 
 type SessionMuseType = {
     isDefault: boolean;
     Muse: HTMLAudioElement | undefined;
     museLoadingState: boolean;
-    trackDurationFillBar: MutableRefObject<HTMLDivElement | null> | undefined;
-    trackDurationFillBarWidth: number;
+    currentTime: number;
+    duration: number;
     currentlyPlayingTrack: TrackDict | undefined;
     musePausedState: MusePausedState;
     setPauseState: SetPausedState;
     skipTrack: () => void;
     rewindTrack: () => void;
     seek: (newTimeSeconds: number, updateSync: boolean) => void;
+
+    museVolume: number;
+    setMuseVolume: SetMuseVolume;
 };
 
+export const SessionMuseContext = createContext<SessionMuseType>(
+    {
+        isDefault: true,
+        Muse: undefined,
+        museLoadingState: true,
+        currentTime: 0,
+        duration: 0,
+        currentlyPlayingTrack: undefined,
+        musePausedState: PauseState.Paused,
+        setPauseState: () => { },
+        skipTrack: () => { },
+        rewindTrack: () => { },
+        seek: () => { },
+
+        museVolume: 0,
+        setMuseVolume: () => { },
+    }
+);
 function promptUserAutoplayConsent(
     setModalData: Dispatch<SetStateAction<React.JSX.Element | undefined>>,
     openModal: Dispatch<SetStateAction<boolean>>,
@@ -53,23 +76,6 @@ function promptUserAutoplayConsent(
     openModal(true);
     return;
 };
-
-export const SessionMuseContext = createContext<SessionMuseType>(
-    {
-        isDefault: true,
-        Muse: undefined,
-        museLoadingState: true,
-        trackDurationFillBar: undefined,
-        trackDurationFillBarWidth: 0,
-        currentlyPlayingTrack: undefined,
-        musePausedState: PauseState.Paused,
-        setPauseState: () => { },
-        skipTrack: () => { },
-        rewindTrack: () => { },
-        seek: () => { },
-    }
-);
-
 let __globalMuse: HTMLAudioElement | undefined = undefined;
 
 export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[] | React.JSX.Element; }) =>
@@ -80,12 +86,13 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
     const { requiresSyncOperations, streamType, streamMediaId } = useSessionState();
 
     const _Muse = useRef<HTMLAudioElement>();
-    const trackDurationFillBar = useRef<HTMLDivElement>(null);
-    const [ trackDurationFillBarWidth, setTrackDurationFillBarWidth ] = useState<number>(0);
+    const [ currentTime, setCurrentTime ] = useState<number>(0);
+    const [ duration, setDuration ] = useState<number>(0);
     const [ currentlyPlayingTrack, setCurrentlyPlayingTrack ] = useState<TrackDict | undefined>();
     const [ currentlyPlayingTrackId, setCurrentlyPlayingTrackId ] = useState<TrackId | null>();
     const [ preloadTrackId, setPreloadTrackId ] = useState<TrackId | null>();
     const [ museLoadingState, setMuseLoadingState ] = useState<boolean>(true);
+    const [ museVolume, setMuseVolume ] = useState<number>(1);
 
     const { setGenericModalData, setGenericModalOpen, setModalCloseCallback } = useGlobalProps();
     const [ musePausedState, setMusePausedState ] = React.useState<MusePausedState>(PauseState.Paused);
@@ -175,7 +182,7 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
 
     assert(isValidPauseState(musePausedState));
 
-    useEffect(() =>
+    useMemo(() =>
     {
         if (!_Muse.current) { return; }
         if (museLoadingState) { return; }
@@ -205,7 +212,7 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
             });
     }, [ enqueueSnackbar ]);
 
-    useEffect(() =>
+    useMemo(() =>
     {
         setMuseLoadingState(true);
 
@@ -233,7 +240,7 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
             });
     }, [ currentlyPlayingTrackId, checkTrackMediaAvailability, setCurrentlyPlayingTrack, enqueueSnackbar ]);
 
-    useEffect(() =>
+    useMemo(() =>
     {
         if (!_Muse.current) { return; }
         if (!preloadTrackId) { return; }
@@ -302,36 +309,34 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
             });
     }, []);
 
-    const updatePlayingSongTimeFillBar = useCallback(() =>
-    {
-        const currentMuse = _Muse.current;
-        if (!currentMuse) { return; }
-        const fillBar = trackDurationFillBar.current;
-        if (!fillBar) { return; };
-        setTrackDurationFillBarWidth(currentMuse.currentTime * 100 / currentMuse.duration);
-        // fillBar.style.width = `${currentMuse.currentTime * 100 / currentMuse.duration}%`;
-    }, [ setTrackDurationFillBarWidth ]);
-
     const museTimeUpdate = useCallback(() =>
     {
-        updatePlayingSongTimeFillBar();
         const currentMuse = _Muse.current;
         if (!currentMuse) { return; }
+        setCurrentTime(currentMuse.currentTime);
         if (currentMuse.duration - currentMuse.currentTime < 5)
         {
             // Preload the next song
             preloadNextTrack();
         }
-    }, [ updatePlayingSongTimeFillBar, preloadNextTrack ]);
+    }, [ preloadNextTrack, setCurrentTime ]);
 
-    useEffect(() =>
+    useMemo(() =>
     {
         if (!_Muse.current) { return; }
         _Muse.current.ontimeupdate = museTimeUpdate;
-        _Muse.current.ondurationchange = updatePlayingSongTimeFillBar;
+        _Muse.current.ondurationchange = () => setDuration(_Muse.current?.duration ?? 0);
         _Muse.current.onended = () => updatePlayingSongEnded();
         _Muse.current.oncanplay = () => { trackPlayingReady(); };
-    }, [ setMuseLoadingState, trackPlayingReady, updatePlayingSongEnded, museTimeUpdate, updatePlayingSongTimeFillBar ]);
+
+        setMuseVolume(_Muse.current.volume);
+    }, [ trackPlayingReady, updatePlayingSongEnded, museTimeUpdate, setDuration, setMuseVolume ]);
+
+    useMemo(() =>
+    {
+        if (!_Muse.current) { return; }
+        _Muse.current.volume = museVolume;
+    }, [ museVolume ]);
 
     const reloadCurrentlyPlaying = useCallback(async () =>
     {
@@ -532,12 +537,12 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
             {
                 isDefault: false,
                 Muse: _Muse.current,
-                trackDurationFillBar,
-                trackDurationFillBarWidth,
+                currentTime, duration,
                 museLoadingState,
                 currentlyPlayingTrack,
                 musePausedState, setPauseState,
-                skipTrack, rewindTrack, seek
+                skipTrack, rewindTrack, seek,
+                museVolume, setMuseVolume,
             }
         }>
             { children }
