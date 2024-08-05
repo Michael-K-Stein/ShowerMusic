@@ -19,7 +19,7 @@
     "@emotion/styled": "^11.11.0",
     "@fontsource/roboto": "^5.0.8",
     "@mui/icons-material": "^5.14.19",
-    "@mui/material": "^5.14.19",
+    "@mui/material": "^5.16.6",
     "@mui/styled-engine-sc": "^6.0.0-alpha.7",
     "@next/bundle-analyzer": "^14.0.4",
     "cookie": "^0.6.0",
