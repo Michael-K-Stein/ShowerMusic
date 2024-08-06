@@ -199,6 +199,11 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
         {
             assert(false, `Muse paused state: ${musePausedState}`);
         }
+
+        if (typeof navigator === 'object' && navigator)
+        {
+            navigator.mediaSession.playbackState = (_Muse.current.paused ? 'paused' : 'playing');
+        }
     }, [ musePausedState, museLoadingState, tryStartPlaying ]);
 
     const checkTrackMediaAvailability = useCallback((trackId: TrackId) =>
@@ -489,6 +494,28 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
                 enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to rewind track!`, error);
             });
     }, [ streamMediaId, requiresSyncOperations, enqueueSnackbar ]);
+
+    const setMediaSessionActionHandlers = useCallback(() =>
+    {
+        if (typeof navigator === 'undefined' || !navigator) { return; }
+
+        // Set up media session action handlers
+        navigator.mediaSession.setActionHandler('nexttrack', skipTrack);
+        navigator.mediaSession.setActionHandler('previoustrack', rewindTrack);
+        navigator.mediaSession.setActionHandler('pause', () => setPauseState(PauseState.Paused));
+        navigator.mediaSession.setActionHandler('play', () => setPauseState(PauseState.Playing));
+        navigator.mediaSession.setActionHandler('seekto', (ev) =>
+        {
+            if (typeof ev.seekTime !== 'number') { return; }
+            seek(ev.seekTime);
+        });
+
+    }, [ skipTrack, rewindTrack, setPauseState, seek ]);
+
+    useMemo(() =>
+    {
+        setMediaSessionActionHandlers();
+    }, [ setMediaSessionActionHandlers ]);
 
     const seekTimeRef = useRef<number | undefined>(undefined);
 

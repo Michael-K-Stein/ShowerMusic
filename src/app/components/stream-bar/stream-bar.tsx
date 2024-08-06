@@ -173,9 +173,28 @@ export default function StreamBar()
         if (!currentlyPlayingTrack)
         {
             document.title = SHOWERMUSIC_WEB_TITLE;
+            if (typeof navigator === 'object' && navigator && ("mediaSession" in navigator)) { navigator.mediaSession.metadata = null; }
             return;
         }
         document.title = buildShowermusicWebTitle(currentlyPlayingTrack.name);
+
+        if (typeof navigator === 'object' && navigator && ("mediaSession" in navigator))
+        {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: currentlyPlayingTrack.name,
+                artist: `ShowerMusic | ${currentlyPlayingTrack.artists[ 0 ].name}`,
+                album: currentlyPlayingTrack.album.name,
+                artwork: currentlyPlayingTrack.album.images.map(
+                    (imageData) =>
+                    {
+                        return {
+                            src: imageData.url,
+                            sizes: `${imageData.width}x${imageData.height}`,
+                            type: "image/png",
+                        };
+                    }),
+            });
+        }
     }, [ currentlyPlayingTrack ]);
 
     useMemo(() =>

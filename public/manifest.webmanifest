@@ -41,10 +41,9 @@
             "url": "/stream?source=pwa",
             "icons": [
                 {
-                    "src": "/showermusic_logo_maskable.svg",
-                    "sizes": "149x150",
+                    "src": "/showermusic_logo_x512.png",
                     "type": "image/png",
-                    "purpose": "maskable"
+                    "sizes": "512x512"
                 }
             ]
         },
@@ -55,10 +54,9 @@
             "url": "/login?source=pwa",
             "icons": [
                 {
-                    "src": "/showermusic_logo_maskable.svg",
-                    "sizes": "149x150",
+                    "src": "/showermusic_logo_x512.png",
                     "type": "image/png",
-                    "purpose": "maskable"
+                    "sizes": "512x512"
                 }
             ]
         }
@@ -89,5 +87,8 @@
             "sizes": "1918x955",
             "form_factor": "wide"
         }
+    ],
+    "display_override": [
+        "window-controls-overlay"
     ]
 }
