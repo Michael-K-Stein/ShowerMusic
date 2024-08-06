@@ -18,7 +18,6 @@ export async function POST(
         const newStation = await DbObjects.Stations.create(userId, {
             playlistId: id,
         });
-        console.log(`New station: `, newStation);
         return ApiSuccess(newStation);
     }
     catch (e: any)

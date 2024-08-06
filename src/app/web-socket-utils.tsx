@@ -1,5 +1,5 @@
 import { SSUserId } from "@/app/server-db-services/user-utils";
-import { WEBSOCKET_SESSION_SERVER_CONN_STRING } from "@/app/settings";
+import { PseudoSyncId, WEBSOCKET_SESSION_SERVER_CONN_STRING } from "@/app/settings";
 import { PlaylistId } from "@/app/shared-api/other/playlist";
 import { StationId } from "@/app/shared-api/other/stations";
 import { COMBO_DATA_KEY, MessageTypes, ServerRequestTarget, ServerRequestTargets, ShowerMusicObjectType, WEBSOCKET_SESSION_SERVER_SENDER_AUTH_KEY, WEBSOCKET_SESSION_SERVER_SENDER_SERVER_MAGIC } from "@/session-server/src/common";
@@ -83,6 +83,19 @@ export function SendComboServerRequestToSessionServerForStationListeners(message
         {
             targets: [ {
                 id: targetStation, type: ShowerMusicObjectType.Station
+            } ]
+        }
+    );
+}
+
+export function SendServerRequestToSessionServerForPseudoSyncId(messageType: MessageTypes, targetSync: PseudoSyncId)
+{
+    SendServerRequestToSessionServer(
+        messageType,
+        {
+            targets: [ {
+                id: targetSync,
+                type: ShowerMusicObjectType.PseudoSyncObject,
             } ]
         }
     );

@@ -2,10 +2,10 @@ export const dynamic = "force-dynamic";
 
 import jwt from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { JWTUserData } from '@/app/shared-api/user-objects/users';
 import { DbObjects } from '@/app/server-db-services/db-objects';
-import { getJwtSecret, USER_AUTH_COOKIE_NAME } from '@/app/settings';
+import { getJwtSecret, SECURE_CONTEXT_ONLY, USER_AUTH_COOKIE_NAME } from '@/app/settings';
 import { friendlyRedirectToLogin } from '@/app/api/users/login/redirect-to-login';
 
 export async function POST(
@@ -18,6 +18,10 @@ export async function POST(
 
     try
     {
+        const requestHeaders = headers();
+        const forwardedHost = requestHeaders.get('X-Forwarded-Host');
+        const forwardedProto = requestHeaders.get('X-Forwarded-Proto');
+
         const formData = await request.formData();
         const username = formData.get('username');
         const password = formData.get('password');
@@ -35,7 +39,7 @@ export async function POST(
         }
 
         const user = await DbObjects.Users.login(username, password);
-        const url = new URL(fromReferer, request.url);
+        const url = new URL(fromReferer, `${forwardedProto}://${forwardedHost}/`);
         const res = NextResponse.redirect(url, 303);
 
         const userJWTData: JWTUserData = {
@@ -52,7 +56,7 @@ export async function POST(
         // Set the JWT as a cookie
         cookies().set(USER_AUTH_COOKIE_NAME, token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV !== 'development', // Use HTTPS in production
+            secure: SECURE_CONTEXT_ONLY, // Use HTTPS in production
             sameSite: 'strict',
             maxAge: 3600 * 24 * 7, // Change this to the desired session duration in seconds
             path: '/',

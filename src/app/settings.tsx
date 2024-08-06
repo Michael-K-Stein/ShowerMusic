@@ -43,6 +43,12 @@ export const USER_INFO_API_CACHE_TTL = SECONDS_IN_AN_HOUR;
 export const CACHE_CONTROL_HTTP_SEARCH_QUERY = SECONDS_IN_AN_HOUR;
 export const CACHE_CONTROL_HTTP_SEARCH_COMPLETION = SECONDS_IN_AN_HOUR;
 
+export type PseudoSyncId = string;
+export namespace PseudoSyncIds
+{
+    export const MashTrackScoreboard: PseudoSyncId = 'mash-track-sb';
+}
+
 export function getJwtSecret()
 {
     const jwtSecret = process.env.JWT_SECRET;

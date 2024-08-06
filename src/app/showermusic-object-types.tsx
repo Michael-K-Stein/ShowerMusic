@@ -8,7 +8,8 @@ export enum ShowerMusicObjectType
     User = 'user',
     Station = 'station',
     StationsCategory = 'stations-category',
-    Playlist = 'playlist'
+    Playlist = 'playlist',
+    PseudoSyncObject = 'pseudo-sync',
 }
-export type ShowerMusicPlayableMediaType = Exclude<ShowerMusicObjectType, ShowerMusicObjectType.Unknown | ShowerMusicObjectType.User>;
+export type ShowerMusicPlayableMediaType = Exclude<ShowerMusicObjectType, ShowerMusicObjectType.Unknown | ShowerMusicObjectType.User | ShowerMusicObjectType.PseudoSyncObject>;
 export type ShowerMusicPlayableMediaContainerType = Exclude<ShowerMusicPlayableMediaType, ShowerMusicObjectType.Track>;

@@ -34,7 +34,7 @@ function PlaylistSpecificSubInfo({ playlist }: { playlist: Playlist; })
     const { enqueueSnackbar } = useSnackbar();
 
     return (
-        <div className='absolute w-full h-full flex flex-row items-end justify-end content-center right-0 bottom-0'>
+        <div className='absolute flex flex-row items-end justify-end content-center right-0 bottom-0'>
             <div className='m-2'>
                 <PlaylistMembers playlist={ playlist } />
             </div>

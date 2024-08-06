@@ -67,9 +67,9 @@ function promptUserAutoplayConsent(
 {
     setModalData(
         <>
-            <p>Please allow autoplay for this site.</p>
+            <p>Please allow autoplay (sound) for this site.</p>
             <p>Goto edge://settings/content/mediaAutoplay</p>
-            <p>or chrome://settings/content/mediaAutoplay</p>
+            <p>or chrome://settings/content/siteDetails?site={ document.location.origin }</p>
         </>
     );
     setModalCloseCallback(callback);
@@ -109,11 +109,11 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
         {
             _Muse.current.pause();
             delete _Muse.current;
-            console.log('An audio element has been deleted!');
+            console.debug('An audio element has been deleted!');
         }
         _Muse.current = new Audio();
         __globalMuse = _Muse.current;
-        console.log('A new audio element has been created!');
+        console.debug('A new audio element has been created!');
     }, []);
 
     const modalCloseCallback = useCallback(() =>
@@ -140,7 +140,7 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
             _Muse.current.play()
                 .catch((reason) =>
                 {
-                    console.log(`Reason: `, reason);
+                    console.debug(`Reason: `, reason);
                     setMuseLoadingState(true);
                     try
                     {

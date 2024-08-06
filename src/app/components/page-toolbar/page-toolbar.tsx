@@ -1,6 +1,5 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
 import './page-toolbar.css';
 import React from 'react';
 import RadioTowerGlyph from '@/glyphs/radio-tower';
@@ -9,7 +8,7 @@ import { SetView, useSessionState } from '@/app/components/providers/session/ses
 import { ViewportType } from "@/app/shared-api/other/common";
 import assert from 'assert';
 import ToolbarUserFavorites from '@/app/components/toolbar-user-favorites';
-import { Typography } from '@mui/material';
+import BarChartGlyph from '@/app/components/glyphs/bar-chart';
 
 /**
  * ToolbarItemProps interface for ToolbarItem component
@@ -64,6 +63,11 @@ const TOOLBAR_MENU_ITEMS: ToolbarItemProps[] = [
         name: 'Stations',
         glyphGenerator: (_glyphTitle: string) => <RadioTowerGlyph glyphTitle='' />,
         viewType: ViewportType.Stations,
+    },
+    {
+        name: 'Mash',
+        glyphGenerator: (_glyphTitle: string) => <BarChartGlyph glyphTitle='' />,
+        viewType: ViewportType.Mash,
     },
 ];
 

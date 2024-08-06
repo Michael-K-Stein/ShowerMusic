@@ -12,4 +12,5 @@ var ShowerMusicObjectType;
     ShowerMusicObjectType["Station"] = "station";
     ShowerMusicObjectType["StationsCategory"] = "stations-category";
     ShowerMusicObjectType["Playlist"] = "playlist";
+    ShowerMusicObjectType["PseudoSyncObject"] = "pseudo-sync";
 })(ShowerMusicObjectType = exports.ShowerMusicObjectType || (exports.ShowerMusicObjectType = {}));

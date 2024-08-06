@@ -127,6 +127,7 @@ function dispatchMessageToTargets(message: MessageTypes, targets: ServerRequestT
                 break;
             case ShowerMusicObjectType.Playlist:
             case ShowerMusicObjectType.Station:
+            case ShowerMusicObjectType.PseudoSyncObject:
                 dispatchToSyncObjectListeners(message, target.id as string, data);
                 break;
             default:

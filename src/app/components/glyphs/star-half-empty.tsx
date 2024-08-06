@@ -1,0 +1,6 @@
+import "./glyphs.css"
+import { Tooltip, TooltipProps } from "@mui/material";
+import Glypher from "./glypher"
+export default function StarHalfEmptyGlyph({glyphTitle, placement, ...props} : {glyphTitle: string, placement?: TooltipProps[ "placement" ]} & React.HTMLAttributes<HTMLDivElement>){return(<Glypher glyphTitle={glyphTitle} placement={placement} { ...props }><div className="svg-glyph star-half-empty-glyph"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" className="min-h-full min-w-full max-h-full max-w-full w-full h-full"><rect fill="transparent" stroke="none" width="100%" height="100%" />
+  <path d="M39.8,48.6c-0.2,0-0.4-0.1-0.5-0.2L25,39.3l-14.3,9.2c-0.3,0.2-0.8,0.2-1.1,0c-0.3-0.2-0.5-0.7-0.4-1.1L13.6,31L0.4,20.2C0,19.9-0.1,19.5,0,19.1c0.1-0.4,0.5-0.7,0.9-0.7l17-0.9l6.2-15.9C24.2,1.3,24.6,1,25,1c0.4,0,0.8,0.3,0.9,0.6l6.2,15.9l17,0.9c0.4,0,0.8,0.3,0.9,0.7c0.1,0.4,0,0.8-0.3,1.1L36.4,31l4.3,16.4c0.1,0.4,0,0.8-0.4,1.1C40.2,48.5,40,48.6,39.8,48.6z M25,37.1c0,0,0.4,0.1,0.5,0.2l12.6,8.1l-3.8-14.5c-0.1-0.4,0-0.8,0.3-1l11.7-9.6l-15-0.8c-0.4,0-0.7-0.3-0.9-0.6L25,4.8V37.1z" fill="currentColor" />
+</svg></div></Glypher>);};

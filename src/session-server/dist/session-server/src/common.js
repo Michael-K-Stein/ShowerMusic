@@ -25,6 +25,7 @@ var MessageTypes;
     MessageTypes["USER_RECENTS_UPDATE"] = "user-recents-update";
     // PLAYING_SONG_ENDED: 'playing-song-ended',
     MessageTypes["COMBO"] = "combo";
+    MessageTypes["MASH_TRACK_SCOREBOARD_UPDATE"] = "mash-track-sb-update";
 })(MessageTypes = exports.MessageTypes || (exports.MessageTypes = {}));
 ;
 exports.COMBO_DATA_KEY = 'combo-data';

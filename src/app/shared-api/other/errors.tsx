@@ -307,3 +307,21 @@ export class MaliciousActivityError extends SecurityCheckError
         this.name = 'MaliciousActivityError';
     }
 }
+
+export class MashApiError extends ClientApiError
+{
+    constructor(message?: string)
+    {
+        super(message);
+        this.name = 'MashApiError';
+    }
+}
+
+export class MashScoreboardCountOutOfRangeError extends MashApiError
+{
+    constructor(message?: string)
+    {
+        super(message);
+        this.name = 'MashScoreboardCountOutOfRangeError';
+    }
+}

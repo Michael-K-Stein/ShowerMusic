@@ -3,6 +3,7 @@ import { ShowerMusicObjectType } from '../../app/showermusic-object-types';
 import assert from 'assert';
 export { ShowerMusicObjectType as ShowerMusicObjectType };
 
+export const SECURE_CONTEXT_ONLY = false; //process.env.NODE_ENV !== 'development' && (!process.env.HTTP_ONLY);
 export const WEBSOCKET_SESSION_SERVER_PORT = 8088;
 export const WEBSOCKET_SESSION_SERVER_HOST = '127.0.0.1';
 export const WEBSOCKET_SESSION_SERVER_CONN_STRING = `ws://${WEBSOCKET_SESSION_SERVER_HOST}:${WEBSOCKET_SESSION_SERVER_PORT}/`;
@@ -27,6 +28,8 @@ export enum MessageTypes
     USER_RECENTS_UPDATE = 'user-recents-update',
     // PLAYING_SONG_ENDED: 'playing-song-ended',
     COMBO = 'combo',
+
+    MASH_TRACK_SCOREBOARD_UPDATE = 'mash-track-sb-update',
 };
 export const COMBO_DATA_KEY = 'combo-data';
 

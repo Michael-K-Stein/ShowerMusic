@@ -10,7 +10,6 @@ export default function Glypher({ children, glyphTitle, placement, className, on
         if (typeof onClick === 'undefined') { return; }
         if (KeyboardNavigation.isClick(event))
         {
-            console.log('Dispatching!');
             event.preventDefault();
             event.stopPropagation();
 

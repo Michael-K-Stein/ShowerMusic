@@ -203,7 +203,7 @@ export default function UserRecentlyPlayed()
 }
 
 
-export function UserRecentlyPlayedItemControlBar(
+export function HorizontalCardControlBar(
     {
         item,
         itemType,
@@ -271,3 +271,5 @@ export function UserRecentlyPlayedItemControlBar(
         </div >
     );
 };
+
+export const UserRecentlyPlayedItemControlBar = HorizontalCardControlBar;

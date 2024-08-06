@@ -17,12 +17,12 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body
-                className={ `max-h-screen max-w-screen min-w-screen min-h-screen w-full h-full` }
+                className={ `max-h-screen max-w-screen min-w-screen min-h-screen w-screen h-screen p-0 m-0` }
                 style={ { overflow: 'hidden' } }>
-                <div className='absolute min-w-full min-h-screen top-0 left-0 flex content-center justify-center align-center'>
+                <div className='absolute min-w-full min-h-screen top-0 left-0 flex content-center justify-center align-center p-0 m-0'>
                     <Image src={ '/stream-bg.png' } width={ 1920 } height={ 1080 } alt={ '' } className='min-w-full min-h-full' quality={ 100 } />
                 </div>
-                <div className='max-h-screen min-h-screen h-screen min-w-screen max-w-screen w-screen relative overflow-hidden flex' style={ { backgroundColor: 'var(--global-background-color)', backdropFilter: 'blur(0px)' } }>
+                <div className='max-h-screen min-h-screen h-screen min-w-screen max-w-screen w-screen relative overflow-hidden flex p-0 m-0' style={ { backgroundColor: 'var(--global-background-color)', backdropFilter: 'blur(0px)' } }>
                     { children }
                 </div>
             </body>

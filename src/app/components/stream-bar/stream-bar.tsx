@@ -33,7 +33,7 @@ function StreamBarVolumeControls({ ...props }: React.HTMLAttributes<HTMLDivEleme
 
     return (
         <div { ...props }>
-            <Stack spacing={ 2 } direction="column-reverse" sx={ { mb: 1 } } alignItems="center">
+            <Stack spacing={ 2 } direction="column-reverse" sx={ { mb: 1 } } alignItems="center" className='h-32'>
                 {
                     (museVolume === 0) &&
                     <VolumeMute className='cursor-pointer' fontSize='small' /> ||
@@ -270,7 +270,7 @@ export default function StreamBar()
                             className='duration-fill-bar-slider'
                         />
 
-                        <StreamBarVolumeControls className='absolute top-0 right-0 p-1 pr-2' accessKey='v' />
+                        <StreamBarVolumeControls className='absolute top-0 right-0 p-1 pr-2 h-full' accessKey='v' />
                     </div>
                 }
 

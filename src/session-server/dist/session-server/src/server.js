@@ -101,6 +101,7 @@ function dispatchMessageToTargets(message, targets, data) {
                 break;
             case showermusic_object_types_1.ShowerMusicObjectType.Playlist:
             case showermusic_object_types_1.ShowerMusicObjectType.Station:
+            case showermusic_object_types_1.ShowerMusicObjectType.PseudoSyncObject:
                 dispatchToSyncObjectListeners(message, target.id, data);
                 break;
             default:

@@ -6,6 +6,7 @@ import { friendlyRedirectToLogin } from "@/app/api/users/login/redirect-to-login
 import { UserNotLoggedInError } from "@/app/server-db-services/user-utils";
 import assert from "assert";
 import { CACHE_CONTROL_HTTP_HEADER, IMMUTABLE_CACHE_MAX_TTL } from "@/app/settings";
+import { headers } from "next/headers";
 
 export type ApiResponseHeaders = Record<string, string>;
 export type ApiResponseInit = (Omit<ResponseInit, 'status' | 'headers'> & { headers: ApiResponseHeaders; }) | undefined;
@@ -69,7 +70,8 @@ export function catchHandler<T extends NextRequest>(request: T, e: any)
 {
     if (e instanceof UserNotLoggedInError)
     {
-        return friendlyRedirectToLogin(request, request.url);
+        const requestHeaders = headers();
+        return friendlyRedirectToLogin(request, requestHeaders.get('referer') ?? '/stream');
     }
 
     if (e instanceof ClientApiError)

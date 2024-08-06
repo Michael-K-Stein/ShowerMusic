@@ -152,7 +152,8 @@ export enum ViewportType
     Station,
     Stations,
     Playlist,
-    Lyrics
+    Lyrics,
+    Mash,
 
 };
 

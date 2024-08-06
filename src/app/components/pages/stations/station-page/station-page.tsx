@@ -126,7 +126,6 @@ function StationMember({ stationId, member }: { stationId: StationId, member: St
 
     useMemo(() =>
     {
-        console.log('Re-rendering Memo!');
         if (!member) { return; }
         commandGetUserById(member.userId as unknown as string)
             .then((userInfo) =>
@@ -231,7 +230,6 @@ function StationGeneralMemberControls({ station }: { station: PrivateStation | P
 
 function StationMembers({ station }: { station: PrivateStation | PublicStation | undefined; })
 {
-    console.log('Re-rendering!');
     const members = station ? accumulateStationMembersAndAdmins(station) : [ undefined, undefined, undefined, undefined ];
     const memberComponents = members.map(
         (member?: StationParticipant) =>
@@ -276,8 +274,6 @@ function StationCustomHeader({ stationData }: { stationData: Station | undefined
 function StationPageInsideSync({ stationId }: { stationId: StationId; })
 {
     const stationData = useSharedSyncObject(stationId, commandGetStation, MessageTypes.STATION_UPDATE);
-
-    console.log('StationPageInsideSync');
 
     return (
         <ModalPageLoader
