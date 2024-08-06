@@ -1,12 +1,12 @@
 {
-    "name": "showermusic-session-server",
-    "version": "0.1.1",
-    "description": "Handles synchronization between ShowerMusic clients",
+    "name": "showermusic-recommendations-server",
+    "version": "0.0.1",
+    "description": "Serves recommendations of media to users based on their preferences",
     "main": "src/server.tsx",
     "scripts": {
         "prebuild": "rimraf dist",
         "build": "tsc",
-        "start": "node dist/session-server/src/server.js"
+        "start": "node dist/recommendations/src/server.js"
     },
     "keywords": [],
     "author": "Michael K. Steinberg",

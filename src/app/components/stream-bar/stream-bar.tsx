@@ -17,10 +17,13 @@ import { ArtistList, TrackCoverImage } from '@/app/components/providers/global-p
 import StreamBarExtraControls from '@/app/components/stream-bar/stream-bar-extra-controls';
 import { commandUserStationAccess } from '@/app/client-api/stations/get-station-specific';
 import { PauseState } from '@/app/shared-api/user-objects/users';
-import { buildShowermusicWebTitle, SHOWERMUSIC_WEB_TITLE } from '@/app/settings';
+import { buildShowermusicWebTitle, SHOWERMUSIC_WEB_TITLE, ShowerMusicObjectType } from '@/app/settings';
 import VolumeDown from '@mui/icons-material/VolumeDown';
 import VolumeUp from '@mui/icons-material/VolumeUp';
 import VolumeMute from '@mui/icons-material/VolumeOff';
+import { RecommendationMessageType, RecommenderRequestMessage, WEBSOCKET_RECOMMENDATIONS_SERVER_CONN_STRING } from '@/recommendations/src/common';
+import { commandQueueAddArbitraryTypeTracks } from '@/app/client-api/queue';
+import assert from 'assert';
 
 function StreamBarVolumeControls({ ...props }: React.HTMLAttributes<HTMLDivElement>)
 {
@@ -217,6 +220,30 @@ export default function StreamBar()
         const newTrackTime = newValue as number;
         seek(newTrackTime, true);
     }, [ userCanSeek, Muse, seek ]);
+
+    useMemo(() =>
+    {
+        if (!currentlyPlayingTrack) { return; }
+        const ws = new WebSocket(WEBSOCKET_RECOMMENDATIONS_SERVER_CONN_STRING);
+        ws.onopen = () =>
+        {
+            const similarTracksRequest: RecommenderRequestMessage = {
+                type: RecommendationMessageType.GetSimilarTracks,
+                trackId: currentlyPlayingTrack.id,
+                count: 100,
+            };
+            ws.send(JSON.stringify(similarTracksRequest));
+            ws.onmessage = (ev) =>
+            {
+                const data = JSON.parse(ev.data);
+                assert(Array.isArray(data[ 'tracks' ]));
+                data[ 'tracks' ].map((v: any) =>
+                {
+                    commandQueueAddArbitraryTypeTracks(ShowerMusicObjectType.Track, v[ 'trackId' ]);
+                });
+            };
+        };
+    }, [ currentlyPlayingTrack ]);
 
     if (!currentlyPlayingTrack)
     {

@@ -11,14 +11,20 @@
     transform-origin: top left;
 }
 
+html body .svg-background
+{
+    transform: scale(2.3);
+    animation: background-svg-anim 15s linear 3s 1 normal forwards;
+}
 
 :root
 {
     --album-move-distance: -8000px;
+    --artist-initial-offset: -22400px;
     --album-initial-offset-x: -100%;
     --album-initial-offset-y: 900px;
     --artist-initial-offset-x: 680%;
-    --artist-initial-offset-y: 500px;
+    --artist-initial-offset-y: 300px;
 }
 
 .scrolling-albums-container
@@ -38,7 +44,7 @@
 
 .scrolling-artists-container[data-resolved=true]
 {
-    animation: scrolling-artists-anim 200s linear 3s 1 normal forwards;
+    animation: scrolling-artists-anim 200s linear 2.9s 1 normal forwards;
 }
 
 
@@ -59,12 +65,12 @@
 {
     0%
     {
-        transform: translateX(var(--artist-initial-offset-x)) translateY(var(--artist-initial-offset-y)) rotate3d(0, 0, -1, 45deg) rotate3d(1, 1, 0, 40deg) rotate3d(0, 1, 0, 20deg);
+        transform: translateX(calc((cos(37deg) * var(--artist-initial-offset)) + cos(37deg) * var(--album-move-distance) + var(--artist-initial-offset-x))) translateY(calc((sin(37deg) * var(--artist-initial-offset)) + sin(37deg) * var(--album-move-distance) + var(--artist-initial-offset-y))) rotate3d(0, 0, -1, 45deg) rotate3d(1, 1, 0, 40deg) rotate3d(0, 1, 0, 20deg);
     }
 
     100%
     {
-        transform: translateX(calc(cos(37deg) * var(--album-move-distance) + var(--artist-initial-offset-x))) translateY(calc(sin(37deg) * var(--album-move-distance) + var(--artist-initial-offset-y))) rotate3d(0, 0, -1, 45deg) rotate3d(1, 1, 0, 40deg) rotate3d(0, 1, 0, 20deg);
+        transform: translateX(calc((cos(37deg) * var(--artist-initial-offset)) + var(--artist-initial-offset-x))) translateY(calc((sin(37deg) * var(--artist-initial-offset)) + var(--artist-initial-offset-y))) rotate3d(0, 0, -1, 45deg) rotate3d(1, 1, 0, 40deg) rotate3d(0, 1, 0, 20deg);
     }
 }
 
@@ -87,5 +93,18 @@
     100%
     {
         width: 6em;
+    }
+}
+
+@keyframes background-svg-anim
+{
+    0%
+    {
+        transform: rotate(0deg) scale(2.3);
+    }
+
+    100%
+    {
+        transform: rotate(45deg) scale(2.3);
     }
 }

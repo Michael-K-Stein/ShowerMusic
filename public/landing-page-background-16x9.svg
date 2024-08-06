@@ -1,0 +1,37 @@
+<svg width="1067" height="621" viewBox="0 0 1067 621" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_25_102)" filter="url(#filter0_d_25_102)">
+<rect width="1059" height="613" transform="translate(4)" fill="white"/>
+<g filter="url(#filter1_f_25_102)">
+<rect x="-207.417" y="-86.568" width="1489.72" height="794.002" fill="#F46197"/>
+<ellipse cx="1110.03" cy="52.0262" rx="361.487" ry="331.59" fill="#0A2342"/>
+<ellipse cx="-25.2625" cy="-170.761" rx="361.487" ry="331.59" fill="#0A2342"/>
+<ellipse cx="549.445" cy="878.41" rx="361.487" ry="331.59" fill="#0A2342"/>
+<ellipse cx="538.148" cy="-239.41" rx="361.487" ry="331.59" fill="#0A2342"/>
+<ellipse cx="1166.51" cy="726.863" rx="361.487" ry="331.59" fill="#0A2342"/>
+<ellipse cx="-101.513" cy="715.206" rx="361.487" ry="331.59" fill="#0A2342"/>
+<ellipse cx="13.5693" cy="546.173" rx="196.982" ry="180.691" fill="#2CA58D"/>
+<ellipse cx="859.391" cy="171.839" rx="196.982" ry="180.691" fill="#2CA58D"/>
+<ellipse cx="521.204" cy="282.585" rx="361.487" ry="331.59" fill="#F46197"/>
+</g>
+</g>
+<defs>
+<filter id="filter0_d_25_102" x="0" y="0" width="1067" height="621" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="4"/>
+<feGaussianBlur stdDeviation="2"/>
+<feComposite in2="hardAlpha" operator="out"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_25_102"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_25_102" result="shape"/>
+</filter>
+<filter id="filter1_f_25_102" x="-763" y="-871" width="2591" height="2381" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="150" result="effect1_foregroundBlur_25_102"/>
+</filter>
+<clipPath id="clip0_25_102">
+<rect width="1059" height="613" fill="white" transform="translate(4)"/>
+</clipPath>
+</defs>
+</svg>

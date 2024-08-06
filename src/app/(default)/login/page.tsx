@@ -85,6 +85,7 @@ export default function LoginPage()
                     </Button>
                     <Hidden>
                         <Input
+                            className='hidden p-0 m-0 border-none *:border-none before:hidden after:hidden before:border-none after:border-none'
                             name='from'
                             type='hidden'
                             value={ fromReferer }
@@ -94,6 +95,7 @@ export default function LoginPage()
                     </Hidden>
                     <Hidden>
                         <Input
+                            className='hidden p-0 m-0 border-none *:border-none before:hidden after:hidden before:border-none after:border-none'
                             name='failedLoginAttempts'
                             type='hidden'
                             value={ failedLoginAttempts }

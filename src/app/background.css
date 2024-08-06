@@ -1,0 +1,39 @@
+.svg-background
+{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    transform: scale(2.3);
+    transition: transform 20s ease-in-out;
+    padding: 0;
+    margin: 0;
+}
+
+.svg-background
+{
+    background-image: url('/landing-page-background-16x9.svg');
+    background-size: cover;
+}
+
+/* Medium screens (aspect ratio 4:3) */
+@media (max-aspect-ratio: 4/3)
+{
+    .svg-background
+    {
+        background-image: url('/landing-page-background-4x3.svg');
+        background-size: cover;
+    }
+}
+
+/* Small screens (aspect ratio 1:1) */
+@media (max-aspect-ratio: 1/1)
+{
+    .svg-background
+    {
+        background-image: url('/landing-page-background-1x1.svg');
+        background-size: cover;
+    }
+}
