@@ -10,7 +10,7 @@ import { ObjectCreatorTitleContainer, RenameableTitleContainer } from "@/app/com
 import { enqueueApiErrorSnackbar } from "@/app/components/providers/global-props/global-modals";
 import { ViewportType } from "@/app/shared-api/other/common";
 import { buildUrlForState } from "@/app/shared-api/other/common";
-import SharedSyncObjectProvider, { useSharedSyncObject } from "@/app/components/providers/shared-sync-object-provides";
+import SharedSyncObjectProvider, { useSharedSyncObject } from "@/app/components/providers/shared-sync-object-provider";
 import { PrivateStation, PublicStation, Station, StationId, StationParticipant } from "@/app/shared-api/other/stations";
 import { ShowerMusicObjectType } from "@/app/showermusic-object-types";
 import { Box, CircularProgress, Tooltip, Typography } from "@mui/material";
@@ -126,7 +126,6 @@ function StationMember({ stationId, member }: { stationId: StationId, member: St
 
     useMemo(() =>
     {
-        console.log('Re-rendering Memo!');
         if (!member) { return; }
         commandGetUserById(member.userId as unknown as string)
             .then((userInfo) =>
@@ -231,7 +230,6 @@ function StationGeneralMemberControls({ station }: { station: PrivateStation | P
 
 function StationMembers({ station }: { station: PrivateStation | PublicStation | undefined; })
 {
-    console.log('Re-rendering!');
     const members = station ? accumulateStationMembersAndAdmins(station) : [ undefined, undefined, undefined, undefined ];
     const memberComponents = members.map(
         (member?: StationParticipant) =>
@@ -276,8 +274,6 @@ function StationCustomHeader({ stationData }: { stationData: Station | undefined
 function StationPageInsideSync({ stationId }: { stationId: StationId; })
 {
     const stationData = useSharedSyncObject(stationId, commandGetStation, MessageTypes.STATION_UPDATE);
-
-    console.log('StationPageInsideSync');
 
     return (
         <ModalPageLoader

@@ -10,6 +10,7 @@ import { ViewportType } from "@/app/shared-api/other/common";
 import SearchResultsContainerComponent from '@/app/components/search/search-results/search-results-container';
 import React from 'react';
 import './stream-layout.css';
+import MashPage from '@/app/components/pages/mash-page/mash-page';
 
 export default function Home()
 {
@@ -60,6 +61,11 @@ export default function Home()
         case ViewportType.Stations:
             viewportElements = (
                 <StationsPage />
+            );
+            break;
+        case ViewportType.Mash:
+            viewportElements = (
+                <MashPage />
             );
             break;
     };

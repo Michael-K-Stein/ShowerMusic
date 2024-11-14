@@ -1,5 +1,5 @@
 'use client';
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import './landing-page.css';
 import React, { useMemo, useRef, useState } from "react";
 import { commandGetTopAlbums } from "@/app/client-api/get-album";
@@ -7,6 +7,7 @@ import { ArbitraryPlayableMediaImage } from "@/app/components/pages/home-page/us
 import { commandGetTopArtists } from "@/app/client-api/get-artist";
 import { ShowerMusicPlayableMediaDict } from "@/app/shared-api/other/common";
 import { ShowerMusicGenericHeader } from "@/app/components/other/generic-header";
+import ShowermusicLogoGlyph from "@/app/components/glyphs/showermusic-logo";
 
 function ScrollingElements<T extends ShowerMusicPlayableMediaDict>({
     getterFunction,

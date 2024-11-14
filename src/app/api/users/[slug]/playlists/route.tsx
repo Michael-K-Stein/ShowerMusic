@@ -16,7 +16,6 @@ export async function GET(
     }
     catch (e)
     {
-        console.log(request, e);
         return catchHandler(request, e);
     }
 }

@@ -1,4 +1,0 @@
-pymongo
-eyed3
-argparse
-tqdm

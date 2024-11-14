@@ -1,10 +1,18 @@
 import { ObjectId } from 'mongodb';
 import { ShowerMusicObjectType } from '../../app/showermusic-object-types';
+import assert from 'assert';
 export { ShowerMusicObjectType as ShowerMusicObjectType };
 
-export const WEBSOCKET_SESSION_SERVER_PORT = 8088;
-export const WEBSOCKET_SESSION_SERVER_HOST = '127.0.0.1';
-export const WEBSOCKET_SESSION_SERVER_CONN_STRING = `ws://${WEBSOCKET_SESSION_SERVER_HOST}:${WEBSOCKET_SESSION_SERVER_PORT}/`;
+export const SECURE_CONTEXT_ONLY = false; //process.env.NODE_ENV !== 'development' && (!process.env.HTTP_ONLY);
+export const WEBSOCKET_SESSION_SERVER_PORT = 42666;
+export const WEBSOCKET_SESSION_SERVER_INTERNAL_PORT = 8088;
+export const WEBSOCKET_SESSION_SERVER_HOST = `ws.showermusic${process.env.DOMAIN_SUFFIX}`;
+export const WEBSOCKET_SESSION_SERVER_CONN_STRING = `wss://${WEBSOCKET_SESSION_SERVER_HOST}:${WEBSOCKET_SESSION_SERVER_PORT}/`;
+
+export const WEBSOCKET_SESSION_SERVER_SENDER_SERVER_MAGIC = 'server';
+export const WEBSOCKET_SESSION_SERVER_SENDER_AUTH_KEY = process.env.WEBSOCKET_SESSION_SERVER_SENDER_AUTH_KEY;
+// Currently no assert since this executes on the client for some reason as well
+assert(WEBSOCKET_SESSION_SERVER_SENDER_AUTH_KEY || (typeof window !== 'undefined'), `WEBSOCKET_SESSION_SERVER_SENDER_AUTH_KEY must be set in environment variables!`);
 
 export enum MessageTypes 
 {
@@ -22,6 +30,8 @@ export enum MessageTypes
     USER_RECENTS_UPDATE = 'user-recents-update',
     // PLAYING_SONG_ENDED: 'playing-song-ended',
     COMBO = 'combo',
+
+    MASH_TRACK_SCOREBOARD_UPDATE = 'mash-track-sb-update',
 };
 export const COMBO_DATA_KEY = 'combo-data';
 

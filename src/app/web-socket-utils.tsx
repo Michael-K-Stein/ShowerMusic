@@ -1,8 +1,8 @@
 import { SSUserId } from "@/app/server-db-services/user-utils";
-import { WEBSOCKET_SESSION_SERVER_CONN_STRING } from "@/app/settings";
+import { PseudoSyncId, WEBSOCKET_SESSION_SERVER_CONN_STRING } from "@/app/settings";
 import { PlaylistId } from "@/app/shared-api/other/playlist";
 import { StationId } from "@/app/shared-api/other/stations";
-import { COMBO_DATA_KEY, MessageTypes, ServerRequestTarget, ServerRequestTargets, ShowerMusicObjectType } from "@/session-server/src/common";
+import { COMBO_DATA_KEY, MessageTypes, ServerRequestTarget, ServerRequestTargets, ShowerMusicObjectType, WEBSOCKET_SESSION_SERVER_SENDER_AUTH_KEY, WEBSOCKET_SESSION_SERVER_SENDER_SERVER_MAGIC } from "@/session-server/src/common";
 
 export function SendServerRequestToSessionServer(type: MessageTypes, targets: ServerRequestTargets)
 {
@@ -11,7 +11,12 @@ export function SendServerRequestToSessionServer(type: MessageTypes, targets: Se
     {
         ws.send(
             JSON.stringify(
-                { 'sender': 'server', 'authKey': null, 'type': type, 'targets': targets }
+                {
+                    'sender': WEBSOCKET_SESSION_SERVER_SENDER_SERVER_MAGIC,
+                    'authKey': WEBSOCKET_SESSION_SERVER_SENDER_AUTH_KEY,
+                    'type': type,
+                    'targets': targets,
+                }
             )
         );
     };
@@ -25,11 +30,11 @@ export function SendComboServerRequestToSessionServer(messageTypes: MessageTypes
         ws.send(
             JSON.stringify(
                 {
-                    'sender': 'server',
-                    'authKey': null,
+                    'sender': WEBSOCKET_SESSION_SERVER_SENDER_SERVER_MAGIC,
+                    'authKey': WEBSOCKET_SESSION_SERVER_SENDER_AUTH_KEY,
                     'type': MessageTypes.COMBO,
                     'targets': targets,
-                    [ COMBO_DATA_KEY ]: messageTypes
+                    [ COMBO_DATA_KEY ]: messageTypes,
                 }
             )
         );
@@ -78,6 +83,19 @@ export function SendComboServerRequestToSessionServerForStationListeners(message
         {
             targets: [ {
                 id: targetStation, type: ShowerMusicObjectType.Station
+            } ]
+        }
+    );
+}
+
+export function SendServerRequestToSessionServerForPseudoSyncId(messageType: MessageTypes, targetSync: PseudoSyncId)
+{
+    SendServerRequestToSessionServer(
+        messageType,
+        {
+            targets: [ {
+                id: targetSync,
+                type: ShowerMusicObjectType.PseudoSyncObject,
             } ]
         }
     );

@@ -1,27 +1,14 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
 import './page-toolbar.css';
-import Drawer from '@mui/material/Drawer';
 import React from 'react';
 import RadioTowerGlyph from '@/glyphs/radio-tower';
 import HomeGlyph from '@/glyphs/home';
 import { SetView, useSessionState } from '@/app/components/providers/session/session';
 import { ViewportType } from "@/app/shared-api/other/common";
 import assert from 'assert';
-import { Paper } from '@mui/material';
 import ToolbarUserFavorites from '@/app/components/toolbar-user-favorites';
-
-function MenuBurgerRoundedGlyph()
-{
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-            <path fill="none" stroke="#FFFFFF" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M36,27.486c1.933,0,3.5-1.567,3.5-3.5c0-1.933-1.567-3.5-3.5-3.5H12c-1.933,0-3.5,1.567-3.5,3.5c0,1.933,1.567,3.5,3.5,3.5H36z" />
-            <path fill="none" stroke="#FFFFFF" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M36,15.486c1.933,0,3.5-1.567,3.5-3.5c0-1.933-1.567-3.5-3.5-3.5H12c-1.933,0-3.5,1.567-3.5,3.5c0,1.933,1.567,3.5,3.5,3.5H36z" />
-            <path fill="none" stroke="#FFFFFF" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M36,39.486c1.933,0,3.5-1.567,3.5-3.5c0-1.933-1.567-3.5-3.5-3.5H12c-1.933,0-3.5,1.567-3.5,3.5c0,1.933,1.567,3.5,3.5,3.5H36z" />
-        </svg>
-    );
-};
+import BarChartGlyph from '@/app/components/glyphs/bar-chart';
 
 /**
  * ToolbarItemProps interface for ToolbarItem component
@@ -32,6 +19,7 @@ interface ToolbarItemProps
     glyphGenerator: (glyphTitle: string) => JSX.Element;
     viewType: ViewportType;
     setView?: SetView;
+    accessKey?: React.HTMLAttributes<HTMLDivElement>[ 'accessKey' ];
 };
 
 /**
@@ -52,7 +40,7 @@ class ToolbarItem extends React.Component<ToolbarItemProps>
         assert(setView !== undefined);
 
         return (
-            <div onClick={ () => { setView(viewType); } }>
+            <div onClick={ () => { setView(viewType); } } accessKey={ this.props.accessKey }>
                 <div className="toolbar-item flex flex-col center text-center items-center justify-center content-center pt-4">
                     <div className='w-14 h-14'>
                         { glyphGenerator(name) }
@@ -69,22 +57,27 @@ const TOOLBAR_MENU_ITEMS: ToolbarItemProps[] = [
         name: 'Home',
         glyphGenerator: (_glyphTitle: string) => <HomeGlyph glyphTitle={ '' } />,
         viewType: ViewportType.Home,
+        accessKey: 'h',
     },
     {
         name: 'Stations',
         glyphGenerator: (_glyphTitle: string) => <RadioTowerGlyph glyphTitle='' />,
         viewType: ViewportType.Stations,
     },
+    {
+        name: 'Mash',
+        glyphGenerator: (_glyphTitle: string) => <BarChartGlyph glyphTitle='' />,
+        viewType: ViewportType.Mash,
+    },
 ];
 
 export default function PageToolbar()
 {
-    let pageToolbarState = useRef(true);
     const { setView } = useSessionState();
 
     const toolbarMenuItems = TOOLBAR_MENU_ITEMS.map((item) =>
     {
-        return (<ToolbarItem key={ item.name } name={ item.name } glyphGenerator={ item.glyphGenerator } viewType={ item.viewType } setView={ setView } />);
+        return (<ToolbarItem key={ item.name } name={ item.name } glyphGenerator={ item.glyphGenerator } viewType={ item.viewType } setView={ setView } accessKey={ item.accessKey } />);
     });
 
     return (
@@ -99,9 +92,22 @@ export default function PageToolbar()
 
 function ToolbarSubItems()
 {
+    // const toolbarSubItemsContainer = useRef<HTMLDivElement | null>(null);
+
+    // const handleScroll = useCallback(() =>
+    // {
+    //     if (!toolbarSubItemsContainer.current) { return; }
+    //     toolbarSubItemsContainer.current.dataset.scroll = `${toolbarSubItemsContainer.current.scrollTop.toString(10)}px`;
+    // }, []);
+
     return (
-        <div className='toolbar-sub-items'>
+        <div
+            className='toolbar-sub-items'
+        // ref={ toolbarSubItemsContainer }
+        // onScroll={ handleScroll }
+        >
+            {/* <div className="overshadow" /> */ }
             <ToolbarUserFavorites />
-        </div>
+        </div >
     );
 }

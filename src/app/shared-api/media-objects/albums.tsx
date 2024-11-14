@@ -10,12 +10,12 @@ export interface MinimalAlbumDict extends ShowerMusicObject
 {
     id: AlbumId;
     name: string;
-    type: ShowerMusicObjectType;
+    type: ShowerMusicObjectType.Album;
     album_group: string;
     album_type: AlbumType;
     total_tracks: number;
-    artists: MinimalArtistDict[];
-    images: ShowerMusicImageDict[];
+    artists: Array<MinimalArtistDict>;
+    images: Array<ShowerMusicImageDict>;
     href: string;
     release_date: Date;
     release_date_precision: string;
@@ -24,7 +24,7 @@ export interface MinimalAlbumDict extends ShowerMusicObject
 
 export interface AlbumDict extends MinimalAlbumDict
 {
-    tracks: TrackId[],
+    tracks: Array<TrackId>,
     popularity: number,
     copyrights?: {
         text: string,

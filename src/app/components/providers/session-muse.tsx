@@ -1,3 +1,4 @@
+import { safeApiFetcher } from "@/app/client-api/common-utils";
 import { getTrackInfo } from "@/app/client-api/get-track";
 import { commandPlayerSkipCurrentTrack, queryCurrentlyPlayingTrack } from "@/app/client-api/player";
 import { commandGetUserPlayPauseState, commandSetUserPlayPauseState } from "@/app/client-api/player/pause";
@@ -19,21 +20,44 @@ import { useEffect, useRef, useState } from "react";
 
 export type MusePausedState = PauseState;
 export type SetPausedState = (newState: PauseState) => void;
+export type MuseVolume = number;
+export type SetMuseVolume = Dispatch<SetStateAction<MuseVolume>>;
 
 type SessionMuseType = {
     isDefault: boolean;
     Muse: HTMLAudioElement | undefined;
     museLoadingState: boolean;
-    trackDurationFillBar: MutableRefObject<HTMLDivElement | null> | undefined;
-    trackDurationFillBarWidth: number;
+    currentTime: number;
+    duration: number;
     currentlyPlayingTrack: TrackDict | undefined;
     musePausedState: MusePausedState;
     setPauseState: SetPausedState;
     skipTrack: () => void;
     rewindTrack: () => void;
     seek: (newTimeSeconds: number, updateSync: boolean) => void;
+
+    museVolume: number;
+    setMuseVolume: SetMuseVolume;
 };
 
+export const SessionMuseContext = createContext<SessionMuseType>(
+    {
+        isDefault: true,
+        Muse: undefined,
+        museLoadingState: true,
+        currentTime: 0,
+        duration: 0,
+        currentlyPlayingTrack: undefined,
+        musePausedState: PauseState.Paused,
+        setPauseState: () => { },
+        skipTrack: () => { },
+        rewindTrack: () => { },
+        seek: () => { },
+
+        museVolume: 0,
+        setMuseVolume: () => { },
+    }
+);
 function promptUserAutoplayConsent(
     setModalData: Dispatch<SetStateAction<React.JSX.Element | undefined>>,
     openModal: Dispatch<SetStateAction<boolean>>,
@@ -43,32 +67,15 @@ function promptUserAutoplayConsent(
 {
     setModalData(
         <>
-            <p>Please allow autoplay for this site.</p>
+            <p>Please allow autoplay (sound) for this site.</p>
             <p>Goto edge://settings/content/mediaAutoplay</p>
-            <p>or chrome://settings/content/mediaAutoplay</p>
+            <p>or chrome://settings/content/siteDetails?site={ document.location.origin }</p>
         </>
     );
     setModalCloseCallback(callback);
     openModal(true);
     return;
 };
-
-export const SessionMuseContext = createContext<SessionMuseType>(
-    {
-        isDefault: true,
-        Muse: undefined,
-        museLoadingState: true,
-        trackDurationFillBar: undefined,
-        trackDurationFillBarWidth: 0,
-        currentlyPlayingTrack: undefined,
-        musePausedState: PauseState.Paused,
-        setPauseState: () => { },
-        skipTrack: () => { },
-        rewindTrack: () => { },
-        seek: () => { },
-    }
-);
-
 let __globalMuse: HTMLAudioElement | undefined = undefined;
 
 export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[] | React.JSX.Element; }) =>
@@ -79,12 +86,13 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
     const { requiresSyncOperations, streamType, streamMediaId } = useSessionState();
 
     const _Muse = useRef<HTMLAudioElement>();
-    const trackDurationFillBar = useRef<HTMLDivElement>(null);
-    const [ trackDurationFillBarWidth, setTrackDurationFillBarWidth ] = useState<number>(0);
+    const [ currentTime, setCurrentTime ] = useState<number>(0);
+    const [ duration, setDuration ] = useState<number>(0);
     const [ currentlyPlayingTrack, setCurrentlyPlayingTrack ] = useState<TrackDict | undefined>();
     const [ currentlyPlayingTrackId, setCurrentlyPlayingTrackId ] = useState<TrackId | null>();
     const [ preloadTrackId, setPreloadTrackId ] = useState<TrackId | null>();
     const [ museLoadingState, setMuseLoadingState ] = useState<boolean>(true);
+    const [ museVolume, setMuseVolume ] = useState<number>(1);
 
     const { setGenericModalData, setGenericModalOpen, setModalCloseCallback } = useGlobalProps();
     const [ musePausedState, setMusePausedState ] = React.useState<MusePausedState>(PauseState.Paused);
@@ -101,11 +109,11 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
         {
             _Muse.current.pause();
             delete _Muse.current;
-            console.log('An audio element has been deleted!');
+            console.debug('An audio element has been deleted!');
         }
         _Muse.current = new Audio();
         __globalMuse = _Muse.current;
-        console.log('A new audio element has been created!');
+        console.debug('A new audio element has been created!');
     }, []);
 
     const modalCloseCallback = useCallback(() =>
@@ -132,7 +140,7 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
             _Muse.current.play()
                 .catch((reason) =>
                 {
-                    console.log(`Reason: `, reason);
+                    console.debug(`Reason: `, reason);
                     setMuseLoadingState(true);
                     try
                     {
@@ -174,7 +182,7 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
 
     assert(isValidPauseState(musePausedState));
 
-    useEffect(() =>
+    useMemo(() =>
     {
         if (!_Muse.current) { return; }
         if (museLoadingState) { return; }
@@ -191,9 +199,25 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
         {
             assert(false, `Muse paused state: ${musePausedState}`);
         }
+
+        if (typeof navigator === 'object' && navigator)
+        {
+            navigator.mediaSession.playbackState = (_Muse.current.paused ? 'paused' : 'playing');
+        }
     }, [ musePausedState, museLoadingState, tryStartPlaying ]);
 
-    useEffect(() =>
+    const checkTrackMediaAvailability = useCallback((trackId: TrackId) =>
+    {
+        if (!trackId) { return; }
+        const sourceFile = `/api/tracks/${trackId}/raw`;
+        safeApiFetcher(sourceFile, { method: 'OPTIONS' })
+            .catch((reason) =>
+            {
+                enqueueApiErrorSnackbar(enqueueSnackbar, `Track ${trackId} not found!`, reason);
+            });
+    }, [ enqueueSnackbar ]);
+
+    useMemo(() =>
     {
         setMuseLoadingState(true);
 
@@ -205,6 +229,7 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
             return;
         }
 
+        checkTrackMediaAvailability(currentlyPlayingTrackId);
         _Muse.current.src = '';
         const sourceFile = `/api/tracks/${currentlyPlayingTrackId}/raw`;
         _Muse.current.src = sourceFile;
@@ -218,9 +243,9 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
                 console.log(`Failed to load track data for ${currentlyPlayingTrackId}`);
                 enqueueApiErrorSnackbar(enqueueSnackbar, `Failed to load track data for ${currentlyPlayingTrackId}`, reason);
             });
-    }, [ currentlyPlayingTrackId, setCurrentlyPlayingTrack, enqueueSnackbar ]);
+    }, [ currentlyPlayingTrackId, checkTrackMediaAvailability, setCurrentlyPlayingTrack, enqueueSnackbar ]);
 
-    useEffect(() =>
+    useMemo(() =>
     {
         if (!_Muse.current) { return; }
         if (!preloadTrackId) { return; }
@@ -289,36 +314,34 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
             });
     }, []);
 
-    const updatePlayingSongTimeFillBar = useCallback(() =>
-    {
-        const currentMuse = _Muse.current;
-        if (!currentMuse) { return; }
-        const fillBar = trackDurationFillBar.current;
-        if (!fillBar) { return; };
-        setTrackDurationFillBarWidth(currentMuse.currentTime * 100 / currentMuse.duration);
-        // fillBar.style.width = `${currentMuse.currentTime * 100 / currentMuse.duration}%`;
-    }, [ setTrackDurationFillBarWidth ]);
-
     const museTimeUpdate = useCallback(() =>
     {
-        updatePlayingSongTimeFillBar();
         const currentMuse = _Muse.current;
         if (!currentMuse) { return; }
+        setCurrentTime(currentMuse.currentTime);
         if (currentMuse.duration - currentMuse.currentTime < 5)
         {
             // Preload the next song
             preloadNextTrack();
         }
-    }, [ updatePlayingSongTimeFillBar, preloadNextTrack ]);
+    }, [ preloadNextTrack, setCurrentTime ]);
 
-    useEffect(() =>
+    useMemo(() =>
     {
         if (!_Muse.current) { return; }
         _Muse.current.ontimeupdate = museTimeUpdate;
-        _Muse.current.ondurationchange = updatePlayingSongTimeFillBar;
+        _Muse.current.ondurationchange = () => setDuration(_Muse.current?.duration ?? 0);
         _Muse.current.onended = () => updatePlayingSongEnded();
         _Muse.current.oncanplay = () => { trackPlayingReady(); };
-    }, [ setMuseLoadingState, trackPlayingReady, updatePlayingSongEnded, museTimeUpdate, updatePlayingSongTimeFillBar ]);
+
+        setMuseVolume(_Muse.current.volume);
+    }, [ trackPlayingReady, updatePlayingSongEnded, museTimeUpdate, setDuration, setMuseVolume ]);
+
+    useMemo(() =>
+    {
+        if (!_Muse.current) { return; }
+        _Muse.current.volume = museVolume;
+    }, [ museVolume ]);
 
     const reloadCurrentlyPlaying = useCallback(async () =>
     {
@@ -472,6 +495,28 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
             });
     }, [ streamMediaId, requiresSyncOperations, enqueueSnackbar ]);
 
+    const setMediaSessionActionHandlers = useCallback(() =>
+    {
+        if (typeof navigator === 'undefined' || !navigator) { return; }
+
+        // Set up media session action handlers
+        navigator.mediaSession.setActionHandler('nexttrack', skipTrack);
+        navigator.mediaSession.setActionHandler('previoustrack', rewindTrack);
+        navigator.mediaSession.setActionHandler('pause', () => setPauseState(PauseState.Paused));
+        navigator.mediaSession.setActionHandler('play', () => setPauseState(PauseState.Playing));
+        navigator.mediaSession.setActionHandler('seekto', (ev) =>
+        {
+            if (typeof ev.seekTime !== 'number') { return; }
+            seek(ev.seekTime);
+        });
+
+    }, [ skipTrack, rewindTrack, setPauseState, seek ]);
+
+    useMemo(() =>
+    {
+        setMediaSessionActionHandlers();
+    }, [ setMediaSessionActionHandlers ]);
+
     const seekTimeRef = useRef<number | undefined>(undefined);
 
     useEffect(() =>
@@ -519,12 +564,12 @@ export const SessionMuseProvider = ({ children }: { children: React.JSX.Element[
             {
                 isDefault: false,
                 Muse: _Muse.current,
-                trackDurationFillBar,
-                trackDurationFillBarWidth,
+                currentTime, duration,
                 museLoadingState,
                 currentlyPlayingTrack,
                 musePausedState, setPauseState,
-                skipTrack, rewindTrack, seek
+                skipTrack, rewindTrack, seek,
+                museVolume, setMuseVolume,
             }
         }>
             { children }

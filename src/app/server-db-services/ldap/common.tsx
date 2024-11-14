@@ -25,7 +25,6 @@ export async function verifyUser(username: string, password: string)
     // Validate the input
     if (!usernameWhitelist.test(username) || !username || !password)
     {
-        console.log('Invalid input!');
         throw new Error('Invalid username or password!');
     }
 
@@ -39,7 +38,6 @@ export async function verifyUser(username: string, password: string)
     // Promise to handle the user verification
     const userVerified = new Promise<ldap.SearchEntryObject>((resolve, reject) =>
     {
-        console.log(userDN, password);
         client.bind(userDN, password, (error) =>
         {
             if (error)

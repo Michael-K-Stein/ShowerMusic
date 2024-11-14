@@ -44,11 +44,11 @@ export default function StreamRootLayout({
                                             <StreamBar />
                                         </div>
                                         {/* </StreamStateProvider> */ }
-                                        <div className='float-right absolute top-0 right-0'>
-                                            <QueueProvider>
-                                                <PlayingNext />
-                                            </QueueProvider>
-                                        </div>
+                                        {/* <div className='float-right absolute top-0 right-0'> */ }
+                                        <QueueProvider>
+                                            <PlayingNext />
+                                        </QueueProvider>
+                                        {/* </div> */ }
                                     </div>
                                 </div>
                             </SessionMuseProvider>

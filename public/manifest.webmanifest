@@ -1,0 +1,81 @@
+{
+    "short_name": "ShowerMusic",
+    "name": "ShowerMusic",
+    "lang": "en",
+    "dir": "ltr",
+    "orientation": "landscape",
+    "icons": [
+        {
+            "src": "/showermusic_logo.svg",
+            "type": "image/svg+xml",
+            "sizes": "150x150"
+        },
+        {
+            "src": "/showermusic_logo_x192.png",
+            "type": "image/png",
+            "sizes": "192x192"
+        },
+        {
+            "src": "/showermusic_logo_x512.png",
+            "type": "image/png",
+            "sizes": "512x512"
+        },
+        {
+            "src": "/showermusic_logo_maskable.svg",
+            "sizes": "149x150",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "id": "/?source=pwa",
+    "start_url": "/stream?source=pwa",
+    "background_color": "#F46197",
+    "display": "standalone",
+    "scope": "/",
+    "theme_color": "#F46197",
+    "shortcuts": [
+        {
+            "name": "Stream your favorite music",
+            "short_name": "Stream",
+            "description": "Stream your favorite musicy",
+            "url": "/stream?source=pwa",
+            "icons": [
+                {
+                    "src": "/showermusic_logo_x512.png",
+                    "type": "image/png",
+                    "sizes": "512x512"
+                }
+            ]
+        }
+    ],
+    "description": "פשוט לשטוף ת'ראש",
+    "screenshots": [
+        {
+            "src": "/images/pwa/search_taylor_swift.png",
+            "type": "image/png",
+            "sizes": "1918x955",
+            "form_factor": "wide"
+        },
+        {
+            "src": "/images/pwa/artist_page_shlomo_artzi.png",
+            "type": "image/png",
+            "sizes": "1918x955",
+            "form_factor": "wide"
+        },
+        {
+            "src": "/images/pwa/lyrics_flowers.png",
+            "type": "image/png",
+            "sizes": "1918x955",
+            "form_factor": "wide"
+        },
+        {
+            "src": "/images/pwa/media_mash.png",
+            "type": "image/png",
+            "sizes": "1918x955",
+            "form_factor": "wide"
+        }
+    ],
+    "display_override": [
+        "window-controls-overlay"
+    ]
+}

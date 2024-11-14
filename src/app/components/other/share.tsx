@@ -23,6 +23,7 @@ export function objectToViewportType(objectType: ShowerMusicObjectType): Viewpor
             return ViewportType.Playlist;
         case ShowerMusicObjectType.User:
         case ShowerMusicObjectType.Unknown:
+        case ShowerMusicObjectType.PseudoSyncObject:
             return ViewportType.None;
     }
 }

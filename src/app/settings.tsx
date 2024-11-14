@@ -6,6 +6,17 @@ export function buildShowermusicWebTitle(currentlyPlayingTrackTitle: string): st
 {
     return `${SHOWERMUSIC_WEB_TITLE} | ${currentlyPlayingTrackTitle}`;
 }
+
+export namespace ElasticSesstings
+{
+    export const ELASTIC_SERVER_CONN_STRING = 'https://172.27.93.191:9200';
+    export const USERNAME = 'showermusic-client';
+    export const PASSWORD = 'Password1';
+}
+
+export const CONTACT_LINK = `http://mattermost${process.env.DOMAIN_SUFFIX}/@980michaelks`;
+export const CONTACT_DISPLAY_TEXT = '@980michaelks';
+
 export const MAX_STREAM_BUFFER_SIZE = 128000 * 8;
 
 const SECONDS_IN_AN_HOUR = 3600;
@@ -36,6 +47,14 @@ export const STATION_ACCESS_CACHE_TTL = 5;
 export const TOP_ARTISTS_CACHE_TTL = SECONDS_IN_A_DAY * DAYS_IN_A_WEEK;
 export const TOP_ALBUMS_CACHE_TTL = SECONDS_IN_A_DAY * DAYS_IN_A_WEEK;
 export const USER_INFO_API_CACHE_TTL = SECONDS_IN_AN_HOUR;
+export const CACHE_CONTROL_HTTP_SEARCH_QUERY = SECONDS_IN_AN_HOUR;
+export const CACHE_CONTROL_HTTP_SEARCH_COMPLETION = SECONDS_IN_AN_HOUR;
+
+export type PseudoSyncId = string;
+export namespace PseudoSyncIds
+{
+    export const MashTrackScoreboard: PseudoSyncId = 'mash-track-sb';
+}
 
 export function getJwtSecret()
 {
@@ -68,4 +87,3 @@ export async function getSymetricalEncyptionKey()
     }
     return _encryptionKey;
 }
-

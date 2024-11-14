@@ -1,9 +1,9 @@
 'use client';
 import AddToArbitraryModal, { AddToArbitraryModalStateType } from "@/app/components/media-modals/add-to-arbitrary-modal";
-import { registerSyncProvider } from "@/app/components/providers/shared-sync-object-provides";
+import { registerSyncProvider } from "@/app/components/providers/shared-sync-object-provider";
 import useUserSession from "@/app/components/providers/user-provider/user-session";
 import { MediaId } from "@/app/shared-api/media-objects/media-id";
-import { ViewportType } from "@/app/shared-api/other/common";
+import { encodeUrlParamName, ViewportType } from "@/app/shared-api/other/common";
 import { StreamStateType } from "@/app/shared-api/other/common";
 import { buildUrlForState } from "@/app/shared-api/other/common";
 import React, { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef } from "react";
@@ -291,10 +291,10 @@ export const SessionStateProvider = ({ children }: { children: React.JSX.Element
     {
         // Simulate a state pop when a page is loaded with a url
         const url = new URL(window.location.toString());
-        const viewMediaId = url.searchParams.get('viewMediaId') ?? undefined;
-        const viewportType = parseInt(url.searchParams.get('viewportType') ?? '0');
-        const streamMediaId = url.searchParams.get('streamMediaId') ?? undefined;
-        const streamStateType = parseInt(url.searchParams.get('streamStateType') ?? '0');
+        const viewMediaId = url.searchParams.get(encodeUrlParamName('viewMediaId')) ?? undefined;
+        const viewportType = parseInt(url.searchParams.get(encodeUrlParamName('viewportType')) ?? '0');
+        const streamMediaId = url.searchParams.get(encodeUrlParamName('streamMediaId')) ?? undefined;
+        const streamStateType = parseInt(url.searchParams.get(encodeUrlParamName('streamStateType')) ?? '0');
 
         const state: PoppedState = {
             viewMediaId: viewMediaId,

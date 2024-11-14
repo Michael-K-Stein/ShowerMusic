@@ -5,6 +5,7 @@ import { ShowerMusicPlayableMediaDict } from "@/app/shared-api/other/common";
 import { ShowerMusicNamedResolveableItem } from "@/app/shared-api/user-objects/users";
 import { ShowerMusicPlayableMediaType } from "@/app/showermusic-object-types";
 import { TooltipProps } from "@mui/material";
+import assert from "assert";
 import { useSnackbar } from "notistack";
 import React, { useCallback, useMemo, useState } from "react";
 
@@ -23,6 +24,8 @@ export default function ItemFavoriteGlyph(
     const { isItemInUsersFavorites } = useUserSession();
 
     const [ itemInUserFavorites, setItemInUserFavorites ] = useState<boolean>(false);
+
+    assert(typeof item === 'undefined' || (item && typeof item === 'object' && 'name' in item), `Expected "ShowerMusicPlayableMediaDict | ShowerMusicNamedResolveableItem" but got ${item}`);
 
     useMemo(() =>
     {

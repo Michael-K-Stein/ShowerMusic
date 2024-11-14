@@ -103,21 +103,30 @@ export default function StreamBarExtraControls({ track, userCanSeek }: { track?:
     }, [ lyricsAvailable, setView ]);
 
     return (
-        <div className="absolute top-0 flex flex-row items-center justify-center float-right right-3 mt-3" aria-disabled={ track === undefined }>
-            <AddGlyph glyphTitle={ "Add to" } className="w-7 h-7 m-1 clickable" onClick={ addTrackToArbitraryClickHandlerFactory(setAddToArbitraryModalState, track) } />
+        <div className="absolute top-0 flex flex-row items-center justify-center float-right right-3 mt-3">
+            <AddGlyph
+                glyphTitle={ "Add to" }
+                className="w-7 h-7 m-1 clickable"
+                onClick={ addTrackToArbitraryClickHandlerFactory(setAddToArbitraryModalState, track) }
+                aria-disabled={ track === undefined }
+            />
             <ItemFavoriteGlyph
                 item={ track }
                 itemType={ ShowerMusicObjectType.Track }
                 className="w-7 h-7 m-1 clickable"
+                aria-disabled={ track === undefined }
             />
-            <LoopControl userCanSeek={ userCanSeek } />
+            <div aria-disabled={ track === undefined }>
+                <LoopControl userCanSeek={ userCanSeek } />
+            </div>
             <MicroGlyph
                 glyphTitle={ lyricsAvailable ? "Lyrics" : "Lyrics Unavailable" }
                 className="w-7 h-7 m-1 clickable"
-                aria-disabled={ !lyricsAvailable }
+                aria-disabled={ track === undefined || !lyricsAvailable }
                 onClick={ gotoLyrics }
+                accessKey='l'
             />
-            <LoungeMusicPlaylistGlyph glyphTitle={ "Playing Next" } className="w-7 h-7 m-1 clickable" onClick={ togglePlayingNextVisiblity } />
+            <LoungeMusicPlaylistGlyph glyphTitle={ "Playing Next" } accessKey='q' className="w-7 h-7 m-1 clickable" onClick={ togglePlayingNextVisiblity } />
         </div>
     );
 };

@@ -26,6 +26,7 @@ interface CardModalInternalPassthroughProps
     textContent?: React.JSX.Element | React.ReactNode;
     extraControls?: React.JSX.Element | React.ReactNode;
     cardModalHtmlAttributes?: HtmlHTMLAttributes<HTMLDivElement> & { 'data-static-card': boolean; };
+    onClick?: MouseEventHandler<HTMLDivElement>;
 }
 interface CardModalInternalProps extends CardModalInternalPassthroughProps
 {
@@ -173,8 +174,20 @@ function CardModalInternal(
     const onClickCallbackFacotry = useCallback(() =>
     {
         if (!itemResolveHint) { return () => { }; }
+
+        const capturedOnClickFunction = props.onClick;
+        if (capturedOnClickFunction)
+        {
+            return (event: React.MouseEvent<HTMLDivElement>) =>
+            {
+                event.stopPropagation();
+                event.preventDefault();
+                capturedOnClickFunction(event);
+            };
+        }
+
         return gotoArbitraryPlayableMediaPageCallbackFactory(itemResolveHint, item, setView);
-    }, [ itemResolveHint, item, setView ]);
+    }, [ itemResolveHint, item, setView, props.onClick ]);
 
     const keyDownHandler = useCallback((event: KeyboardEvent<HTMLDivElement>) =>
     {
@@ -217,6 +230,16 @@ function CardModalInternal(
     );
 }
 
+export function MediaNameTooltip({ item, itemData }: { item: ShowerMusicPlayableMediaDict | ShowerMusicResolveableItem, itemData: ShowerMusicPlayableMediaDict | undefined; })
+{
+    const { setView } = useSessionState();
+    return (
+        <div className='flex flex-col items-center justify-center text-ellipsis text-center'>
+            <Typography fontWeight={ 700 }>{ ('name' in item) ? item.name : (itemData?.name) }</Typography>
+            <ArtistList setView={ setView } artists={ (itemData && 'artists' in itemData) ? itemData.artists : [] } className='flex flex-wrap' />
+        </div>
+    );
+}
 
 export default function CardModal(
     {
@@ -244,10 +267,7 @@ export default function CardModal(
     const cardModalTextContent = (
         <Tooltip
             title={
-                <div className='flex flex-col items-center justify-center text-ellipsis text-center'>
-                    <Typography fontWeight={ 700 }>{ ('name' in item) ? item.name : (itemData?.name) }</Typography>
-                    <ArtistList setView={ setView } artists={ (itemData && 'artists' in itemData) ? itemData.artists : [] } className='flex flex-wrap' />
-                </div>
+                <MediaNameTooltip item={ item } itemData={ itemData } />
             }
             placement='top'>
             <Box>
@@ -263,9 +283,15 @@ export default function CardModal(
     );
 }
 
-export function CardModalSkeletonLoader()
+export function CardModalSkeletonLoader(
+    {
+        containsFullData,
+        item,
+        ...props
+    }: Partial<CardModalWithoutFullDataProps>
+)
 {
     return (
-        <CardModalInternal item={ undefined } itemResolveHint={ undefined } />
+        <CardModalInternal item={ undefined } itemResolveHint={ undefined } { ...props } />
     );
 }

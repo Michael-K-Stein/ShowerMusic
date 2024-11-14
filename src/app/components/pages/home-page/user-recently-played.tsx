@@ -157,17 +157,12 @@ function RecentUserPlayedItem({ item }: { item: UserListenHistoryRecentsMediaIte
     return (
         <div className='group played-item relative overflow-hidden' onClick={ onClickHandlerFactory() }>
             <UserRecentlyPlayedItemControlBar
-                keyboardNavigationEnabled={ true }
-                item={ item }
+                keyboardNavigationEnabled={ false }
+                item={ itemData ?? item }
                 itemType={ item.type }
                 className='absolute box-border p-4 z-[2] '
             />
             <div className='played-item-image absolute top-0 left-0'>
-                {/* <PlayGlyph
-                    onClick={ (e) => { e.stopPropagation(); e.preventDefault(); playArbitraryClickHandlerFactory(itemData as ShowerMusicPlayableMediaDict, item.type, setStream, enqueueSnackbar)(); } }
-                    glyphTitle='Play'
-                    className='absolute box-border p-4 opacity-45 group-hover:opacity-95 z-[2]'
-                /> */}
                 <ArbitraryPlayableMediaImage data={ itemData } quality={ 40 } width={ 128 } height={ 128 } className='w-full h-full' />
             </div>
             <div className='m-0 ml-[3em] p-0'>
@@ -208,7 +203,7 @@ export default function UserRecentlyPlayed()
 }
 
 
-export function UserRecentlyPlayedItemControlBar(
+export function HorizontalCardControlBar(
     {
         item,
         itemType,
@@ -276,3 +271,5 @@ export function UserRecentlyPlayedItemControlBar(
         </div >
     );
 };
+
+export const UserRecentlyPlayedItemControlBar = HorizontalCardControlBar;

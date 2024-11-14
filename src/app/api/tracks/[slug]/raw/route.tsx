@@ -2,26 +2,26 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stat, open } from 'fs/promises';
 import rangeParser from 'range-parser';
 import { CACHE_CONTROL_HTTP_HEADER, MAX_STREAM_BUFFER_SIZE } from '@/app/settings';
-import { catchHandler } from '@/app/api/common';
+import { ApiSuccess, catchHandler } from '@/app/api/common';
 import { DbObjects } from '@/app/server-db-services/db-objects';
-import { ClientError } from '@/app/shared-api/other/errors';
+import { ClientError, TrackMediaFileNotFoundError } from '@/app/shared-api/other/errors';
 
 export async function GET(
     request: NextRequest,
     { params }: { params: { slug: string; }; }
 )
 {
+    const trackId = params.slug;
     try
     {
-        const id = params.slug;
-        const trackData = await DbObjects.MediaObjects.Tracks.getInfo(id, { projection: { 'file_path': 1 } });
+        const trackData = await DbObjects.MediaObjects.Tracks.getInfo(trackId, { projection: { 'file_path': 1 } });
         const filePath = trackData[ 'file_path' ];
         if (!filePath)
         {
-            throw new ClientError(`File for track ${id} not found!`);
+            throw new TrackMediaFileNotFoundError(`File for track ${trackId} not found!\nThis track is queued to be imported in the future.`);
         }
 
-        console.log(`${id} : ${filePath}`);
+        console.log(`${trackId} : ${filePath}`);
 
         const { size: fileSize } = await stat(filePath);
         const range = request.headers.get('range') || '';
@@ -61,6 +61,9 @@ export async function GET(
             fd.close();
         }
 
+        const percentOfFileSent = (end - start) / fileSize;
+        DbObjects.MediaObjects.Tracks.incrementPlayCount(trackId, percentOfFileSent);
+
         return new NextResponse(buffer, {
             status: partial ? 206 : 200,
             headers: {
@@ -73,6 +76,50 @@ export async function GET(
         });
     } catch (e)
     {
+        if (e && typeof e === 'object' && 'syscall' in e)
+        {
+            // This is a down-level syscall error
+            if (e.syscall === 'stat')
+            {
+                // The file was not found in this case
+                e = new TrackMediaFileNotFoundError(`File for track ${trackId} not found!\nThis track is queued to be imported in the near future.`);
+            }
+        }
+        return catchHandler(request, e);
+    }
+}
+
+export async function OPTIONS(
+    request: NextRequest,
+    { params }: { params: { slug: string; }; }
+)
+{
+    const id = params.slug;
+    try
+    {
+        const trackData = await DbObjects.MediaObjects.Tracks.getInfo(id, { projection: { 'file_path': 1 } });
+        const filePath = trackData[ 'file_path' ];
+        if (!filePath)
+        {
+            throw new TrackMediaFileNotFoundError(`File for track ${id} not found!\nThis track is queued to be imported in the future.`);
+        }
+
+        console.log(`Checking [${id}] : ${filePath}`);
+
+        const { size: fileSize } = await stat(filePath);
+
+        return ApiSuccess({ fileSize });
+    } catch (e)
+    {
+        if (e && typeof e === 'object' && 'syscall' in e)
+        {
+            // This is a down-level syscall error
+            if (e.syscall === 'stat')
+            {
+                // The file was not found in this case
+                e = new TrackMediaFileNotFoundError(`File for track ${id} not found!\nThis track is queued to be imported in the near future.`);
+            }
+        }
         return catchHandler(request, e);
     }
 }

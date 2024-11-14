@@ -4,6 +4,7 @@ import { ApiSuccess, catchHandler } from "@/app/api/common";
 import { ApiSearchError } from "@/app/shared-api/other/errors";
 import { DbObjects } from "@/app/server-db-services/db-objects";
 import { NextRequest } from "next/server";
+import { CACHE_CONTROL_HTTP_SEARCH_QUERY } from "@/app/settings";
 
 export async function GET(
     request: NextRequest
@@ -20,7 +21,7 @@ export async function GET(
 
         const results = await DbObjects.MediaObjects.Tracks.search(query);
 
-        return ApiSuccess(results);
+        return ApiSuccess(results, CACHE_CONTROL_HTTP_SEARCH_QUERY);
     }
     catch (e)
     {

@@ -1,12 +1,11 @@
-import { ApiSuccess, catchHandler } from "@/app/api/common";
+import { catchHandler } from "@/app/api/common";
 import { StreamStateType } from "@/app/shared-api/other/common";
 import { ViewportType } from "@/app/shared-api/other/common";
 import { DbObjects } from "@/app/server-db-services/db-objects";
-import { getUserId, UserNotLoggedInError } from "@/app/server-db-services/user-utils";
+import { getUserId } from "@/app/server-db-services/user-utils";
 import { buildUrlForState } from "@/app/shared-api/other/common";
 import { StationApiError } from "@/app/shared-api/other/errors";
 import { NextRequest, NextResponse } from "next/server";
-import { friendlyRedirectToLogin } from "@/app/api/users/login/redirect-to-login";
 
 export async function GET(
     request: NextRequest,
@@ -24,7 +23,6 @@ export async function GET(
 
         const inviteData = await DbObjects.Stations.join(stationId, userId, stationInviteCipherData);
         const stationUrl = new URL(inviteData.url);
-        console.log('stationUrl', stationUrl);
         const stationViewAndListenUrl = buildUrlForState({
             givenUrl: stationUrl,
             newViewportType: ViewportType.Station,

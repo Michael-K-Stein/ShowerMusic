@@ -344,7 +344,6 @@ export function ModalFlatTrack(
     {
         if (!trackId) { return; }
         if (track) { return; }
-        console.log(`Getting single flat track info. ${trackId}`);
         getTrackInfo(trackId)
             .then((trackValue) =>
             {

@@ -4,8 +4,9 @@ import Lyrics from "@/app/shared-api/media-objects/lyrics";
 import { TrackDict } from "@/app/shared-api/media-objects/tracks";
 import Playlist from "@/app/shared-api/other/playlist";
 import { MinimalStationsCategory, Station, StationsCategory } from "@/app/shared-api/other/stations";
-import { UserDict } from "@/app/shared-api/user-objects/users";
-import { Collection, Db, MongoClient } from "mongodb";
+import { ShowerMusicNamedResolveableItem, ShowerMusicResolveableItem, UserDict } from "@/app/shared-api/user-objects/users";
+import { ShowerMusicObjectType } from "@/app/showermusic-object-types";
+import { Collection, Db, MongoClient, WithId } from "mongodb";
 const MONGO_CONNECTION_STRING = process.env.MONGO_CONNECTION_STRING ?? 'mongodb://localhost:27017/';
 
 class DatabaseController
@@ -98,4 +99,25 @@ export function createProjectionMap<T extends object>(keys: (keyof T)[]): Projec
     });
 
     return map;
+}
+
+export async function getDbCollectionByItemType<T extends ShowerMusicNamedResolveableItem>(itemType: T[ 'type' ]): Promise<Collection<T>>
+{
+    switch (itemType)
+    {
+        case ShowerMusicObjectType.Track:
+            return databaseController.tracks as unknown as Collection<T>;
+        case ShowerMusicObjectType.Album:
+            return databaseController.albums as unknown as Collection<T>;
+        case ShowerMusicObjectType.Artist:
+            return databaseController.artists as unknown as Collection<T>;
+        case ShowerMusicObjectType.Station:
+            return databaseController.stations as unknown as Collection<T>;
+        case ShowerMusicObjectType.StationsCategory:
+            return databaseController.categories as unknown as Collection<T>;
+        case ShowerMusicObjectType.Playlist:
+            return databaseController.playlists as unknown as Collection<T>;
+        default:
+            throw new Error(`Invalid item type ${itemType}`);
+    }
 }

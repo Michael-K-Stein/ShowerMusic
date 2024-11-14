@@ -57,7 +57,6 @@ export async function POST(
     }
     catch (e)
     {
-        console.log(e);
         return catchHandler(request, e);
     }
 }

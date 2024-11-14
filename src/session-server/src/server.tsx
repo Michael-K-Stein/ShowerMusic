@@ -2,20 +2,37 @@ import
 {
     ServerRequestTargets,
     MessageTypes,
-    WEBSOCKET_SESSION_SERVER_PORT,
-    COMBO_DATA_KEY
+    COMBO_DATA_KEY,
+    WEBSOCKET_SESSION_SERVER_SENDER_SERVER_MAGIC,
+    WEBSOCKET_SESSION_SERVER_SENDER_AUTH_KEY,
+    WEBSOCKET_SESSION_SERVER_INTERNAL_PORT
 } from './common';
 import { ShowerMusicObjectType } from '../../app/showermusic-object-types';
 import WebSocket from 'ws';
 import assert from 'assert';
 
+const GC_INTERVAL_MS = 3600 * 1000; // One hour
 
-const connectedUsers: { [ x: string ]: WebSocket; } = {};
-const registeredSyncObjectConnections: { [ x: string ]: WebSocket[]; } = {};
+interface ConnectedSession
+{
+    ws: WebSocket;
+    initiatorKey: string;
+    abandonedMark?: boolean;
+}
 
+type ConnectedUserSession = ConnectedSession;
+type ConnectedSyncObjectSession = ConnectedSession;
+
+const connectedUsers: { [ x: string ]: ConnectedUserSession; } = {};
+const registeredSyncObjectConnections: { [ x: string ]: Array<ConnectedSyncObjectSession>; } = {};
+
+function updateSessionLastContact<T extends ConnectedSession>(session: T)
+{
+    session.abandonedMark = false;
+}
 
 const wss = new WebSocket.Server({
-    port: WEBSOCKET_SESSION_SERVER_PORT,
+    port: WEBSOCKET_SESSION_SERVER_INTERNAL_PORT,
     perMessageDeflate: {
         zlibDeflateOptions: {
             // See zlib defaults.
@@ -31,24 +48,24 @@ const wss = new WebSocket.Server({
         serverNoContextTakeover: true, // Defaults to negotiated value.
         serverMaxWindowBits: 10, // Defaults to negotiated value.
         // Below options specified as default values.
-        concurrencyLimit: 10, // Limits zlib concurrency for perf.
+        concurrencyLimit: 50, // Limits zlib concurrency for perf.
         threshold: 1024 // Size (in bytes) below which messages
         // should not be compressed if context takeover is disabled.
     }
 });
 
-const registerUserSession = (ws: WebSocket, userId: string) =>
+function registerUserSession(ws: WebSocket, userId: string) 
 {
-    connectedUsers[ userId ] = ws;
+    connectedUsers[ userId ] = { ws, initiatorKey: userId };
 };
 
-const registerSyncObjectConnection = (ws: WebSocket, syncObjectId: string) =>
+function registerSyncObjectConnection(ws: WebSocket, syncObjectId: string) 
 {
     if (!registeredSyncObjectConnections[ syncObjectId ])
     {
         registeredSyncObjectConnections[ syncObjectId ] = [];
     }
-    registeredSyncObjectConnections[ syncObjectId ].push(ws);
+    registeredSyncObjectConnections[ syncObjectId ].push({ ws, initiatorKey: syncObjectId });
 };
 
 const buildMessage = (messageType: MessageTypes, target: string, data?: { [ x: string ]: any; }) =>
@@ -69,11 +86,15 @@ const buildMessage = (messageType: MessageTypes, target: string, data?: { [ x: s
 
 const dispatchMessageToUser = (messageType: MessageTypes, userId: string, data?: { [ x: string ]: any; }) =>
 {
-    if (connectedUsers[ userId ] != null)
+    const session = connectedUsers[ userId ];
+    if (!session)
     {
-        console.log(`Sending ${messageType} to user ${userId}`);
-        connectedUsers[ userId ].send(buildMessage(messageType, userId, data));
+        return;
     }
+    console.log(`Sending ${messageType} to user ${userId}`);
+    assert(session.initiatorKey === userId, `ID confusion on sync object!`);
+    session.ws.send(buildMessage(messageType, userId, data));
+    updateSessionLastContact(session);
 };
 
 const dispatchToSyncObjectListeners = (messageType: MessageTypes, syncObjectId: string, data?: { [ x: string ]: any; }) =>
@@ -84,14 +105,18 @@ const dispatchToSyncObjectListeners = (messageType: MessageTypes, syncObjectId: 
         return;
     }
     const message = buildMessage(messageType, syncObjectId, data);
-    registeredSyncObjectConnections[ syncObjectId ].map((listenerWS: WebSocket) =>
-    {
-        console.log(`Sending ${messageType} to sync-sock ${syncObjectId}`);
-        listenerWS.send(message);
-    });
+    registeredSyncObjectConnections[ syncObjectId ].map(
+        (session: ConnectedSyncObjectSession) =>
+        {
+            const { ws: listenerWS, initiatorKey } = session;
+            assert(initiatorKey === syncObjectId, `ID confusion on sync object!`);
+            console.log(`Sending ${messageType} to sync-sock ${syncObjectId}`);
+            listenerWS.send(message);
+            updateSessionLastContact(session);
+        });
 };
 
-const dispatchMessageToTargets = (message: MessageTypes, targets: ServerRequestTargets, data?: { [ x: string ]: any; }) =>
+function dispatchMessageToTargets(message: MessageTypes, targets: ServerRequestTargets, data?: { [ x: string ]: any; }) 
 {
     targets.targets.map((target) =>
     {
@@ -102,6 +127,7 @@ const dispatchMessageToTargets = (message: MessageTypes, targets: ServerRequestT
                 break;
             case ShowerMusicObjectType.Playlist:
             case ShowerMusicObjectType.Station:
+            case ShowerMusicObjectType.PseudoSyncObject:
                 dispatchToSyncObjectListeners(message, target.id as string, data);
                 break;
             default:
@@ -111,23 +137,37 @@ const dispatchMessageToTargets = (message: MessageTypes, targets: ServerRequestT
     });
 };
 
-const handleServerMessage = (data: { [ x: string ]: any; }) =>
+function validateServerMessage(data: { [ x: string ]: any; })
 {
-    console.log(`Server message ${data[ 'type' ]}`);
-    dispatchMessageToTargets(data[ 'type' ], data[ 'targets' ], data);
+    if (!('authKey' in data)) { throw Error(`Missing "authKey" in server data!`); }
+    if (data[ 'authKey' ] !== WEBSOCKET_SESSION_SERVER_SENDER_AUTH_KEY) { throw Error(`Invalid "authKey" in server data!`); };
+}
+
+function handleServerMessage(data: { [ x: string ]: any; }) 
+{
+    try
+    {
+        validateServerMessage(data);
+        console.log(`Server message ${data[ 'type' ]}`);
+        dispatchMessageToTargets(data[ 'type' ], data[ 'targets' ], data);
+    } catch (e: unknown)
+    {
+        console.error('Server message error: ', e);
+    }
 };
 
 wss.on('connection', (ws) =>
 {
+    console.log(`[WebSocket] : New connection!`);
     ws.on('error', () => console.error('[WebSocket] : connection error!'));
 
     ws.on('message', (dataString) =>
     {
-        console.log('[WebSocket] : Data: %s', dataString);
+        console.log(`[WebSocket] : Data: ${dataString}`);
 
         const data = JSON.parse(dataString.toString());
 
-        if (data[ 'sender' ] === 'server')
+        if (data[ 'sender' ] === WEBSOCKET_SESSION_SERVER_SENDER_SERVER_MAGIC)
         {
             handleServerMessage(data);
         }
@@ -144,3 +184,70 @@ wss.on('connection', (ws) =>
         }
     });
 });
+
+function handleAbandonedSession<T extends ConnectedSession>(purgeList: Array<T>, session: T)
+{
+    if (!session.abandonedMark) { return markSessionAbandoned(session); } // Not abandoned, mark for next round
+    purgeList.push(session);
+}
+
+function markSessionAbandoned<T extends ConnectedSession>(session: T)
+{
+    session.abandonedMark = true;
+}
+
+function abandonedSessionsGC()
+{
+    const gcStartTime = Date.now();
+    console.log(`[GC] : Beginning Session GC ${gcStartTime}`);
+
+    const syncSessionsToRemove: Array<ConnectedSession> = [];
+    for (const syncId in registeredSyncObjectConnections)
+    {
+        registeredSyncObjectConnections[ syncId ].map(
+            (session) => handleAbandonedSession(syncSessionsToRemove, session)
+        );
+    }
+
+    const userSessionsToRemove: Array<ConnectedSession> = [];
+    for (const userId in connectedUsers)
+    {
+        const session = connectedUsers[ userId ];
+        handleAbandonedSession(userSessionsToRemove, session);
+    }
+
+    // Shallow copy to avoid changing size of the dict midway
+    for (const syncId in { ...registeredSyncObjectConnections })
+    {
+        const filteredSessions = registeredSyncObjectConnections[ syncId ]
+            .filter(
+                (session => (!syncSessionsToRemove.includes(session)))
+            );
+
+        if (0 < filteredSessions.length)
+        {
+            registeredSyncObjectConnections[ syncId ] = filteredSessions;
+        }
+        else
+        {
+            console.log(`[GC] : Removing sync object ${syncId}`);
+            delete registeredSyncObjectConnections[ syncId ];
+        }
+    }
+
+    // Shallow copy to avoid changing size of the dict midway
+    for (const userId in { ...connectedUsers })
+    {
+        const session = connectedUsers[ userId ];
+        if (userSessionsToRemove.includes(session))
+        {
+            console.log(`[GC] : Removing user ${userId}`);
+            delete connectedUsers[ userId ];
+        }
+    }
+
+    const gcDuration = Date.now() - gcStartTime;
+    console.log(`[GC] : Session GC took ${gcDuration / 1000} seconds`);
+}
+
+setInterval(abandonedSessionsGC, GC_INTERVAL_MS);
