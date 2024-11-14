@@ -27,7 +27,7 @@ def main():
     args = parser.parse_args()
 
     if args.clean:
-        cleanup_db(args.clean)
+        cleanup_db(args.clean, R'D:\\')
     elif args.db:
         handleTracksDb()
     elif args.map:

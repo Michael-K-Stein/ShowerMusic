@@ -1,3 +1,4 @@
+# from SpotiFile.utils.spotify.spotify_client import SpotifyClient
 import sys
 import threading
 import time
@@ -7,7 +8,6 @@ from src.db_generator import remove_unnecessary_fields_from_track_data
 
 sys.path.insert(0, r"C:\Users\mkupe\Code")
 sys.path.insert(0, r"C:\Users\mkupe\Code\SpotiFile")
-from SpotiFile.utils.spotify.spotify_client import SpotifyClient
 
 
 class SpotifyMetaDataUtilsException(CleanerException):
@@ -18,18 +18,18 @@ client: MongoClient = MongoClient(
     r"mongodb://admin:Pa%24%24word2024@localhost:27017/?authSource=showermusic"
 )
 tracksdb = client.showermusic.tracks
-spotify_client = SpotifyClient()
+# spotify_client = SpotifyClient()
 
 
-def renew_tokens():
-    while True:
-        spotify_client.refresh_tokens()
-        time.sleep(120)
+# def renew_tokens():
+#     while True:
+#         spotify_client.refresh_tokens()
+#         time.sleep(120)
 
 
-t = threading.Thread(target=renew_tokens)
-t.daemon = True
-t.start()
+# t = threading.Thread(target=renew_tokens)
+# t.daemon = True
+# t.start()
 
 
 def get_spotify_metadata(spotify_id: str):
@@ -46,7 +46,9 @@ def get_spotify_metadata(spotify_id: str):
     """
     spotify_metadata = tracksdb.find_one({"id": spotify_id})
     if not spotify_metadata:
-        spotify_metadata = spotify_client.api_get(f"tracks/{spotify_id}").json()
+        raise NotImplementedError()
+        spotify_metadata = spotify_client.api_get(
+            f"tracks/{spotify_id}").json()
         remove_unnecessary_fields_from_track_data(spotify_metadata)
         tracksdb.insert_one(spotify_metadata)
     return spotify_metadata
@@ -63,11 +65,13 @@ def get_isrc_and_track_name(spotify_id: str):
         "external_ids" not in spotify_metadata
         or "isrc" not in spotify_metadata["external_ids"]
     ):
-        raise SpotifyMetaDataUtilsException(f"ISRC not found in spotify metadata!")
+        raise SpotifyMetaDataUtilsException(
+            f"ISRC not found in spotify metadata!")
     isrc = spotify_metadata["external_ids"]["isrc"]
 
     if "name" not in spotify_metadata:
-        raise SpotifyMetaDataUtilsException(f"Name not found in spotify metadata!")
+        raise SpotifyMetaDataUtilsException(
+            f"Name not found in spotify metadata!")
     name = spotify_metadata["name"]
 
     return {"name": name, "isrc": isrc, "spotify_metadata": spotify_metadata}

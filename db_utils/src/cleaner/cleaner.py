@@ -1,6 +1,9 @@
+import hashlib
 import json
 import os
 import re
+import shutil
+import zlib
 import eyed3
 
 from pymongo import MongoClient
@@ -9,7 +12,7 @@ from src.cleaner.spotify_meta_data_utils import (
     get_isrc_and_track_name,
     get_spotify_metadata,
 )
-from src.printer import printError, printLog
+from src.printer import printError, printLog, printSuccess
 from src.utils import walkFiles
 
 
@@ -48,24 +51,50 @@ class Cleaner:
     def __init__(self, base_dir_path: str):
         self.base_dir_path = base_dir_path
 
-    def normalize_file_names_and_move(self):
+    def __copy_file_to_new_disk(self, root_out_dir, spotify_id, file_path):
+        old_file_path, file_name = os.path.split(file_path)
+        new_path = os.path.join(
+            Cleaner.build_track_dir_tree(root_out_dir, spotify_id), file_name)
+
+        shutil.copy2(file_path, new_path)
+        printSuccess(f'Copyied {file_name} to {new_path}')
+        tracksdb.update_one({'id': spotify_id}, {
+            '$set': {'copied_to_disk': True}})
+
+    def normalize_file_names_and_move(self, root_out_dir):
         def handle_file(file_path, file_name):
             # This is in a try-except since we don't want to halt the entire process just because one file is corrupt
             try:
-                self.__normalize_file_name_and_move(file_name)
+                spotify_reg = re.search(
+                    r'\s+\[ID=(?P<spotify_id>([0-9a-zA-Z]+))', file_name)
+                if not spotify_reg:
+                    raise CleanerException(
+                        f'Invalid file name! {str(file_name)}')
+                spotify_id = spotify_reg.group('spotify_id')
+                assert spotify_id
+                if tracksdb.find_one({'id': spotify_id}, projection={'copied_to_disk': True}).get('copied_to_disk', False):
+                    printLog(f'Skipping previously copied file {
+                             str(file_name)}')
+                    return
+                self.__copy_file_to_new_disk(
+                    root_out_dir=root_out_dir, spotify_id=spotify_id, file_path=file_name)
+                # self.__normalize_file_name_and_move(root_out_dir, file_name)
             except CleanerException as ex:
                 printError(
-                    f"Normalizing file name failed, file has not been moved! {str(ex)}"
+                    f"Normalizing file name failed, file has not been moved! {
+                        str(ex)} {str(file_name)}"
                 )
             except Exception as ex:
                 printError(
-                    f"Normalizing file name failed CRITICALY, file has not been moved! {str(ex)}"
+                    f"Normalizing file name failed CRITICALY, file has not been moved! {
+                        str(ex)} {str(file_name)}"
                 )
 
-        malformatted_file_name_regex = r".*((\[ID=[0-9a-zA-Z]+\]\s+\[ID=[0-9a-zA-Z]+,ISRC=\w+\])|(^(?!.*\[ID=[0-9a-zA-Z]+,ISRC=([A-Za-z0-9]{2}[A-Za-z0-9]{3}[0-9A-Z]{2}[0-9A-Z]{5})\]\.mp3$))).*\.mp3$"
-        walkFiles(self.base_dir_path, handle_file, malformatted_file_name_regex)
+        # malformatted_file_name_regex = r".*((\[ID=[0-9a-zA-Z]+\]\s+\[ID=[0-9a-zA-Z]+,ISRC=\w+\])|(^(?!.*\[ID=[0-9a-zA-Z]+,ISRC=([A-Za-z0-9]{2}[A-Za-z0-9]{3}[0-9A-Z]{2}[0-9A-Z]{5})\]\.mp3$))).*\.mp3$"
+        walkFiles(self.base_dir_path, handle_file,
+                  r'\s+\[ID=[0-9a-zA-Z]+,ISRC=\w+\]\.mp3$')
 
-    def __normalize_file_name_and_move(self, file_name: str):
+    def __normalize_file_name_and_move(self, root_out_dir, file_name: str):
         # Get spotify_id from file_name
         # This is a legacy file_name convention which does not include the ISRC
         spotify_id_reg_result = re.search(
@@ -80,15 +109,17 @@ class Cleaner:
                 spotify_id = data["id"]
             except Exception as ex:
                 printError(
-                    f"Failed to laod spotify_id from mp3 metadata! {str(ex)}. Moving file to error folder!"
+                    f"Failed to laod spotify_id from mp3 metadata! {
+                        str(ex)}. Moving file to error folder!"
                 )
                 old_path, old_file_name = os.path.split(file_name)
-                new_path = os.path.join("F:\\", "_errors", old_file_name)
+                new_path = os.path.join("E:\\", "_errors", old_file_name)
                 printLog(f"New path: {new_path}")
                 os.rename(file_name, new_path)
             if not spotify_id:
                 raise CleanerException(
-                    f"SpotifyId not found in file name nor in mp3 data! {file_name}"
+                    f"SpotifyId not found in file name nor in mp3 data! {
+                        file_name}"
                 )
         else:
             spotify_id = spotify_id_reg_result.group("spotify_id")
@@ -98,7 +129,8 @@ class Cleaner:
         track_isrc = data["isrc"]
 
         old_path, old_file_name = os.path.split(file_name)
-        old_file_name = get_raw_file_name_from_formatted_file_name(old_file_name)
+        old_file_name = get_raw_file_name_from_formatted_file_name(
+            old_file_name)
 
         base_name, ext = os.path.splitext(old_file_name)
         if len(base_name) > 200:
@@ -107,10 +139,9 @@ class Cleaner:
         new_name = sanitize_file_name(
             f"{base_name} [ID={spotify_id},ISRC={track_isrc}]{ext}"
         )
-        new_path = os.path.join(old_path, new_name)
 
-        printLog(f'Renaming "{file_name}" to {new_path}')
-        os.rename(file_name, new_path)
+        # printLog(f'Renaming "{file_name}" to {new_path}')
+        # os.rename(file_name, new_path)
 
     def delete_duplicate_files_by_isrc(self) -> None:
         """
@@ -136,14 +167,16 @@ class Cleaner:
                 ):
                     Cleaner.make_sure_spotify_track_is_saved_in_db(spotify_id)
                     printLog(
-                        f"Deleting file due to ISRC <{isrc}> redundancy : {file_name}"
+                        f"Deleting file due to ISRC <{
+                            isrc}> redundancy : {file_name}"
                     )
                     os.remove(file_name)
                     return
                 known_isrcs[isrc] = file_name.strip()
 
             except CleanerException as ex:
-                printError(f"Failed to handle file {file_name} because {str(ex)}")
+                printError(f"Failed to handle file {
+                           file_name} because {str(ex)}")
 
         walkFiles(
             self.base_dir_path,
@@ -176,7 +209,8 @@ class Cleaner:
                 # printLog(f"Mapped file path for [{spotify_id}]<{isrc}> : {file_name}")
 
             except CleanerException as ex:
-                printError(f"Failed to handle file {file_name} because {str(ex)}")
+                printError(f"Failed to handle file {
+                           file_name} because {str(ex)}")
 
         walkFiles(
             self.base_dir_path,
@@ -214,3 +248,20 @@ class Cleaner:
             {},
             {"$set": {"file_path": None}},
         )
+
+    @staticmethod
+    def build_track_dir_tree(root_dir, spotify_id):
+        track_data = tracksdb.find_one({"id": spotify_id})
+        main_artist_name = sanitize_file_name(track_data['artists'][0]['name'])
+        album_name = sanitize_file_name(track_data['album']['name'])
+        main_artist_name_hash = hex(zlib.crc32(
+            main_artist_name.encode()))[2:].zfill(8)
+        subdir1_key = main_artist_name_hash[0:2]
+        subdir2_key = main_artist_name_hash[2:4]
+        hashed_subdir = os.path.join(subdir1_key, subdir2_key)
+
+        pure_track_dir_path = os.path.join(main_artist_name, album_name)
+        full_track_dir_path = os.path.join(
+            root_dir, hashed_subdir, pure_track_dir_path)
+        os.makedirs(full_track_dir_path, exist_ok=True)
+        return full_track_dir_path

@@ -25,7 +25,7 @@ function updateSessionLastContact(session) {
     session.abandonedMark = false;
 }
 var wss = new ws_1.default.Server({
-    port: common_1.WEBSOCKET_SESSION_SERVER_PORT,
+    port: common_1.WEBSOCKET_SESSION_SERVER_INTERNAL_PORT,
     perMessageDeflate: {
         zlibDeflateOptions: {
             // See zlib defaults.

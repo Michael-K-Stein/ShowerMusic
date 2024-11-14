@@ -1,6 +1,7 @@
 import argparse
 import os
 import re
+from threading import Thread
 from typing import Any, Callable
 import requests
 import tqdm
@@ -83,12 +84,18 @@ def walkFiles(
     file_name_regex = file_name_regex if file_name_regex else r""
     progress_bar = tqdm.tqdm(total=0, unit="file(s)", desc="Walking Directory")
 
-    def countTotalFiles(file_path, file_name):
-        progress_bar.reset(progress_bar.total + 1)
+    def countTotalFiles(_file_path, _file_name):
+        progress_bar.total = progress_bar.total + 1
 
     printLog(f"Calculating directory size...")
-    walk_files_internal(root, root, countTotalFiles, file_name_regex)
+
+    def calculationRoutine():
+        return walk_files_internal(
+            root, root, countTotalFiles, file_name_regex)
+    calculationThread = Thread(target=calculationRoutine)
+    calculationThread.start()
     walk_files_internal(root, root, callback, file_name_regex, progress_bar)
+    calculationThread.join()
 
 
 def validateFilePath(file_path):

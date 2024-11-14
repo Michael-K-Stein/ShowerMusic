@@ -1,3 +1,5 @@
+from src.utils import walkFiles
+from src.printer import printError, printInfo, printLog, printSuccess
 import datetime
 import json
 import os
@@ -12,18 +14,16 @@ import tqdm
 
 sys.path.insert(0, r"C:\Users\mkupe\Code")
 sys.path.insert(0, r"C:\Users\mkupe\Code\SpotiFile")
-from SpotiFile.utils.spotify.spotify_client import SpotifyClient
+# from SpotiFile.utils.spotify.spotify_client import SpotifyClient
 
 eyed3.log.setLevel("ERROR")
 
-from src.printer import printError, printInfo, printLog, printSuccess
-from src.utils import walkFiles
 
 client: MongoClient = pymongo.MongoClient(
     r"mongodb://admin:Pa%24%24word2024@localhost:27017/?authSource=showermusic"
 )
 tracksdb = client.showermusic.tracks
-spotify_client = SpotifyClient()
+# spotify_client = SpotifyClient()
 
 
 def remove_unnecessary_fields_from_track_data(trackData: dict) -> None:
@@ -44,7 +44,8 @@ def handleSpotifyTrackFile(root_dir: str, file_path: str) -> None:
             {"_id": spotify_metadata["_id"]}, {"$set": spotify_metadata}, upsert=True
         )
 
-        printSuccess(f'Indexed {spotify_metadata["id"]} : "{spotify_metadata["name"]}"')
+        printSuccess(f'Indexed {spotify_metadata["id"]} : "{
+                     spotify_metadata["name"]}"')
     except Exception as ex:
         try:
             printError(f'{spotify_metadata["id"]} : {file_path} : {str(ex)}')
@@ -56,12 +57,13 @@ def handleDbTrack(track: Any) -> None:
     try:
         uid = track["_id"]
         spotify_id = track["id"]
-
+        raise NotImplementedError()
         track_data = spotify_client.api_get(f"tracks/{spotify_id}").json()
         remove_unnecessary_fields_from_track_data(track_data)
 
         tracksdb.delete_one({"_id": uid, "2024": True})
-        tracksdb.update_one({"id": track_data["id"]}, {"$set": track_data}, upsert=True)
+        tracksdb.update_one({"id": track_data["id"]}, {
+                            "$set": track_data}, upsert=True)
 
         printSuccess(f'Indexed {track_data["id"]} : "{track_data["name"]}"')
     except Exception as ex:
@@ -119,10 +121,12 @@ def mapFilePathsToSpotifyId(dir_path: str) -> dict[str, str]:
                     r"\[ID=(?P<spotify_id>([0-9a-zA-Z]+))\]\.mp3$", file_name
                 )
                 if not reg or not reg.group("spotify_id"):
-                    raise Exception(f"Failed to parse spotify id from {file_name} !")
+                    raise Exception(
+                        f"Failed to parse spotify id from {file_name} !")
                 spotify_id = reg.group("spotify_id")
                 spotify_metadata = tracksdb.find_one({"id": spotify_id})
                 if not spotify_metadata:
+                    raise NotImplementedError()
                     spotify_metadata = spotify_client.api_get(
                         f"tracks/{spotify_id}"
                     ).json()
@@ -162,7 +166,8 @@ def mapFilePathsToSpotifyId(dir_path: str) -> dict[str, str]:
                     spotify_id = reg.group("spotify_id")
                     data = tracksdb.find_one({"id": spotify_id})
                     if not data:
-                        raise Exception(f"Track {file_name} was not found in DB!")
+                        raise Exception(
+                            f"Track {file_name} was not found in DB!")
                     data["_id"] = None
                     data["album"]["release_date"] = (
                         data["album"]["release_date"].isoformat()
@@ -177,7 +182,8 @@ def mapFilePathsToSpotifyId(dir_path: str) -> dict[str, str]:
                     printInfo(f"Saved metadata on corrupted file {file_name}")
                     return
                 except Exception as ex:
-                    printError(f"Failed settings comment for {file_name}! {str(ex)}")
+                    printError(f"Failed settings comment for {
+                               file_name}! {str(ex)}")
                 printError(f"Extracting SpotifyId from {file_name} failed!")
         except Exception as ex:
             printError(f"Loading mp3 {file_name} failed!")
@@ -212,10 +218,12 @@ def mapFilePathsToSpotifyId(dir_path: str) -> dict[str, str]:
                 printLog(
                     isrc,
                     file_name,
-                    f"Modified: {update_result.modified_count} | Upserted: {update_result.upserted_id}",
+                    f"Modified: {update_result.modified_count} | Upserted: {
+                        update_result.upserted_id}",
                 )
         except Exception as ex:
-            printError(f"Handling formatted file {file_name} failed: {str(ex)}")
+            printError(f"Handling formatted file {
+                       file_name} failed: {str(ex)}")
 
     walkFiles(
         dir_path,
@@ -231,12 +239,14 @@ def resolveSpotifyIdConflictingFiles(
     file1: str, file2: str, spotify_id: str, conflict_resolution_hints: dict[str, str]
 ) -> str:
     printError(
-        f"Duplicate SpotifyId [{spotify_id}] mapping for '{file1}' and '{file2}'!"
+        f"Duplicate SpotifyId [{spotify_id}] mapping for '{
+            file1}' and '{file2}'!"
     )
     file1_assumed_album = os.path.split(os.path.split(file1)[0])[1]
     file2_assumed_album = os.path.split(os.path.split(file2)[0])[1]
     track_real_album = conflict_resolution_hints[spotify_id]
     printLog(
-        f"file1_assumed_album: {file1_assumed_album} | file2_assumed_album: {file2_assumed_album} | track_real_album: {track_real_album}"
+        f"file1_assumed_album: {file1_assumed_album} | file2_assumed_album: {
+            file2_assumed_album} | track_real_album: {track_real_album}"
     )
     return file1

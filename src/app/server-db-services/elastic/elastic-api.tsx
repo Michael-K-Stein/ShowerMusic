@@ -1,3 +1,4 @@
+import { ElasticSesstings } from '@/app/settings';
 import { Client } from '@elastic/elasticsearch';
 export const ElasticSSApi = (function ()
 {
@@ -9,10 +10,10 @@ export const ElasticSSApi = (function ()
         {
             _client = new Client(
                 {
-                    node: "https://172.27.93.191:9200",
+                    node: ElasticSesstings.ELASTIC_SERVER_CONN_STRING,
                     auth: {
-                        username: 'showermusic-client',
-                        password: 'Password1', /* Dummy password */
+                        username: ElasticSesstings.USERNAME,
+                        password: ElasticSesstings.PASSWORD,
                     },
                     tls: { /* Dangerous configurations - allowed in development */
                         enableTrace: false,

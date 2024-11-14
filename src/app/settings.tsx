@@ -7,7 +7,14 @@ export function buildShowermusicWebTitle(currentlyPlayingTrackTitle: string): st
     return `${SHOWERMUSIC_WEB_TITLE} | ${currentlyPlayingTrackTitle}`;
 }
 
-export const CONTACT_LINK = 'http://mattermost.dother.mil/@980michaelks';
+export namespace ElasticSesstings
+{
+    export const ELASTIC_SERVER_CONN_STRING = 'https://172.27.93.191:9200';
+    export const USERNAME = 'showermusic-client';
+    export const PASSWORD = 'Password1';
+}
+
+export const CONTACT_LINK = `http://mattermost${process.env.DOMAIN_SUFFIX}/@980michaelks`;
 export const CONTACT_DISPLAY_TEXT = '@980michaelks';
 
 export const MAX_STREAM_BUFFER_SIZE = 128000 * 8;

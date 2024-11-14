@@ -46,19 +46,6 @@
                     "sizes": "512x512"
                 }
             ]
-        },
-        {
-            "name": "Login",
-            "short_name": "Login",
-            "description": "Login",
-            "url": "/login?source=pwa",
-            "icons": [
-                {
-                    "src": "/showermusic_logo_x512.png",
-                    "type": "image/png",
-                    "sizes": "512x512"
-                }
-            ]
         }
     ],
     "description": "פשוט לשטוף ת'ראש",

@@ -2,10 +2,10 @@ import
 {
     ServerRequestTargets,
     MessageTypes,
-    WEBSOCKET_SESSION_SERVER_PORT,
     COMBO_DATA_KEY,
     WEBSOCKET_SESSION_SERVER_SENDER_SERVER_MAGIC,
-    WEBSOCKET_SESSION_SERVER_SENDER_AUTH_KEY
+    WEBSOCKET_SESSION_SERVER_SENDER_AUTH_KEY,
+    WEBSOCKET_SESSION_SERVER_INTERNAL_PORT
 } from './common';
 import { ShowerMusicObjectType } from '../../app/showermusic-object-types';
 import WebSocket from 'ws';
@@ -32,7 +32,7 @@ function updateSessionLastContact<T extends ConnectedSession>(session: T)
 }
 
 const wss = new WebSocket.Server({
-    port: WEBSOCKET_SESSION_SERVER_PORT,
+    port: WEBSOCKET_SESSION_SERVER_INTERNAL_PORT,
     perMessageDeflate: {
         zlibDeflateOptions: {
             // See zlib defaults.

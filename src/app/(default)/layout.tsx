@@ -44,14 +44,10 @@ export default function GlobalProvidersRootLayout({
 
         window.addEventListener('beforeinstallprompt', async (e) =>
         {
-            // Prevent the mini-infobar from appearing on mobile
             e.preventDefault();
-            // Stash the event so it can be triggered later.
             pwaInstallPrompt.current = e as BeforeInstallPromptEvent;
-            // Optionally, send analytics event that PWA install promo was shown.
-            console.log(`'beforeinstallprompt' event was fired.`);
             const userChoice = await pwaInstallPrompt.current.prompt();
-            console.log(userChoice);
+            console.debug(userChoice);
             pwaInstallPrompt.current = undefined;
         });
     }, []);

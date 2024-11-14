@@ -19,8 +19,8 @@ export async function POST(
     try
     {
         const requestHeaders = headers();
-        const forwardedHost = requestHeaders.get('X-Forwarded-Host');
-        const forwardedProto = requestHeaders.get('X-Forwarded-Proto');
+
+        const origin = requestHeaders.get('origin');
 
         const formData = await request.formData();
         const username = formData.get('username');
@@ -39,7 +39,7 @@ export async function POST(
         }
 
         const user = await DbObjects.Users.login(username, password);
-        const url = new URL(fromReferer, `${forwardedProto}://${forwardedHost}/`);
+        const url = new URL(fromReferer, `${origin}/`);
         const res = NextResponse.redirect(url, 303);
 
         const userJWTData: JWTUserData = {

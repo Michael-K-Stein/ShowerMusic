@@ -240,29 +240,30 @@ export default function StreamBar()
         seek(newTrackTime, true);
     }, [ userCanSeek, Muse, seek ]);
 
-    useMemo(() =>
-    {
-        if (!currentlyPlayingTrack) { return; }
-        const ws = new WebSocket(WEBSOCKET_RECOMMENDATIONS_SERVER_CONN_STRING);
-        ws.onopen = () =>
-        {
-            const similarTracksRequest: RecommenderRequestMessage = {
-                type: RecommendationMessageType.GetSimilarTracks,
-                trackId: currentlyPlayingTrack.id,
-                count: 100,
-            };
-            ws.send(JSON.stringify(similarTracksRequest));
-            ws.onmessage = (ev) =>
-            {
-                const data = JSON.parse(ev.data);
-                assert(Array.isArray(data[ 'tracks' ]));
-                data[ 'tracks' ].map((v: any) =>
-                {
-                    commandQueueAddArbitraryTypeTracks(ShowerMusicObjectType.Track, v[ 'trackId' ]);
-                });
-            };
-        };
-    }, [ currentlyPlayingTrack ]);
+    // For recommender only!
+    // useMemo(() =>
+    // {
+    //     if (!currentlyPlayingTrack) { return; }
+    //     const ws = new WebSocket(WEBSOCKET_RECOMMENDATIONS_SERVER_CONN_STRING);
+    //     ws.onopen = () =>
+    //     {
+    //         const similarTracksRequest: RecommenderRequestMessage = {
+    //             type: RecommendationMessageType.GetSimilarTracks,
+    //             trackId: currentlyPlayingTrack.id,
+    //             count: 100,
+    //         };
+    //         ws.send(JSON.stringify(similarTracksRequest));
+    //         ws.onmessage = (ev) =>
+    //         {
+    //             const data = JSON.parse(ev.data);
+    //             assert(Array.isArray(data[ 'tracks' ]));
+    //             data[ 'tracks' ].map((v: any) =>
+    //             {
+    //                 commandQueueAddArbitraryTypeTracks(ShowerMusicObjectType.Track, v[ 'trackId' ]);
+    //             });
+    //         };
+    //     };
+    // }, [ currentlyPlayingTrack ]);
 
     if (!currentlyPlayingTrack)
     {
