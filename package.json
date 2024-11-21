@@ -22,7 +22,7 @@
     "@mui/material": "^5.14.19",
     "@mui/styled-engine-sc": "^6.0.0-alpha.7",
     "@next/bundle-analyzer": "^14.0.4",
-    "cookie": "^0.6.0",
+    "cookie": "^0.7.0",
     "jose": "^5.2.3",
     "jsonwebtoken": "^9.0.2",
     "ldapjs": "^3.0.7",
